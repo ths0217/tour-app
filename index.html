@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Bangkok Expedition</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Manrope:wght@300;400;500;600&family=Spline+Sans:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              ivory: "#FAF9F7",
+              bone: "#F4F3EF",
+              "bone-alt": "#F6F5F2",
+              gold: "#C9B27C",
+              "text-primary": "#1E1E1E",
+              "text-secondary": "#4A4A4A",
+              "text-muted": "#888888",
+              icon: "#9B9B9B",
+            },
+            fontFamily: {
+              display: ["Spline Sans", "sans-serif"],
+              serif: ["Cinzel", "serif"],
+              body: ["Manrope", "sans-serif"],
+            },
+            boxShadow: {
+              soft: "0 8px 30px -8px rgba(0, 0, 0, 0.04)",
+              card: "0 2px 15px rgba(0, 0, 0, 0.02)",
+              glow: "0 4px 20px -5px rgba(201, 178, 124, 0.3)",
+              nav: "0 -4px 20px rgba(0,0,0,0.02)",
+            },
+            letterSpacing: {
+              luxury: '0.05em',
+              widest: '0.15em',
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        background-color: #FAF9F7;
+        color: #1E1E1E;
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior-y: none;
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      .material-symbols-filled {
+        font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      }
+      
+      /* Smooth font rendering */
+      * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "framer-motion": "https://esm.sh/framer-motion@^12.23.26",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
