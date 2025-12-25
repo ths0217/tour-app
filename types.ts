@@ -9,10 +9,10 @@ export interface Traveler {
 }
 
 export interface Expense {
-  id: string;
+  id: number;
   title: string;
   amount: number;
-  category: 'Dining' | 'Transport' | 'Retail' | 'Lodging';
+  cat: string;
   time: string;
   payer: string;
 }
@@ -35,4 +35,20 @@ export interface ItineraryItem {
   type: 'transport' | 'accommodation' | 'dining' | 'activity' | 'shopping';
   image?: string;
   location?: string;
+}
+
+export interface ScheduleItem {
+  id: number;
+  title: string;
+  time: string; // HH:mm
+  date: string; // YYYY-MM-DD or MM/DD
+  completed: boolean;
+  type: string;
+  desc?: string;
+  location?: string;
+  notificationOffset?: number; // Minutes before event
+  tag?: string;
+  image?: string;
+  travelTime?: string; // e.g. "15m"
+  travelTip?: string; // e.g. "Grab XL"
 }

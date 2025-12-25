@@ -1,168 +1,206 @@
-import React, { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 
-const collections = [
-    { 
-        title: '時尚與配件', 
-        desc: 'Greyhound Original, CPS Chaps', 
-        images: [
-            'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=400',
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuBMP9xYayLyx_H03ogyxoIKpWcQGt_UXyBvsiiRxAdzcIweyF2jIA-yw7GJ1gMliQSi6X7-jppSCaDmu0bzsb8ONM9vM86lC4OQt-v7L6utdhYB9lEZ77lGLwR_QDcr_9JP6fzm8ycSSU7vs21LhUH6DZ-GY_cEPeFg0QpxButzgfUVsaF7UjD-e4yal8cKz6Ie-acaUKpf938N6KpUNrSlfTvGK03V9vZO_slfkebJuaLCZm6PTapwfQp37IDxktt8Hhd9cgtcbQBK',
-            'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=400'
-        ]
+const tags = ['全部', '美食', '景點', '購物', '按摩'];
+
+interface ExploreItem {
+    id: string;
+    title: string;
+    description: string;
+    image: string;
+    tags: string[];
+    rating: number;
+    saves: number;
+    mapUrl: string;
+    zone: string;
+    category: 'food' | 'spot' | 'shop' | 'activity';
+}
+
+const exploreData: ExploreItem[] = [
+    {
+        id: '1',
+        title: '鄭王廟 (Wat Arun)',
+        description: '必拍地標！建議傍晚去，夕陽下最美。穿泰服拍照超有氛圍，CP值超高。',
+        image: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?q=80&w=800',
+        tags: ['必去地標', '泰服體驗', 'IG打卡'],
+        rating: 4.9,
+        saves: 12400,
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Wat+Arun',
+        zone: 'Riverside',
+        category: 'spot'
     },
-    { 
-        title: '美容與芳療', 
-        desc: 'Bath & Bloom, Harnn Heritage', 
-        images: [
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuBXO5trTGWgwerzx8wSPrMLwJ6YOMi0uTrPGnCS2RAD5wRjfiDMy3-7qkAlfpn9_b1VsAXj1hod5PYKWEzbJM4Q7kKcXOZKOqvGszWrdou9BWkeEqxylcaNsQlwolnNkjjBdaf_dzrhxuY_7cBJDogyUWaTqWn-4GSzWHvVHYDvaZ5gFr0j3fzWlmZDCwVLKhHAWIcYlE_S1u-fAvZ6Jg7DDf1baCOzw73hKaOt1kFYVmGYakC-x9tqUwXKtUZkTqDHbM_a40OVSeYH',
-            'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=400',
-            'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?q=80&w=400'
-        ]
+    {
+        id: '2',
+        title: 'ICONSIAM 暹羅天地',
+        description: '曼谷最強商場！室內水上市場好吃又好逛，冷氣超涼，適合全家大小。',
+        image: 'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?q=80&w=800',
+        tags: ['室內水上市場', '吹冷氣', '美食聚集'],
+        rating: 4.8,
+        saves: 8900,
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=ICONSIAM',
+        zone: 'Riverside',
+        category: 'shop'
     },
-    { 
-        title: '特色咖啡廳', 
-        desc: 'Ari 巷弄探險, 文青必去', 
-        images: [
-            'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=400',
-            'https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=400',
-            'https://images.unsplash.com/photo-1521017432531-fbd92d768814?q=80&w=400'
-        ]
+    {
+        id: '3',
+        title: 'Jodd Fairs 夜市',
+        description: '網紅火山排骨必吃！水果西施也在這。乾淨好逛，年輕人最愛。',
+        image: 'https://images.unsplash.com/photo-1533552063857-e83cb4819777?q=80&w=800',
+        tags: ['火山排骨', '網紅夜市', '吃貨天堂'],
+        rating: 4.7,
+        saves: 15600,
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Jodd+Fairs+Rama+9',
+        zone: 'Rama9',
+        category: 'food'
     },
-    { 
-        title: '米其林街頭美食', 
-        desc: 'Jay Fai, 媽媽麵', 
-        images: [
-            'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=400',
-            'https://images.unsplash.com/photo-1559314809-0d155014e29e?q=80&w=400',
-            'https://images.unsplash.com/photo-1563245372-f21724e3856d?q=80&w=400'
-        ]
+    {
+        id: '4',
+        title: 'After You 刨冰',
+        description: '泰國必吃甜點，芒果糯米飯刨冰是招牌！排隊也值得。',
+        image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?q=80&w=800',
+        tags: ['甜點控', '必吃', '消暑'],
+        rating: 4.9,
+        saves: 5400,
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=After+You+Dessert+Cafe',
+        zone: 'Siam',
+        category: 'food'
     },
+    {
+        id: '5',
+        title: 'Let\'s Relax Spa',
+        description: '連鎖按摩品質保證，芒果糯米飯是隱藏版美味。建議提前預約。',
+        image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=800',
+        tags: ['按摩放鬆', '連鎖名店', '服務好'],
+        rating: 4.6,
+        saves: 3200,
+        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Let\'s+Relax+Spa',
+        zone: 'Multiple',
+        category: 'activity'
+    }
 ];
 
-export default function ExploreView() {
-  const containerRef = useRef(null);
-  const { scrollY } = useScroll({ container: containerRef });
-  
-  // Parallax effects
-  const y = useTransform(scrollY, [0, 300], [0, 150]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0.5]);
-  const scale = useTransform(scrollY, [0, 300], [1, 1.1]);
+interface ExploreViewProps {
+    hotelInfo?: { name: string; bookingId: string; location: string };
+}
 
-  return (
-    <div ref={containerRef} className="h-full overflow-y-auto no-scrollbar relative bg-ivory">
-        {/* Parallax Header */}
-        <div className="relative w-full h-[380px] z-0 overflow-hidden">
-            <motion.div 
-                style={{ y, opacity, scale }}
-                className="absolute inset-0 bg-cover bg-center" 
-                initial={{ scale: 1.1 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-            >
-                <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAuoNRBOzj6h4_vA_djjorjV8E6k5qPSvUwNnLWr9O5kXh5nkhsuHYRTGJ7kpwASMIBKWFiW5QcodFNzVTNb6210SpLGgEf01cyEeX_fPhJ41l8Ig_vrFBDPZAX1ogICGNpS00oj6teGc0U4yFHQHk0DYtd7D0FMyRTXaKEw1cFPrNuCLRw46eDFFqJVj6jf_CZRxAlVodOBwWK3yh-7C8Q8vyDTGhOiOUHOD3Kgp5K3Qqwl1WB-mmr36eEs_xiGHjN1_AHtwQaOVmW')" }} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-            </motion.div>
-            
-            <div className="absolute bottom-0 left-0 w-full p-8 pb-16 z-10 translate-y-4">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                >
-                    <div className="flex items-center gap-2 mb-4">
-                        <span className="bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-[0.2em]">獨家精選</span>
-                    </div>
-                    <h2 className="text-4xl font-light text-white mb-3 leading-tight tracking-wide font-display">曼谷<br/><span className="font-normal font-serif">深度指南</span></h2>
-                    <p className="text-white/80 text-xs font-light tracking-widest mt-2 uppercase">1月27日 - 2月2日 • 私人訂製</p>
-                </motion.div>
-            </div>
+export default function ExploreView({ hotelInfo }: ExploreViewProps) {
+    const [activeTag, setActiveTag] = useState('全部');
 
-            {/* Overlay Navigation Header */}
-             <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-20 pt-14">
-                <motion.button 
-                    whileTap={{ scale: 0.9 }}
-                    className="h-10 w-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"
-                >
-                    <span className="material-symbols-outlined">arrow_back</span>
-                </motion.button>
-                <motion.button 
-                    whileTap={{ scale: 0.9 }}
-                    className="h-10 w-10 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white"
-                >
-                    <span className="material-symbols-outlined">favorite</span>
-                </motion.button>
-             </div>
-        </div>
+    // Context Aware Logic
+    // If hotel is Riverside (Avani is Riverside), prioritize Riverside items
+    const isRiverside = hotelInfo?.location?.includes('Riverside') || hotelInfo?.name?.includes('Avani');
 
-        {/* Content Layer - Snaps over header */}
-        <div className="relative z-10 -mt-8 bg-ivory rounded-t-[2.5rem] min-h-screen">
-             <div className="px-6 -mt-8 transform -translate-y-1/2">
-                 <motion.div 
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="bg-white rounded-2xl shadow-xl p-6 flex justify-between divide-x divide-black/5"
-                 >
-                    <div className="flex flex-col items-center px-2 flex-1">
-                        <span className="material-symbols-outlined text-gold text-[24px] mb-1">currency_exchange</span>
-                        <span className="text-[9px] font-bold text-text-muted uppercase tracking-[0.1em]">預算</span>
-                        <span className="text-xs font-medium text-text-primary">高端</span>
-                    </div>
-                    <div className="flex flex-col items-center px-2 flex-1">
-                        <span className="material-symbols-outlined text-gold text-[24px] mb-1">receipt_long</span>
-                        <span className="text-[9px] font-bold text-text-muted uppercase tracking-[0.1em]">退稅</span>
-                        <span className="text-xs font-medium text-text-primary">可退稅</span>
-                    </div>
-                    <div className="flex flex-col items-center px-2 flex-1">
-                        <span className="material-symbols-outlined text-gold text-[24px] mb-1">stars</span>
-                        <span className="text-[9px] font-bold text-text-muted uppercase tracking-[0.1em]">評分</span>
-                        <span className="text-xs font-medium text-text-primary">5.0</span>
-                    </div>
-                 </motion.div>
-             </div>
+    // Sort items: "Riverside" first if at Avani, then by saves
+    const sortedData = [...exploreData].sort((a, b) => {
+        if (isRiverside) {
+            if (a.zone === 'Riverside' && b.zone !== 'Riverside') return -1;
+            if (a.zone !== 'Riverside' && b.zone === 'Riverside') return 1;
+        }
+        return b.saves - a.saves;
+    });
 
-            <div className="px-6 pb-32">
-                <h3 className="text-xl font-light text-text-primary tracking-widest uppercase mb-6 pl-1">精選系列</h3>
-                
-                <div className="space-y-8">
-                    {collections.map((col, i) => (
-                        <motion.div 
-                            key={i} 
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.1 }}
-                            className="flex flex-col gap-4"
-                        >
-                            <div className="flex gap-4 items-center pl-1">
-                                <div className="w-10 h-10 rounded-full bg-white border border-black/5 shadow-sm flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-icon text-[20px]">styler</span>
-                                </div>
-                                <div>
-                                    <h4 className="text-lg font-normal text-text-primary">{col.title}</h4>
-                                    <p className="text-text-secondary text-sm font-light">{col.desc}</p>
-                                </div>
-                            </div>
-                            
-                            <div className="bg-bone p-4 rounded-3xl transition-colors">
-                                {/* Horizontal Image Scroll */}
-                                <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory">
-                                    {col.images.map((img, imgIdx) => (
-                                        <motion.div 
-                                            key={imgIdx}
-                                            whileTap={{ scale: 0.98 }}
-                                            className="min-w-[240px] h-40 rounded-xl bg-cover bg-center snap-center shadow-sm"
-                                            style={{ backgroundImage: `url('${img}')` }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
+    const filteredData = activeTag === '全部'
+        ? sortedData
+        : sortedData.filter(item => {
+            if (activeTag === '美食') return item.category === 'food';
+            if (activeTag === '景點') return item.category === 'spot';
+            if (activeTag === '購物') return item.category === 'shop';
+            if (activeTag === '按摩') return item.category === 'activity';
+            return true;
+        });
+
+    return (
+        <div className="pt-14 px-6 pb-24 relative min-h-full bg-bone/30">
+            <h2 className="text-3xl font-light tracking-wide text-text-primary font-display mb-1">探索曼谷</h2>
+            <p className="text-xs text-text-muted mb-6">小紅書熱門 • 在地人推薦</p>
+
+            {/* Hotel Context Banner */}
+            {hotelInfo && (
+                <div className="mb-8 p-4 bg-white rounded-2xl border border-black/5 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] uppercase font-bold text-gold tracking-wider mb-1">您的住宿</p>
+                        <h3 className="text-sm font-bold text-text-primary">{hotelInfo.name}</h3>
+                        <p className="text-[10px] text-text-muted mt-0.5">已為您優先推薦 {isRiverside ? '河岸區 (Riverside)' : '附近'} 景點</p>
+                    </div>
+                    <span className="material-symbols-outlined text-gold">hotel_class</span>
                 </div>
+            )}
+
+            {/* Filter Tags */}
+            <div className="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-2">
+                {tags.map(tag => (
+                    <button
+                        key={tag}
+                        onClick={() => setActiveTag(tag)}
+                        className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${activeTag === tag
+                            ? 'bg-text-primary text-white shadow-md'
+                            : 'bg-white text-text-secondary border border-black/5'
+                            }`}
+                    >
+                        {tag}
+                    </button>
+                ))}
+            </div>
+
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 gap-6">
+                {filteredData.map((item, index) => (
+                    <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="group relative bg-white rounded-3xl overflow-hidden shadow-sm border border-black/5"
+                    >
+                        <div className="relative aspect-[16/10] overflow-hidden">
+                            <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <div className="absolute top-3 left-3 flex gap-2">
+                                {item.tags.map(tag => (
+                                    <span key={tag} className="px-2 py-1 bg-black/40 backdrop-blur-md rounded-lg text-[10px] text-white font-medium border border-white/20">
+                                        #{tag}
+                                    </span>
+                                ))}
+                            </div>
+                            {item.zone === 'Riverside' && isRiverside && (
+                                <div className="absolute bottom-3 left-3 px-2 py-1 bg-gold text-white text-[10px] font-bold rounded-lg flex items-center gap-1 shadow-lg">
+                                    <span className="material-symbols-outlined text-[12px]">near_me</span>
+                                    距離近
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-5">
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="text-lg font-bold text-text-primary">{item.title}</h3>
+                                <div className="flex items-center gap-1 text-xs font-medium text-text-muted">
+                                    <span className="material-symbols-outlined text-[14px] text-gold">star</span>
+                                    {item.rating}
+                                </div>
+                            </div>
+
+                            <p className="text-sm text-text-secondary leading-relaxed mb-4 line-clamp-2">
+                                {item.description}
+                            </p>
+
+                            <div className="flex items-center justify-between border-t border-black/5 pt-4">
+                                <span className="text-xs text-text-muted flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[14px]">favorite</span>
+                                    {item.saves > 10000 ? `${(item.saves / 10000).toFixed(1)}w` : item.saves} 收藏
+                                </span>
+                                <a
+                                    href={item.mapUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center gap-1 text-xs font-bold text-gold hover:underline"
+                                >
+                                    <span className="material-symbols-outlined text-[16px]">map</span>
+                                    導航
+                                </a>
+                            </div>
+                        </div>
+                    </motion.div>
+                ))}
             </div>
         </div>
-    </div>
-  );
+    );
 }
