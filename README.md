@@ -1,20 +1,65 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# 曼谷奢華旅程 (Bangkok Luxury Tour)
 
-# Run and deploy your AI Studio app
+歡迎來到曼谷奢華旅程專案！這是一個基於 React 和 Vite 構建的現代化旅遊應用程式。
 
-This contains everything you need to run your app locally.
+## 🚀 專案功能
 
-View your app in AI Studio: https://ai.studio/apps/drive/1aefQoO4_m3lTAK94sjlXkyfSvj5ZNqIU
+- **極致奢華的視覺體驗**：使用 Framer Motion 打造流暢動畫。
+- **響應式設計**：支援各種裝置瀏覽。
+- **高效能**：基於 Vite 的快速開發與構建。
 
-## Run Locally
+## 🛠️ 技術棧
 
-**Prerequisites:**  Node.js
+- **Core**: React, TypeScript, Vite
+- **Styling**: CSS / Tailwind (if applicable), Framer Motion
+- **Deployment**: GitHub Actions (GitHub Pages)
 
+## 📦 安裝與啟動
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 前置需求
+- Node.js (建議 v18 或以上)
+
+### 1. 安裝套件
+在專案根目錄執行：
+```bash
+npm install
+```
+
+### 2. 本地開發
+啟動開發伺服器：
+```bash
+npm run dev
+```
+
+應用程式將在 `http://localhost:5173` (預設) 運行。
+
+### 3. 建置專案
+構建生產版本：
+```bash
+npm run build
+```
+產出的檔案將位於 `dist` 資料夾。
+
+## ☁️ 部署
+
+本專案已設定 GitHub Actions 自動部署。
+每當推送到 `main` 分支時，會自動構建並部署至 GitHub Pages。
+
+### 設定步驟 (GitHub Repo Setting)
+1. 進入 GitHub Repository 的 **Settings** > **Pages**。
+2. 在 **Build and deployment** > **Source** 選擇 **GitHub Actions**。
+3. 推送程式碼後，Action 將自動執行。
+
+## 📝 專案結構
+
+```
+.
+├── .github/workflows/  # GitHub Actions 設定
+├── src/               # 原始碼
+├── components/        # UI 元件
+├── views/             # 頁面視圖
+└── ...
+```
+
+---
+Built with ❤️ using React & Vite.
