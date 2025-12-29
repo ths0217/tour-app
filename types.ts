@@ -1,5 +1,12 @@
 export type Tab = 'home' | 'itinerary' | 'wallet' | 'checklist' | 'explore';
 
+export interface User {
+  id: string;
+  name: string;
+  role: string;
+  image: string;
+}
+
 export interface Traveler {
   name: string;
   role: string;
