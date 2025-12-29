@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ScheduleItem, User } from '../types';
 
 const familyMembersData = [
   { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg', bat: 80 },
@@ -46,16 +47,16 @@ const defaultMemories = [
   'https://images.unsplash.com/photo-1563492065599-3520f775eeed?q=80&w=400',
 ];
 
-import { ScheduleItem } from '../types';
-
 // ... (keep constants)
 
-export default function HomeView({ user, budget, schedule, setSchedule }: {
-  user: any,
-  budget?: { total: number, remaining: number, spent: number },
-  schedule: ScheduleItem[],
-  setSchedule: (s: ScheduleItem[]) => void
-}) {
+interface HomeViewProps {
+  user: User | null;
+  budget?: { total: number; remaining: number; spent: number };
+  schedule: ScheduleItem[];
+  setSchedule: React.Dispatch<React.SetStateAction<ScheduleItem[]>>;
+}
+
+export default function HomeView({ user, budget, schedule, setSchedule }: HomeViewProps) {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [weather, setWeather] = useState(WEATHER_SCENARIOS[0]);
 
@@ -133,15 +134,15 @@ export default function HomeView({ user, budget, schedule, setSchedule }: {
       date: newEventDate,
       completed: false,
       type: 'Activity',
-      notificationOffset: 10
+      notificationOffset: 10,
     };
-    setSchedule([...schedule, newItem]);
+    setSchedule((prev) => [...prev, newItem]);
     setNewEventTitle('');
     setNewEventTime('');
   };
 
   const toggleEvent = (id: number) => {
-    setSchedule(schedule.map(e => e.id === id ? { ...e, completed: !e.completed } : e));
+    setSchedule((prev) => prev.map(e => e.id === id ? { ...e, completed: !e.completed } : e));
   };
 
   const addMemory = () => {
@@ -174,7 +175,7 @@ export default function HomeView({ user, budget, schedule, setSchedule }: {
         >
           <div
             className="w-12 h-12 rounded-full bg-bone border border-white shadow-sm bg-cover bg-center"
-            style={{ backgroundImage: `url('${user?.image}')` }}
+            style={{ backgroundImage: `url('${user?.image || '/avatars/me.jpg'}')` }}
           />
           <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-ivory rounded-full"></div>
         </motion.div>

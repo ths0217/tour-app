@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { User } from '../types';
 
 const users = [
     { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
@@ -9,7 +10,7 @@ const users = [
 ];
 
 interface LoginViewProps {
-    onLogin: (user: any) => void;
+    onLogin: (user: User) => void;
 }
 
 export default function LoginView({ onLogin }: LoginViewProps) {
