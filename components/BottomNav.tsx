@@ -17,7 +17,7 @@ const navItems: { id: Tab; icon: string; label: string }[] = [
 
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
-    <nav className="absolute bottom-0 left-0 w-full bg-ivory/90 backdrop-blur-xl border-t border-black/5 pb-safe pt-2 z-50 shadow-nav">
+    <nav className="absolute bottom-0 left-0 w-full bg-ivory/92 backdrop-blur-xl border-t border-black/5 nav-safe pt-2 z-50 shadow-nav">
       <div className="flex justify-around items-center h-16 px-2">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
@@ -53,8 +53,6 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
           );
         })}
       </div>
-      {/* Safe area spacer for mobile */}
-      <div className="h-6 w-full" />
     </nav>
   );
 }

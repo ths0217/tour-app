@@ -194,8 +194,8 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full max-w-md mx-auto bg-ivory overflow-hidden shadow-2xl relative font-display selection:bg-gold/20">
-      <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-24 relative">
+    <div className="flex flex-col min-h-[100dvh] w-full max-w-md mx-auto bg-ivory/95 backdrop-blur-xl overflow-hidden shadow-2xl relative font-display selection:bg-gold/20 safe-area-app">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-[110px] px-4 sm:px-6 relative">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}

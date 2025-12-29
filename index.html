@@ -50,17 +50,22 @@
     }
   </script>
   <style>
+    :root {
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
     html {
       scroll-behavior: smooth;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-      background-color: #FAF9F7;
+      background: radial-gradient(circle at 20% 20%, #ffffff, #faf9f7 55%), #faf9f7;
       color: #1E1E1E;
       -webkit-tap-highlight-color: transparent;
       overscroll-behavior-y: none;
-      /* Prevent pull-to-refresh on body */
+      margin: 0;
     }
 
     /* iOS-like Scrolling */
@@ -85,6 +90,20 @@
 
     .material-symbols-filled {
       font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+    }
+
+    /* Safe area helpers for iOS-like chrome spacing */
+    .safe-area-app {
+      padding-top: calc(var(--safe-top) + 0.25rem);
+      padding-bottom: calc(var(--safe-bottom) + 0.5rem);
+    }
+
+    .pb-safe {
+      padding-bottom: calc(var(--safe-bottom) + 1.5rem) !important;
+    }
+
+    .nav-safe {
+      padding-bottom: calc(var(--safe-bottom) + 0.75rem);
     }
 
     /* Smooth font rendering */
