@@ -5,7 +5,7 @@ import { ScheduleItem, User } from '../types';
 const familyMembersData = [
   { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg', bat: 80 },
   { id: 'sherry', name: 'Sherry', role: '姊姊', image: '/avatars/sister.jpg', bat: 45 },
-  { id: 'alex', name: 'Alexsander', role: '哥哥', image: '/avatars/father.jpg', bat: 92 },
+  { id: 'alex', name: 'Alexsander', role: '哥哥', image: '/avatars/brother.jpg', bat: 92 },
   { id: 'jenny', name: 'Jenny', role: '媽媽', image: '/avatars/mother.jpg', bat: 78 },
 ];
 

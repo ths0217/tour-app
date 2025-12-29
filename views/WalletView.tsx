@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Expense, User } from '../types';
 
@@ -47,6 +47,8 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
     // Budget State - handled by props
     const [showEditBudget, setShowEditBudget] = useState(false);
     const [editMode, setEditMode] = useState<'total' | 'personal'>('total');
+    const [budgetInput, setBudgetInput] = useState<number>(budgetGoal);
+    const [budgetInputDisplay, setBudgetInputDisplay] = useState<string>(budgetGoal.toLocaleString());
     const [showSettlementModal, setShowSettlementModal] = useState(false);
 
     // Calculate Settlement
@@ -58,6 +60,28 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
         const paid = expenses.filter(e => e.payer === user).reduce((acc, curr) => acc + curr.amount, 0);
         return { user, balance: paid - average };
     });
+
+    const syncBudgetDisplay = (mode: 'total' | 'personal') => {
+        const value = mode === 'total' ? budgetGoal : Math.round(budgetGoal / users.length);
+        setBudgetInput(value);
+        setBudgetInputDisplay(value.toLocaleString());
+    };
+
+    useEffect(() => {
+        if (showEditBudget) {
+            syncBudgetDisplay(editMode);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showEditBudget, editMode, budgetGoal]);
+
+    const handleBudgetInputChange = (value: string) => {
+        const sanitized = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0;
+        setBudgetInput(sanitized);
+        setBudgetInputDisplay(sanitized.toLocaleString());
+    };
+
+    const computedTotalBudget = editMode === 'total' ? budgetInput : budgetInput * users.length;
+    const computedPerPerson = Math.round(computedTotalBudget / users.length);
 
     const handleAddExpense = () => {
         if (!newTitle || !newAmount) return;
@@ -558,12 +582,10 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                     {editMode === 'total' ? '總金額 (THB)' : '個人金額 (THB)'}
                                 </label>
                                 <input
-                                    type="number"
-                                    value={editMode === 'total' ? budgetGoal : Math.floor(budgetGoal / users.length)}
-                                    onChange={(e) => {
-                                        const val = parseInt(e.target.value) || 0;
-                                        setBudgetGoal(editMode === 'total' ? val : val * users.length);
-                                    }}
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={budgetInputDisplay}
+                                    onChange={(e) => handleBudgetInputChange(e.target.value)}
                                     className="w-full bg-bone border-none rounded-2xl p-4 text-3xl font-serif text-center text-text-primary outline-none focus:ring-2 focus:ring-gold/50"
                                 />
                             </div>
@@ -571,14 +593,17 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                             <div className="text-center mb-6">
                                 <p className="text-[10px] text-text-muted">
                                     {editMode === 'total'
-                                        ? `每人約 ฿${Math.round(budgetGoal / users.length).toLocaleString()}`
-                                        : `總預算將設為 ฿${(Math.floor(budgetGoal / users.length) * users.length).toLocaleString()}`
+                                        ? `每人約 ฿${computedPerPerson.toLocaleString()}`
+                                        : `總預算將設為 ฿${computedTotalBudget.toLocaleString()}`
                                     }
                                 </p>
                             </div>
 
                             <button
-                                onClick={() => setShowEditBudget(false)}
+                                onClick={() => {
+                                    setBudgetGoal(computedTotalBudget);
+                                    setShowEditBudget(false);
+                                }}
                                 className="w-full bg-text-primary text-ivory font-medium p-4 rounded-xl active:scale-95 transition-transform shadow-lg"
                             >
                                 確認修改

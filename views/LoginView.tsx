@@ -5,7 +5,7 @@ import { User } from '../types';
 const users = [
     { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
     { id: 'sherry', name: 'Sherry', role: '姊姊', image: '/avatars/sister.jpg' },
-    { id: 'alex', name: 'Alexsander', role: '哥哥', image: '/avatars/father.jpg' },
+    { id: 'alex', name: 'Alexsander', role: '哥哥', image: '/avatars/brother.jpg' },
     { id: 'jenny', name: 'Jenny', role: '媽媽', image: '/avatars/mother.jpg' },
 ];
 
