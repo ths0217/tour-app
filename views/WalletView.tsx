@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Expense } from '../types';
+import { Expense, User } from '../types';
 
 const categories = [
     { id: 'Dining', label: '餐飲', icon: 'restaurant' },
@@ -14,7 +14,7 @@ const categories = [
 const users = ['爸爸', '媽媽', '妹妹', '我'];
 
 interface WalletViewProps {
-    user: any;
+    user: User | null;
     expenses: Expense[];
     setExpenses: React.Dispatch<React.SetStateAction<Expense[]>>;
     budgetGoal: number;
@@ -88,12 +88,12 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
         const newExp: Expense = {
             id: Date.now(),
             title: newTitle,
-            amount: parseFloat(newAmount),
+            amount: Number.parseFloat(newAmount) || 0,
             cat: newCategory,
             time: '剛剛',
             payer: newPayer
         };
-        setExpenses([newExp, ...expenses]);
+        setExpenses((prev) => [newExp, ...prev]);
         setShowAddModal(false);
         setNewTitle('');
         setNewAmount('');

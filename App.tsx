@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tab, Expense, ScheduleItem } from './types';
+import { Tab, Expense, ScheduleItem, User } from './types';
 import BottomNav from './components/BottomNav';
 import HomeView from './views/HomeView';
 import ItineraryView from './views/ItineraryView';
@@ -9,12 +9,26 @@ import ChecklistView from './views/ChecklistView';
 import ExploreView from './views/ExploreView';
 import LoginView from './views/LoginView';
 
-export interface User {
-  id: string;
-  name: string;
-  role: string;
-  image: string;
-}
+const STORAGE_KEYS = {
+  user: 'tourapp_user',
+  expenses: 'tourapp_expenses',
+  budget: 'tourapp_budget',
+  schedule: 'tourapp_schedule',
+} as const;
+
+const safeLoad = <T,>(key: string, fallback: T, validator?: (value: T) => boolean): T => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as T;
+    if (validator && !validator(parsed)) throw new Error('validation failed');
+    return parsed;
+  } catch (error) {
+    localStorage.removeItem(key);
+    return fallback;
+  }
+};
 
 const initialExpenses: Expense[] = [
   { id: 1, title: 'Som Tam Nua 餐廳', amount: 1250, cat: 'Dining', time: '下午 12:30', payer: '媽媽' },
@@ -46,12 +60,12 @@ const initialSchedule: ScheduleItem[] = [
   { id: 401, date: '2025-01-30', time: '11:00', title: 'The Commons Thonglor', type: 'brunch', desc: '🧱 工業風清水模 • 網美早午餐 Roast 🥯', location: 'Thong Lor Soi 17', completed: false, travelTime: '🚗 20m', travelTip: 'Grab 較方便' },
   { id: 402, date: '2025-01-30', time: '14:00', title: 'Ekkamai 選物店', type: 'checkroom', desc: '🧥 Treasure Factory 挖寶 • 文青必逛 Vintage ✨', location: 'Ekkamai', completed: false, travelTime: '🚗 10m', travelTip: '車程短' },
   { id: 403, date: '2025-01-30', time: '18:00', title: 'Jodd Fairs 夜市', type: 'fastfood', desc: '🌋 火山排骨 & 水果西施 • 觀光客必去打卡點 📸', location: 'Rama 9', completed: false, travelTime: '🚆 25m', travelTip: 'MRT Rama 9' },
-  { id: 404, date: '2025-01-30', time: '20:30', title: 'Tichuca Rooftop', type: 'celebration', desc: '🪼 巨型水母酒吧 • Threads 爆紅熱點 (需護照) 🥃', location: 'T-One Building', completed: false, travelTime: '🚗 15m', travelTip: 'Grab 回 Thong Lor' },
+  { id: 404, date: '2025-01-30', time: '20:30', title: 'Tichuca Rooftop', type: 'celebration', desc: '🪼 巨型水母酒吧 • Threads爆紅熱點 (需護照) 🥃', location: 'T-One Building', completed: false, travelTime: '🚗 15m', travelTip: 'Grab 回 Thong Lor' },
 
   // Day 5: 1/31 (Fri) - Artsy & Local
-  { id: 501, date: '2025-01-31', time: '10:30', title: 'Gump\'s Ari', type: 'camera', desc: '🍭 色彩繽紛創意社區 • 隨手拍都好看 📷', location: 'Ari', completed: false, travelTime: '🚆 30m', travelTip: 'BTS Ari' },
+  { id: 501, date: '2025-01-31', time: '10:30', title: "Gump's Ari", type: 'camera', desc: '🍭 色彩繽紛創意社區 • 隨手拍都好看📷', location: 'Ari', completed: false, travelTime: '🚆 30m', travelTip: 'BTS Ari' },
   { id: 502, date: '2025-01-31', time: '12:30', title: 'Lay Lao (Ari)', type: 'restaurant', desc: '🥘 米其林必比登 • 道地東北菜 Som Tum 🌶️', location: 'Ari Soi 2', completed: false, travelTime: '🚶 5m', travelTip: '步行可達' },
-  { id: 503, date: '2025-01-31', time: '15:00', title: 'Let\'s Relax Onsen', type: 'spa', desc: '♨️ 日式溫泉+按摩 • J-Tip: Klook 已購票 🎫', location: 'Grande Centre Point', completed: false, travelTime: '🚗 20m', travelTip: 'Grab 前往' },
+  { id: 503, date: '2025-01-31', time: '15:00', title: "Let's Relax Onsen", type: 'spa', desc: '♨️ 日式溫泉+按摩 • J-Tip: Klook 已購票 🎫', location: 'Grande Centre Point', completed: false, travelTime: '🚗 20m', travelTip: 'Grab 前往' },
   { id: 504, date: '2025-01-31', time: '19:00', title: 'China Town', type: 'restaurant', desc: '🏮 T&K 海鮮 • 必吃爆漿炭烤吐司 🍞', location: 'Yaowarat', completed: false, travelTime: '🚆 25m', travelTip: 'MRT Wat Mangkon' },
 
   // Day 6: 2/1 (Sat) - Weekend Madness
@@ -67,49 +81,24 @@ const initialSchedule: ScheduleItem[] = [
 ];
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    if (typeof window === 'undefined') return null;
-    const stored = localStorage.getItem('tourapp_user');
-    if (!stored) return null;
-    try {
-      return JSON.parse(stored) as User;
-    } catch (e) {
-      return null;
-    }
-  });
+  const [currentUser, setCurrentUser] = useState<User | null>(() => safeLoad<User | null>(STORAGE_KEYS.user, null));
   const [activeTab, setActiveTab] = useState<Tab>('home');
 
   // Shared Budget State
-  const [expenses, setExpenses] = useState<Expense[]>(() => {
-    if (typeof window === 'undefined') return initialExpenses;
-    const stored = localStorage.getItem('tourapp_expenses');
-    if (!stored) return initialExpenses;
-    try {
-      const parsed = JSON.parse(stored) as Expense[];
-      return parsed.length ? parsed : initialExpenses;
-    } catch (e) {
-      return initialExpenses;
-    }
-  });
+  const [expenses, setExpenses] = useState<Expense[]>(() =>
+    safeLoad<Expense[]>(STORAGE_KEYS.expenses, initialExpenses, (val) => Array.isArray(val)),
+  );
   const [budgetGoal, setBudgetGoal] = useState(() => {
-    if (typeof window === 'undefined') return 50000;
-    const stored = localStorage.getItem('tourapp_budget');
-    const num = stored ? parseInt(stored, 10) : NaN;
-    return Number.isFinite(num) && num > 0 ? num : 50000;
+    const fallback = 50000;
+    const stored = safeLoad<number | string | null>(STORAGE_KEYS.budget, null);
+    const parsed = typeof stored === 'string' ? parseInt(stored, 10) : stored;
+    return Number.isFinite(parsed) && (parsed as number) > 0 ? (parsed as number) : fallback;
   });
 
   // Shared Schedule State
-  const [schedule, setSchedule] = useState<ScheduleItem[]>(() => {
-    if (typeof window === 'undefined') return initialSchedule;
-    const stored = localStorage.getItem('tourapp_schedule');
-    if (!stored) return initialSchedule;
-    try {
-      const parsed = JSON.parse(stored) as ScheduleItem[];
-      return parsed.length ? parsed : initialSchedule;
-    } catch (e) {
-      return initialSchedule;
-    }
-  });
+  const [schedule, setSchedule] = useState<ScheduleItem[]>(() =>
+    safeLoad<ScheduleItem[]>(STORAGE_KEYS.schedule, initialSchedule, (val) => Array.isArray(val) && val.length > 0),
+  );
 
   // Shared Hotel Info (for Wallet & Explore)
   const [hotelInfo, setHotelInfo] = useState({
@@ -125,9 +114,9 @@ export default function App() {
 
   // Calculate personal spending (for HomeView) - simplistic view: average spending or explicit 'payer' check?
   // User said: "Home shows personal". Let's assume personal share of the TOTAL budget vs Personal Spending?
-  // Or just "Personal Budget" = Total Budget / 4. 
+  // Or just "Personal Budget" = Total Budget / 4.
   // And "Personal Remaining" = Personal Budget - (My Paid Expenses? Or My Share of Expenses?)
-  // Let's go with "My Share of Strategy" => Total Expense / 4. 
+  // Let's go with "My Share of Strategy" => Total Expense / 4.
   const myShareOfSpent = totalSpent / familyMemberCount;
   const myRemaining = personalBudget - myShareOfSpent;
 
@@ -138,20 +127,26 @@ export default function App() {
 
   useEffect(() => {
     if (currentUser) {
-      localStorage.setItem('tourapp_user', JSON.stringify(currentUser));
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.user);
     }
   }, [currentUser]);
 
   useEffect(() => {
-    localStorage.setItem('tourapp_expenses', JSON.stringify(expenses));
+    localStorage.setItem(STORAGE_KEYS.expenses, JSON.stringify(expenses));
   }, [expenses]);
 
   useEffect(() => {
-    localStorage.setItem('tourapp_budget', String(budgetGoal));
+    if (!Number.isFinite(budgetGoal) || budgetGoal <= 0) {
+      setBudgetGoal(50000);
+      return;
+    }
+    localStorage.setItem(STORAGE_KEYS.budget, String(budgetGoal));
   }, [budgetGoal]);
 
   useEffect(() => {
-    localStorage.setItem('tourapp_schedule', JSON.stringify(schedule));
+    localStorage.setItem(STORAGE_KEYS.schedule, JSON.stringify(schedule));
   }, [schedule]);
 
   const renderView = () => {
@@ -199,15 +194,15 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full max-w-md mx-auto bg-ivory overflow-hidden shadow-2xl relative font-display selection:bg-gold/20">
-      <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-24 relative">
+    <div className="flex flex-col min-h-[100dvh] w-full max-w-md mx-auto bg-ivory/95 backdrop-blur-xl overflow-hidden shadow-2xl relative font-display selection:bg-gold/20 safe-area-app">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-[110px] px-4 sm:px-6 relative">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="min-h-full"
           >
             {renderView()}
