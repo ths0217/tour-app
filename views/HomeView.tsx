@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const familyMembersData = [
-  { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg', bat: 80 },
-  { id: 'sherry', name: 'Sherry', role: '姊姊', image: '/avatars/sister.jpg', bat: 45 },
-  { id: 'alex', name: 'Alexsander', role: '哥哥', image: '/avatars/father.jpg', bat: 92 },
-  { id: 'jenny', name: 'Jenny', role: '媽媽', image: '/avatars/mother.jpg', bat: 78 },
+  { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.svg', bat: 80 },
+  { id: 'sherry', name: 'Sherry', role: '姊姊', image: '/avatars/sister.svg', bat: 45 },
+  { id: 'alex', name: 'Alexsander', role: '哥哥', image: '/avatars/father.svg', bat: 92 },
+  { id: 'jenny', name: 'Jenny', role: '媽媽', image: '/avatars/mother.svg', bat: 78 },
 ];
 
 const quickActions = [
@@ -50,6 +50,19 @@ import { ScheduleItem } from '../types';
 
 // ... (keep constants)
 
+const DEFAULT_LOCATION = '泰國曼谷';
+
+const readCachedWeather = () => {
+  if (typeof window === 'undefined') return WEATHER_SCENARIOS[0];
+  const stored = localStorage.getItem('tourapp_weather');
+  if (!stored) return WEATHER_SCENARIOS[0];
+  try {
+    return JSON.parse(stored);
+  } catch (e) {
+    return WEATHER_SCENARIOS[0];
+  }
+};
+
 export default function HomeView({ user, budget, schedule, setSchedule }: {
   user: any,
   budget?: { total: number, remaining: number, spent: number },
@@ -57,15 +70,97 @@ export default function HomeView({ user, budget, schedule, setSchedule }: {
   setSchedule: (s: ScheduleItem[]) => void
 }) {
   const [activeModal, setActiveModal] = useState<string | null>(null);
-  const [weather, setWeather] = useState(WEATHER_SCENARIOS[0]);
+  const [weather, setWeather] = useState(readCachedWeather);
 
   // Use passed budget or defaults
   const safeBudget = budget || { total: 12500, remaining: 9000, spent: 3500 };
   const percentSpent = safeBudget.total > 0 ? (safeBudget.spent / safeBudget.total) * 100 : 0;
 
   useEffect(() => {
-    const randomScenario = WEATHER_SCENARIOS[Math.floor(Math.random() * WEATHER_SCENARIOS.length)];
-    setWeather(randomScenario);
+    let isMounted = true;
+
+    const weatherCodeLookup: Record<number, { label: string; icon: string }> = {
+      0: { label: '晴朗', icon: 'sunny' },
+      1: { label: '少雲', icon: 'partly_cloudy_day' },
+      2: { label: '多雲', icon: 'cloud' },
+      3: { label: '陰天', icon: 'cloud' },
+      45: { label: '霧', icon: 'foggy' },
+      48: { label: '霧', icon: 'foggy' },
+      51: { label: '細雨', icon: 'rainy_light' },
+      53: { label: '細雨', icon: 'rainy_light' },
+      55: { label: '細雨', icon: 'rainy_light' },
+      56: { label: '毛毛雨', icon: 'rainy_light' },
+      57: { label: '毛毛雨', icon: 'rainy_light' },
+      61: { label: '陣雨', icon: 'rainy' },
+      63: { label: '陣雨', icon: 'rainy' },
+      65: { label: '大雨', icon: 'thunderstorm' },
+      66: { label: '雨勢', icon: 'rainy' },
+      67: { label: '雨勢', icon: 'rainy' },
+      71: { label: '降雪', icon: 'weather_snowy' },
+      80: { label: '短暫陣雨', icon: 'rainy' },
+      81: { label: '短暫陣雨', icon: 'rainy' },
+      82: { label: '豪雨', icon: 'thunderstorm' },
+      95: { label: '雷雨', icon: 'thunderstorm' },
+      99: { label: '強雷雨', icon: 'thunderstorm' },
+    };
+
+    const persistWeather = (payload: typeof WEATHER_SCENARIOS[number]) => {
+      setWeather(payload);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('tourapp_weather', JSON.stringify(payload));
+      }
+    };
+
+    const fetchWeather = async () => {
+      try {
+        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=13.7563&longitude=100.5018&current_weather=true&hourly=temperature_2m,apparent_temperature,precipitation_probability&timezone=Asia%2FBangkok');
+        if (!response.ok) throw new Error('weather failed');
+        const data = await response.json();
+
+        const current = data?.current_weather;
+        if (!current || !isMounted) return;
+
+        const descriptor = weatherCodeLookup[current.weathercode as number] || weatherCodeLookup[0];
+        const temperature = Math.round(current.temperature);
+        const timeIndex = Array.isArray(data?.hourly?.time)
+          ? data.hourly.time.findIndex((t: string) => t === current.time)
+          : -1;
+        const apparentSeries = data?.hourly?.apparent_temperature;
+        const precipSeries = data?.hourly?.precipitation_probability;
+        const apparent = Math.round(
+          (timeIndex >= 0 ? apparentSeries?.[timeIndex] : apparentSeries?.[0])
+          ?? temperature,
+        );
+        const precipChance = (timeIndex >= 0 ? precipSeries?.[timeIndex] : precipSeries?.[0]) ?? 0;
+
+        const alertTitle = precipChance >= 50
+          ? '午後可能降雨'
+          : apparent - temperature >= 2
+            ? '體感偏悶熱'
+            : '即時天氣更新';
+
+        const alertDesc = precipChance >= 50
+          ? '請攜帶雨具或調整室內行程。'
+          : apparent - temperature >= 2
+            ? `體感溫度約 ${apparent}°C，請多補水。`
+            : `目前天氣 ${descriptor.label}，享受旅程！`;
+
+        persistWeather({
+          temp: `${temperature}°C ${descriptor.label}`,
+          loc: DEFAULT_LOCATION,
+          district: 'Bangkok',
+          alertTitle,
+          alertDesc,
+          icon: descriptor.icon,
+        });
+      } catch (error) {
+        if (!isMounted) return;
+        persistWeather(readCachedWeather());
+      }
+    };
+
+    fetchWeather();
+    return () => { isMounted = false; };
   }, []);
 
   const [showMemories, setShowMemories] = useState(false);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tab, Expense, ScheduleItem } from './types';
 import BottomNav from './components/BottomNav';
@@ -67,15 +67,49 @@ const initialSchedule: ScheduleItem[] = [
 ];
 
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const stored = localStorage.getItem('tourapp_user');
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored) as User;
+    } catch (e) {
+      return null;
+    }
+  });
   const [activeTab, setActiveTab] = useState<Tab>('home');
 
   // Shared Budget State
-  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
-  const [budgetGoal, setBudgetGoal] = useState(50000);
+  const [expenses, setExpenses] = useState<Expense[]>(() => {
+    if (typeof window === 'undefined') return initialExpenses;
+    const stored = localStorage.getItem('tourapp_expenses');
+    if (!stored) return initialExpenses;
+    try {
+      const parsed = JSON.parse(stored) as Expense[];
+      return parsed.length ? parsed : initialExpenses;
+    } catch (e) {
+      return initialExpenses;
+    }
+  });
+  const [budgetGoal, setBudgetGoal] = useState(() => {
+    if (typeof window === 'undefined') return 50000;
+    const stored = localStorage.getItem('tourapp_budget');
+    const num = stored ? parseInt(stored, 10) : NaN;
+    return Number.isFinite(num) && num > 0 ? num : 50000;
+  });
 
   // Shared Schedule State
-  const [schedule, setSchedule] = useState<ScheduleItem[]>(initialSchedule);
+  const [schedule, setSchedule] = useState<ScheduleItem[]>(() => {
+    if (typeof window === 'undefined') return initialSchedule;
+    const stored = localStorage.getItem('tourapp_schedule');
+    if (!stored) return initialSchedule;
+    try {
+      const parsed = JSON.parse(stored) as ScheduleItem[];
+      return parsed.length ? parsed : initialSchedule;
+    } catch (e) {
+      return initialSchedule;
+    }
+  });
 
   // Shared Hotel Info (for Wallet & Explore)
   const [hotelInfo, setHotelInfo] = useState({
@@ -101,6 +135,24 @@ export default function App() {
     setCurrentUser(user);
     setActiveTab('home');
   };
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('tourapp_user', JSON.stringify(currentUser));
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    localStorage.setItem('tourapp_expenses', JSON.stringify(expenses));
+  }, [expenses]);
+
+  useEffect(() => {
+    localStorage.setItem('tourapp_budget', String(budgetGoal));
+  }, [budgetGoal]);
+
+  useEffect(() => {
+    localStorage.setItem('tourapp_schedule', JSON.stringify(schedule));
+  }, [schedule]);
 
   const renderView = () => {
     switch (activeTab) {
