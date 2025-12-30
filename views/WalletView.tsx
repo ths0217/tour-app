@@ -546,32 +546,32 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                 )}
                 {/* Edit Budget Modal */}
                 {showEditBudget && (
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowEditBudget(false)}
-                            className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm"
-                        />
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowEditBudget(false)}
+                        className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm flex items-center justify-center p-4"
+                    >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 max-w-sm bg-white rounded-3xl p-6 z-50 shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full max-w-xs bg-white rounded-3xl p-6 shadow-2xl"
                         >
                             <h3 className="text-lg font-bold text-text-primary mb-4 text-center">設定預算</h3>
 
                             <div className="flex gap-2 mb-6 bg-bone rounded-xl p-1">
                                 <button
                                     onClick={() => setEditMode('total')}
-                                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${editMode === 'total' ? 'bg-white shadow-sm text-text-primary' : 'text-text-muted'}`}
+                                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${editMode === 'total' ? 'bg-white shadow-sm text-text-primary' : 'text-text-muted'}`}
                                 >
                                     總預算
                                 </button>
                                 <button
                                     onClick={() => setEditMode('personal')}
-                                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${editMode === 'personal' ? 'bg-white shadow-sm text-text-primary' : 'text-text-muted'}`}
+                                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${editMode === 'personal' ? 'bg-white shadow-sm text-text-primary' : 'text-text-muted'}`}
                                 >
                                     個人預算
                                 </button>
@@ -609,7 +609,7 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                 確認修改
                             </button>
                         </motion.div>
-                    </>
+                    </motion.div>
                 )}
             </AnimatePresence>
 
