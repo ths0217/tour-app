@@ -15,49 +15,68 @@ interface LoginViewProps {
 
 export default function LoginView({ onLogin }: LoginViewProps) {
     return (
-        <div className="min-h-screen bg-ivory flex flex-col items-center justify-center p-8 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-[40vh] bg-text-primary rounded-b-[3rem] z-0"></div>
-
+        <div className="min-h-screen bg-ios-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            {/* Gradient background */}
+            <div className="absolute inset-0 bg-gradient-to-b from-ios-blue/10 via-transparent to-transparent" />
+            
             <div className="relative z-10 w-full max-w-sm">
+                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center mb-12"
+                    transition={{ duration: 0.5 }}
+                    className="text-center mb-10"
                 >
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gold/20 mb-4 backdrop-blur-sm border border-white/10">
-                        <span className="material-symbols-outlined text-3xl text-gold">flight_takeoff</span>
-                    </div>
-                    <h1 className="text-3xl font-serif text-ivory mb-2 tracking-wide">Bangkok<br />Luxury Tour</h1>
-                    <p className="text-ivory/60 text-xs tracking-[0.2em] uppercase">Private Family Expedition</p>
+                    <motion.div 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                        className="inline-flex items-center justify-center w-20 h-20 rounded-[22px] bg-ios-blue mb-5 shadow-ios-lg"
+                    >
+                        <span className="material-symbols-outlined text-4xl text-white">flight_takeoff</span>
+                    </motion.div>
+                    <h1 className="text-ios-title1 text-text-primary mb-2">曼谷家庭旅遊</h1>
+                    <p className="text-ios-subhead text-ios-secondary">選擇您的身份開始使用</p>
                 </motion.div>
 
+                {/* User Selection Card */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-white rounded-3xl p-6 shadow-xl border border-black/5"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                    className="bg-white rounded-ios-2xl p-5 shadow-ios"
                 >
-                    <h2 className="text-center text-sm font-bold text-text-muted uppercase tracking-widest mb-6">歡迎回來，請問您是？</h2>
-                    <div className="grid grid-cols-2 gap-4">
-                        {users.map((user) => (
+                    <div className="grid grid-cols-2 gap-3">
+                        {users.map((user, index) => (
                             <motion.button
                                 key={user.id}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.4 + index * 0.1 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => onLogin(user)}
-                                className="flex flex-col items-center p-4 rounded-2xl border border-black/5 hover:border-gold/50 hover:bg-bone transition-all group"
+                                className="flex flex-col items-center p-4 rounded-ios-lg bg-ios-bg hover:bg-bone-alt active:bg-ios-tertiary/30 transition-all duration-200"
                             >
-                                <div className="w-16 h-16 rounded-full mb-3 overflow-hidden border-2 border-white shadow-sm group-hover:shadow-md transition-shadow">
+                                <div className="w-16 h-16 rounded-full mb-3 overflow-hidden ring-2 ring-white shadow-ios">
                                     <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
                                 </div>
-                                <span className="text-sm font-medium text-text-primary group-hover:text-gold transition-colors">{user.name}</span>
-                                <span className="text-[10px] text-text-muted">{user.role}</span>
+                                <span className="text-ios-callout font-semibold text-text-primary">{user.name}</span>
+                                <span className="text-ios-caption1 text-ios-secondary">{user.role}</span>
                             </motion.button>
                         ))}
                     </div>
                 </motion.div>
-            </div>
 
-            <p className="absolute bottom-8 text-[10px] text-text-muted opacity-50">Designed for the Luxury Experience</p>
+                {/* Footer */}
+                <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                    className="text-center text-ios-caption2 text-ios-tertiary mt-8"
+                >
+                    2025 曼谷家庭之旅 • 1/27 - 2/2
+                </motion.p>
+            </div>
         </div>
     );
 }

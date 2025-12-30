@@ -200,15 +200,15 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col min-h-[100dvh] w-full max-w-md mx-auto bg-ivory/95 backdrop-blur-xl overflow-hidden shadow-2xl relative font-display selection:bg-gold/20 safe-area-app">
-      <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-[110px] px-4 sm:px-6 relative">
+    <div className="flex flex-col min-h-[100dvh] w-full max-w-md mx-auto bg-ios-bg overflow-hidden relative font-sans selection:bg-ios-blue/20 safe-area-app">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-[90px] relative bg-ios-bg">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
             className="min-h-full"
           >
             {renderView()}
