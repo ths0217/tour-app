@@ -13,13 +13,13 @@ interface ChecklistItem {
 }
 
 const initialItems: ChecklistItem[] = [
-    { id: '1', text: '全家簽證 (e-VOA)', category: 'Documents', checked: true, sub: '姊姊已確認', assignee: '/avatars/sister.svg' },
-    { id: '2', text: '機票行程單 (列印)', category: 'Documents', checked: false, assignee: '/avatars/sister.svg' },
-    { id: '3', text: '常備藥品 (腸胃/感冒)', category: 'Medical', checked: false, assignee: '/avatars/mother.svg' },
-    { id: '4', text: '相機 & 腳架', category: 'Gadgets', checked: true, assignee: '/avatars/me.svg' },
-    { id: '5', text: '行動電源', category: 'Gadgets', checked: false, assignee: '/avatars/me.svg' },
-    { id: '6', text: '泳衣 & 墨鏡', category: 'Clothing', checked: false, assignee: '/avatars/sister.svg' },
-    { id: '7', text: '泰銖現金', category: 'Other', checked: false, assignee: '/avatars/father.svg' },
+    { id: '1', text: '全家簽證 (e-VOA)', category: 'Documents', checked: true, sub: '姊姊已確認', assignee: '/avatars/sister.jpg' },
+    { id: '2', text: '機票行程單 (列印)', category: 'Documents', checked: false, assignee: '/avatars/sister.jpg' },
+    { id: '3', text: '常備藥品 (腸胃/感冒)', category: 'Medical', checked: false, assignee: '/avatars/mother.jpg' },
+    { id: '4', text: '相機 & 腳架', category: 'Gadgets', checked: true, assignee: '/avatars/me.jpg' },
+    { id: '5', text: '行動電源', category: 'Gadgets', checked: false, assignee: '/avatars/me.jpg' },
+    { id: '6', text: '泳衣 & 墨鏡', category: 'Clothing', checked: false, assignee: '/avatars/sister.jpg' },
+    { id: '7', text: '泰銖現金', category: 'Other', checked: false, assignee: '/avatars/brother.jpg' },
 ];
 
 const categories = [
@@ -31,10 +31,10 @@ const categories = [
 ];
 
 const users = [
-    { name: 'Vickly', image: '/avatars/me.svg' },
-    { name: 'Sherry', image: '/avatars/sister.svg' },
-    { name: 'Jenny', image: '/avatars/mother.svg' },
-    { name: 'Alex', image: '/avatars/father.svg' },
+    { name: 'Vickly', image: '/avatars/me.jpg' },
+    { name: 'Sherry', image: '/avatars/sister.jpg' },
+    { name: 'Jenny', image: '/avatars/mother.jpg' },
+    { name: 'Alex', image: '/avatars/brother.jpg' },
 ];
 
 export default function ChecklistView() {
