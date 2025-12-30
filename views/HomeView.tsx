@@ -54,9 +54,10 @@ interface HomeViewProps {
   budget?: { total: number; remaining: number; spent: number };
   schedule: ScheduleItem[];
   setSchedule: React.Dispatch<React.SetStateAction<ScheduleItem[]>>;
+  onLogout?: () => void;
 }
 
-export default function HomeView({ user, budget, schedule, setSchedule }: HomeViewProps) {
+export default function HomeView({ user, budget, schedule, setSchedule, onLogout }: HomeViewProps) {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [weather, setWeather] = useState(WEATHER_SCENARIOS[0]);
 
@@ -64,9 +65,51 @@ export default function HomeView({ user, budget, schedule, setSchedule }: HomeVi
   const safeBudget = budget || { total: 12500, remaining: 9000, spent: 3500 };
   const percentSpent = safeBudget.total > 0 ? (safeBudget.spent / safeBudget.total) * 100 : 0;
 
+  // Fetch real Bangkok weather from Open-Meteo API
   useEffect(() => {
-    const randomScenario = WEATHER_SCENARIOS[Math.floor(Math.random() * WEATHER_SCENARIOS.length)];
-    setWeather(randomScenario);
+    const weatherCodeLookup: Record<number, { label: string; icon: string }> = {
+      0: { label: '晴朗', icon: 'sunny' },
+      1: { label: '少雲', icon: 'partly_cloudy_day' },
+      2: { label: '多雲', icon: 'cloud' },
+      3: { label: '陰天', icon: 'cloud' },
+      45: { label: '霧', icon: 'foggy' },
+      51: { label: '細雨', icon: 'rainy_light' },
+      61: { label: '陣雨', icon: 'rainy' },
+      80: { label: '短暫陣雨', icon: 'rainy' },
+      95: { label: '雷雨', icon: 'thunderstorm' },
+    };
+
+    const fetchWeather = async () => {
+      try {
+        const response = await fetch(
+          'https://api.open-meteo.com/v1/forecast?latitude=13.7563&longitude=100.5018&current_weather=true&hourly=apparent_temperature&timezone=Asia%2FBangkok'
+        );
+        if (!response.ok) throw new Error('Weather fetch failed');
+        const data = await response.json();
+        const current = data?.current_weather;
+        if (!current) throw new Error('No weather data');
+
+        const descriptor = weatherCodeLookup[current.weathercode] || { label: '晴朗', icon: 'sunny' };
+        const temp = Math.round(current.temperature);
+        const apparent = data?.hourly?.apparent_temperature?.[0] ?? temp;
+
+        setWeather({
+          temp: `${temp}°C ${descriptor.label}`,
+          loc: '泰國曼谷',
+          district: 'Bangkok',
+          alertTitle: apparent > temp + 2 ? '體感偏熱' : '即時天氣',
+          alertDesc: apparent > temp + 2
+            ? `體感溫度約 ${Math.round(apparent)}°C，請多補水 💧`
+            : `目前天氣 ${descriptor.label}，享受旅程！🌴`,
+          icon: descriptor.icon,
+        });
+      } catch {
+        // Fallback to first scenario on error
+        setWeather(WEATHER_SCENARIOS[0]);
+      }
+    };
+
+    fetchWeather();
   }, []);
 
   const [showMemories, setShowMemories] = useState(false);
@@ -174,8 +217,10 @@ export default function HomeView({ user, budget, schedule, setSchedule }: HomeVi
           className="relative"
         >
           <div
-            className="w-12 h-12 rounded-full bg-bone border border-white shadow-sm bg-cover bg-center"
+            onClick={onLogout}
+            className="w-12 h-12 rounded-full bg-bone border border-white shadow-sm bg-cover bg-center cursor-pointer hover:ring-2 hover:ring-gold/50 transition-all"
             style={{ backgroundImage: `url('${user?.image || '/avatars/me.jpg'}')` }}
+            title="點擊切換身份"
           />
           <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-ivory rounded-full"></div>
         </motion.div>

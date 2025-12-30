@@ -125,6 +125,10 @@ export default function App() {
     setActiveTab('home');
   };
 
+  const handleLogout = () => {
+    setCurrentUser(null);
+  };
+
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(currentUser));
@@ -160,6 +164,7 @@ export default function App() {
         }}
         schedule={schedule}
         setSchedule={setSchedule}
+        onLogout={handleLogout}
       />;
       case 'itinerary': return <ItineraryView
         schedule={schedule}
@@ -185,6 +190,7 @@ export default function App() {
         }}
         schedule={schedule}
         setSchedule={setSchedule}
+        onLogout={handleLogout}
       />;
     }
   };
