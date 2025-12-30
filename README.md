@@ -1,17 +1,19 @@
-# 曼谷奢華旅程 (Bangkok Luxury Tour)
+# 曼谷家庭旅遊專區 (Bangkok Family Trip)
 
-歡迎來到曼谷奢華旅程專案！這是一個基於 React 和 Vite 構建的現代化旅遊應用程式。
+歡迎來到曼谷家庭旅遊專區！這是一個專為家庭旅遊設計的 React 應用程式，幫助您規劃、管理和記錄美好的家族旅行。
 
 ## 🚀 專案功能
 
-- **極致奢華的視覺體驗**：使用 Framer Motion 打造流暢動畫。
-- **響應式設計**：支援各種裝置瀏覽。
-- **高效能**：基於 Vite 的快速開發與構建。
+- **行程規劃**：完整的每日行程管理，包含交通時間與建議。
+- **分帳錢包**：即時追蹤旅費支出，自動計算分帳結算。
+- **多人登入**：支援家庭成員各自登入查看個人資訊。
+- **票券管理**：機票、飯店訂房資訊一目了然。
+- **響應式設計**：支援手機、平板等各種裝置瀏覽。
 
 ## 🛠️ 技術棧
 
 - **Core**: React, TypeScript, Vite
-- **Styling**: CSS / Tailwind (if applicable), Framer Motion
+- **Styling**: Tailwind CSS, Framer Motion
 - **Deployment**: GitHub Actions (GitHub Pages)
 
 ## 📦 安裝與啟動
@@ -30,7 +32,7 @@ npm install
 ```bash
 npm run dev
 ```
-應用程式將在 `http://localhost:3000` 運行（已預設為可供行動裝置連線的 `0.0.0.0`）。
+應用程式將在 `http://localhost:3000` 運行。
 
 ### 3. 建置專案
 構建生產版本：
@@ -40,11 +42,10 @@ npm run build
 產出的檔案將位於 `dist` 資料夾。
 
 ### 4. 預覽生產版本
-以與正式部署一致的方式啟動預覽伺服器：
 ```bash
 npm run start
 ```
-預覽伺服器會在 `http://localhost:4173` 以 `0.0.0.0` 域啟動，方便手機或同網域裝置直接連線進行實機瀏覽。
+預覽伺服器會在 `http://localhost:4173` 啟動。
 
 ## ☁️ 部署
 
@@ -56,16 +57,12 @@ npm run start
 2. 在 **Build and deployment** > **Source** 選擇 **GitHub Actions**。
 3. 推送程式碼後，Action 將自動執行。
 
-## 📝 專案結構
+## 👨‍👩‍👧‍👦 家庭成員
 
-```
-.
-├── .github/workflows/  # GitHub Actions 設定
-├── src/               # 原始碼
-├── components/        # UI 元件
-├── views/             # 頁面視圖
-└── ...
-```
+- Vickly (我)
+- Sherry (姊姊)
+- Alexsander (哥哥)
+- Jenny (媽媽)
 
 ---
-Built with ❤️ using React & Vite.
+Built with ❤️ for family adventures.
