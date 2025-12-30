@@ -10,32 +10,10 @@ const familyMembersData = [
 ];
 
 const quickActions = [
-  { id: 'taxi', icon: 'local_taxi', label: '叫車', color: 'bg-green-100 text-green-700' },
-  { id: 'rate', icon: 'currency_exchange', label: '匯率', color: 'bg-blue-100 text-blue-700' },
-  { id: 'translate', icon: 'translate', label: '翻譯', color: 'bg-orange-100 text-orange-700' },
-  { id: 'sos', icon: 'sos', label: '緊急', color: 'bg-red-100 text-red-700' },
-];
-
-const phrases = [
-  { th: 'Sawatdee Khrap/Ka', en: '你好', aud: '🙏' },
-  { th: 'Khop Khun', en: '謝謝', aud: '😊' },
-  { th: 'Mai Phet', en: '不要辣', aud: '🌶️' },
-  { th: 'Tao Rai?', en: '多少錢?', aud: '💰' },
-  { th: 'Hong Nam', en: '廁所', aud: '🚽' },
-  { th: 'Lot Noi Dai Mai', en: '便宜點?', aud: '📉' },
-];
-
-const WEATHER_SCENARIOS = [
-  { temp: '33°C 晴', loc: '泰國曼谷', district: 'Siam', alertTitle: '高溫警報', alertDesc: '目前體感溫度達 39°C，戶外活動請多補充水分 💧', icon: 'thermometer' },
-  { temp: '29°C 陰', loc: '泰國曼谷', district: 'Riverside', alertTitle: '午後雷陣雨', alertDesc: '預計下午 3 點有降雨機率 80%', icon: 'thunderstorm' },
-  { temp: '28°C 晚', loc: '泰國曼谷', district: 'Thong Lor', alertTitle: '交通擁塞', alertDesc: '週五晚間尖峰時刻，建議改搭 BTS 或摩托計程車 🛵', icon: 'traffic' },
-  { temp: '30°C 多雲', loc: '泰國曼谷', district: 'Chinatown', alertTitle: '人潮擁擠', alertDesc: '週末夜市時段人潮眾多，請小心隨身財物 🎒', icon: 'groups' },
-];
-
-const defaultSchedule = [
-  { id: 1, title: '晚餐預約：Jay Fai', time: '19:00', completed: false, type: 'Dinner' },
-  { id: 2, title: '按摩：Health Land', time: '21:30', completed: false, type: 'Activity' },
-  { id: 3, title: 'Big C 採購', time: '10:00', completed: false, type: 'Shopping' },
+  { id: 'taxi', icon: 'local_taxi', label: '叫車', color: 'bg-ios-green/10', iconColor: 'text-ios-green' },
+  { id: 'rate', icon: 'currency_exchange', label: '匯率', color: 'bg-ios-blue/10', iconColor: 'text-ios-blue' },
+  { id: 'translate', icon: 'translate', label: '翻譯', color: 'bg-ios-orange/10', iconColor: 'text-ios-orange' },
+  { id: 'sos', icon: 'sos', label: '緊急', color: 'bg-ios-red/10', iconColor: 'text-ios-red' },
 ];
 
 const defaultMemories = [
@@ -43,11 +21,10 @@ const defaultMemories = [
   'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?q=80&w=400',
   'https://images.unsplash.com/photo-1621251804470-43f5509935d2?q=80&w=400',
   'https://images.unsplash.com/photo-1598971861713-54ad16a7e72e?q=80&w=400',
-  'https://images.unsplash.com/photo-1508009603885-50cf7c579365?q=80&w=400',
-  'https://images.unsplash.com/photo-1563492065599-3520f775eeed?q=80&w=400',
 ];
 
-// ... (keep constants)
+// iOS Spring Physics
+const springTransition = { type: "spring", stiffness: 400, damping: 30 };
 
 interface HomeViewProps {
   user: User | null;
@@ -58,555 +35,276 @@ interface HomeViewProps {
 }
 
 export default function HomeView({ user, budget, schedule, setSchedule, onLogout }: HomeViewProps) {
-  const [activeModal, setActiveModal] = useState<string | null>(null);
-  const [weather, setWeather] = useState(WEATHER_SCENARIOS[0]);
+  const [weather, setWeather] = useState({ temp: '--', label: '載入中', icon: 'cloud' });
+  const [memories] = useState(defaultMemories);
 
-  // Use passed budget or defaults
   const safeBudget = budget || { total: 12500, remaining: 9000, spent: 3500 };
   const percentSpent = safeBudget.total > 0 ? (safeBudget.spent / safeBudget.total) * 100 : 0;
 
-  // Fetch real Bangkok weather from Open-Meteo API
+  // Real Bangkok Weather
   useEffect(() => {
-    const weatherCodeLookup: Record<number, { label: string; icon: string }> = {
+    const weatherCodeMap: Record<number, { label: string; icon: string }> = {
       0: { label: '晴朗', icon: 'sunny' },
       1: { label: '少雲', icon: 'partly_cloudy_day' },
       2: { label: '多雲', icon: 'cloud' },
       3: { label: '陰天', icon: 'cloud' },
       45: { label: '霧', icon: 'foggy' },
-      51: { label: '細雨', icon: 'rainy_light' },
+      51: { label: '細雨', icon: 'water_drop' },
       61: { label: '陣雨', icon: 'rainy' },
-      80: { label: '短暫陣雨', icon: 'rainy' },
+      80: { label: '短暫雨', icon: 'rainy' },
       95: { label: '雷雨', icon: 'thunderstorm' },
     };
 
-    const fetchWeather = async () => {
-      try {
-        const response = await fetch(
-          'https://api.open-meteo.com/v1/forecast?latitude=13.7563&longitude=100.5018&current_weather=true&hourly=apparent_temperature&timezone=Asia%2FBangkok'
-        );
-        if (!response.ok) throw new Error('Weather fetch failed');
-        const data = await response.json();
-        const current = data?.current_weather;
-        if (!current) throw new Error('No weather data');
-
-        const descriptor = weatherCodeLookup[current.weathercode] || { label: '晴朗', icon: 'sunny' };
-        const temp = Math.round(current.temperature);
-        const apparent = data?.hourly?.apparent_temperature?.[0] ?? temp;
-
-        setWeather({
-          temp: `${temp}°C ${descriptor.label}`,
-          loc: '泰國曼谷',
-          district: 'Bangkok',
-          alertTitle: apparent > temp + 2 ? '體感偏熱' : '即時天氣',
-          alertDesc: apparent > temp + 2
-            ? `體感溫度約 ${Math.round(apparent)}°C，請多補水 💧`
-            : `目前天氣 ${descriptor.label}，享受旅程！🌴`,
-          icon: descriptor.icon,
-        });
-      } catch {
-        // Fallback to first scenario on error
-        setWeather(WEATHER_SCENARIOS[0]);
-      }
-    };
-
-    fetchWeather();
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=13.7563&longitude=100.5018&current_weather=true&timezone=Asia%2FBangkok')
+      .then(r => r.json())
+      .then(data => {
+        const { temperature, weathercode } = data?.current_weather || {};
+        const info = weatherCodeMap[weathercode] || { label: '晴朗', icon: 'sunny' };
+        setWeather({ temp: `${Math.round(temperature)}°`, label: info.label, icon: info.icon });
+      })
+      .catch(() => setWeather({ temp: '33°', label: '晴朗', icon: 'sunny' }));
   }, []);
 
-  const [showMemories, setShowMemories] = useState(false);
-  const [memories, setMemories] = useState(defaultMemories);
+  // Get greeting based on time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return '早安';
+    if (hour < 18) return '午安';
+    return '晚安';
+  };
 
-  const [showEventEdit, setShowEventEdit] = useState(false);
-  // Removed local schedule state
-
-  const [newEventTitle, setNewEventTitle] = useState('');
-  const [newEventTime, setNewEventTime] = useState('');
-  const [newEventDate, setNewEventDate] = useState(new Date().toISOString().split('T')[0]); // Default today
-
-  // Find next upcoming event (first uncompleted)
-  // Sort schedule by date then time just in case, or assume passed in order.
-  // We'll rely on the App.tsx initial order for now, or do a quick sort.
+  // Find next event
   const sortedSchedule = [...schedule].sort((a, b) => {
     if (a.date !== b.date) return a.date.localeCompare(b.date);
     return a.time.localeCompare(b.time);
   });
+  const nextEvent = sortedSchedule.find(e => !e.completed);
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '';
-    try {
-      const parts = dateStr.split('-');
-      if (parts.length === 3) {
-        return `${parseInt(parts[1])}/${parseInt(parts[2])}`;
-      }
-      return dateStr;
-    } catch (e) {
-      return dateStr;
-    }
-  };
-
-  const nextEvent = sortedSchedule.find(e => !e.completed) || {
-    id: 0,
-    title: 'No upcoming events',
-    time: '--:--',
-    type: 'None',
-    date: '',
-    completed: true,
-    location: '',
-    travelTime: '',
-    travelTip: ''
-  } as ScheduleItem;
-
-  // Filter out current user from "Companion Status" to avoid redundancy
+  // Filter companions (exclude current user)
   const companions = familyMembersData.filter(m => m.id !== user?.id);
 
   const handleAction = (id: string) => {
-    if (id === 'taxi') {
-      window.open('https://www.grab.com/th/transport/', '_blank');
-    } else if (id === 'rate') {
-      window.open('https://www.google.com/finance/quote/THB-TWD', '_blank');
-    } else {
-      setActiveModal(id);
-    }
-  };
-
-  const addEvent = () => {
-    if (!newEventTitle) return;
-    const newItem: ScheduleItem = {
-      id: Date.now(),
-      title: newEventTitle,
-      time: newEventTime || '00:00',
-      date: newEventDate,
-      completed: false,
-      type: 'Activity',
-      notificationOffset: 10,
-    };
-    setSchedule((prev) => [...prev, newItem]);
-    setNewEventTitle('');
-    setNewEventTime('');
-  };
-
-  const toggleEvent = (id: number) => {
-    setSchedule((prev) => prev.map(e => e.id === id ? { ...e, completed: !e.completed } : e));
-  };
-
-  const addMemory = () => {
-    // Simulate upload
-    const newMemory = 'https://images.unsplash.com/photo-1590523277543-a9d22ce67412?q=80&w=400';
-    setMemories([newMemory, ...memories]);
+    if (id === 'taxi') window.open('https://www.grab.com/th/transport/', '_blank');
+    else if (id === 'rate') window.open('https://www.google.com/finance/quote/THB-TWD', '_blank');
+    else if (id === 'translate') window.open('https://translate.google.com/?sl=auto&tl=th', '_blank');
+    else if (id === 'sos') window.open('tel:1155', '_self'); // Thailand Tourist Police
   };
 
   return (
-    <div className="pt-14 px-6 pb-6 relative">
+    <div className="min-h-full bg-ios-groupedBg px-4 py-6">
       {/* Header */}
       <div className="flex justify-between items-start mb-6">
-        <div className="flex flex-col gap-1">
-          <motion.h1
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-3xl font-light tracking-wide text-text-primary font-display"
+        <div>
+          <motion.h1 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-ios-largeTitle font-bold text-ios-label tracking-tight"
           >
-            早安，<br /><span className="font-normal">{user?.name || '旅人'}</span>
+            {getGreeting()}，
           </motion.h1>
-          <div className="flex items-center gap-2 text-text-muted mt-2">
-            <span className="material-symbols-outlined text-[18px]">location_on</span>
-            <p className="text-[11px] font-medium tracking-[0.15em] uppercase">{weather.loc} • {weather.district} • {weather.temp}</p>
-          </div>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="text-ios-title2 font-bold text-ios-label"
+          >
+            {user?.name || '旅人'}
+          </motion.p>
         </div>
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+        
+        {/* Avatar */}
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={onLogout}
           className="relative"
+          title="點擊切換身份"
         >
-          <div
-            onClick={onLogout}
-            className="w-12 h-12 rounded-full bg-bone border border-white shadow-sm bg-cover bg-center cursor-pointer hover:ring-2 hover:ring-gold/50 transition-all"
+          <div 
+            className="w-14 h-14 rounded-full bg-cover bg-center shadow-ios ring-2 ring-white"
             style={{ backgroundImage: `url('${user?.image || '/avatars/me.jpg'}')` }}
-            title="點擊切換身份"
           />
-          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-ivory rounded-full"></div>
-        </motion.div>
+          <div className="absolute bottom-0 right-0 w-4 h-4 bg-ios-green rounded-full border-2 border-white" />
+        </motion.button>
       </div>
 
-      {/* Budget Snapshot */}
+      {/* Weather Card */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl p-5 shadow-card border border-black/5 mb-6 relative overflow-hidden"
+        transition={{ delay: 0.1 }}
+        className="bg-gradient-to-br from-ios-blue to-ios-indigo rounded-ios-lg p-4 mb-4 shadow-ios"
       >
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">個人剩餘預算</p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-semibold text-text-primary">฿ {Math.round(safeBudget.remaining).toLocaleString()}</span>
-              <span className="text-xs text-text-muted">/ ฿ {Math.round(safeBudget.total).toLocaleString()}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+              <span className="material-symbols-outlined text-white text-[28px]">{weather.icon}</span>
+            </div>
+            <div>
+              <p className="text-white/80 text-ios-caption1">曼谷即時天氣</p>
+              <p className="text-white text-ios-title2 font-bold">{weather.temp} {weather.label}</p>
             </div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
-            <span className="material-symbols-outlined text-green-600">account_balance_wallet</span>
+          <span className="material-symbols-outlined text-white/60 text-[20px]">chevron_right</span>
+        </div>
+      </motion.div>
+
+      {/* Budget Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="bg-white rounded-ios-lg p-4 mb-4 shadow-ios"
+      >
+        <div className="flex justify-between items-center mb-3">
+          <p className="text-ios-footnote text-ios-secondaryLabel">個人剩餘預算</p>
+          <div className="w-8 h-8 rounded-ios-sm bg-ios-green/10 flex items-center justify-center">
+            <span className="material-symbols-outlined text-ios-green text-[18px]">account_balance_wallet</span>
           </div>
         </div>
-
-        {/* Progress Bar */}
-        <div className="w-full h-2 bg-bone rounded-full mb-2 overflow-hidden">
+        <div className="flex items-baseline gap-2 mb-3">
+          <span className="text-ios-largeTitle font-bold text-ios-label">฿{Math.round(safeBudget.remaining).toLocaleString()}</span>
+          <span className="text-ios-footnote text-ios-tertiaryLabel">/ ฿{Math.round(safeBudget.total).toLocaleString()}</span>
+        </div>
+        <div className="h-1.5 bg-ios-gray5 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${Math.min(percentSpent, 100)}%` }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className={`h-full rounded-full ${safeBudget.remaining < 0 ? 'bg-red-400' : 'bg-green-500'}`}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className={`h-full rounded-full ${percentSpent > 80 ? 'bg-ios-red' : percentSpent > 50 ? 'bg-ios-orange' : 'bg-ios-green'}`}
           />
         </div>
-        <div className="flex justify-between items-center text-[10px] text-text-muted">
-          <span>已支出 {Math.round(percentSpent)}%</span>
-          <span>{safeBudget.remaining < 0 ? '已超支' : '尚有額度'}</span>
-        </div>
+        <p className="text-ios-caption2 text-ios-tertiaryLabel mt-2">已使用 {Math.round(percentSpent)}%</p>
       </motion.div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="grid grid-cols-4 gap-3 mb-6"
+      >
         {quickActions.map((action, i) => (
           <motion.button
             key={action.id}
+            whileTap={{ scale: 0.92 }}
             onClick={() => handleAction(action.id)}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            whileTap={{ scale: 0.9 }}
-            className="flex flex-col items-center gap-2"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.25 + i * 0.05 }}
+            className="flex flex-col items-center gap-2 p-3 bg-white rounded-ios shadow-ios-sm"
           >
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${action.color}`}>
-              <span className="material-symbols-outlined text-[24px]">{action.icon}</span>
+            <div className={`w-11 h-11 rounded-ios-sm ${action.color} flex items-center justify-center`}>
+              <span className={`material-symbols-outlined ${action.iconColor} text-[22px]`}>{action.icon}</span>
             </div>
-            <span className="text-[11px] font-medium text-text-secondary">{action.label}</span>
+            <span className="text-ios-caption1 text-ios-label font-medium">{action.label}</span>
           </motion.button>
         ))}
-      </div>
-
-      {/* Alert Card */}
-      <motion.div
-        whileTap={{ scale: 0.98 }}
-        className="mb-8 cursor-pointer relative overflow-hidden rounded-2xl bg-text-primary text-ivory shadow-soft p-5"
-      >
-        <div className="absolute right-0 top-0 w-32 h-32 bg-gold/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="flex items-start gap-4 relative z-10">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm shadow-sm">
-            <span className="material-symbols-outlined text-gold">{weather.icon}</span>
-          </div>
-          <div className="flex-1">
-            <div className="flex justify-between items-start">
-              <h3 className="font-normal text-ivory text-sm tracking-wide">行程提醒：{weather.alertTitle}</h3>
-              <span className="text-[10px] text-ivory bg-white/20 px-2 py-0.5 rounded uppercase tracking-wider">現在</span>
-            </div>
-            <p className="mt-2 text-xs text-ivory/80 leading-relaxed font-light">{weather.alertDesc}</p>
-          </div>
-        </div>
       </motion.div>
 
-      {/* Family Status */}
-      <section className="mb-8">
-        <h3 className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-4 pl-1">旅伴狀態</h3>
-        <div className="flex overflow-x-auto no-scrollbar gap-5 pb-2 pl-1">
+      {/* Next Event Card */}
+      {nextEvent && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white rounded-ios-lg p-4 mb-4 shadow-ios"
+        >
+          <div className="flex justify-between items-center mb-3">
+            <p className="text-ios-footnote text-ios-secondaryLabel font-medium">下一個行程</p>
+            <span className="text-ios-footnote text-ios-blue font-medium">{nextEvent.time}</span>
+          </div>
+          <h3 className="text-ios-headline font-semibold text-ios-label mb-1">{nextEvent.title}</h3>
+          {nextEvent.location && (
+            <div className="flex items-center gap-1 text-ios-caption1 text-ios-tertiaryLabel">
+              <span className="material-symbols-outlined text-[14px]">location_on</span>
+              {nextEvent.location}
+            </div>
+          )}
+          {nextEvent.travelTime && (
+            <p className="text-ios-caption1 text-ios-blue mt-2">{nextEvent.travelTime} {nextEvent.travelTip}</p>
+          )}
+        </motion.div>
+      )}
+
+      {/* Companions */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="mb-6"
+      >
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-ios-headline font-semibold text-ios-label">旅伴狀態</h2>
+          <button className="text-ios-footnote text-ios-blue font-medium">查看全部</button>
+        </div>
+        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
           {companions.map((member, i) => (
             <motion.div
-              key={member.name}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 + (i * 0.1) }}
-              className="flex flex-col items-center gap-2 min-w-[4rem]"
+              key={member.id}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 + i * 0.05 }}
+              className="flex flex-col items-center gap-2 min-w-[60px]"
             >
-              <motion.div
-                whileTap={{ scale: 0.9 }}
-                className="relative group cursor-pointer"
-              >
-                <div className="w-14 h-14 rounded-full p-[2px] border border-gray-200 group-hover:border-gold transition-colors">
-                  <div
-                    className="w-full h-full rounded-full bg-cover bg-center"
-                    style={{ backgroundImage: `url('${member.image}')` }}
-                  />
+              <div className="relative">
+                <img 
+                  src={member.image} 
+                  alt={member.name}
+                  className="w-14 h-14 rounded-full object-cover ring-2 ring-white shadow-ios-sm"
+                />
+                <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-ios-sm">
+                  <span className={`text-[10px] font-bold ${member.bat > 50 ? 'text-ios-green' : 'text-ios-orange'}`}>
+                    {member.bat}
+                  </span>
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-white border border-ivory shadow-sm rounded-full p-0.5 w-5 h-5 flex items-center justify-center">
-                  <div className={`w-1.5 h-1.5 rounded-full ${member.bat > 30 ? 'bg-green-500' : 'bg-red-500'}`} />
-                </div>
-              </motion.div>
-              <span className="text-[10px] font-medium text-text-secondary">{member.name}</span>
+              </div>
+              <span className="text-ios-caption2 text-ios-secondaryLabel">{member.name}</span>
             </motion.div>
           ))}
-          <div className="flex flex-col items-center gap-2 min-w-[4rem]">
-            <motion.button
-              whileTap={{ scale: 0.9, rotate: 90 }}
-              className="w-14 h-14 rounded-full border border-dashed border-icon/40 flex items-center justify-center bg-transparent active:bg-black/5 transition-colors"
-            >
-              <span className="material-symbols-outlined text-icon text-[20px]">add</span>
-            </motion.button>
-            <span className="text-[10px] text-text-muted">新增</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Memories */}
-      <section className="mb-6">
-        <div className="flex justify-between items-end mb-4 px-1">
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-text-muted">今日回憶</h3>
-          <span
-            className="text-[10px] text-gold font-medium cursor-pointer"
-            onClick={() => setShowMemories(true)}
-          >
-            查看全部
-          </span>
-        </div>
-        <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 pl-1">
-          {memories.slice(0, 3).map((img, i) => (
-            <motion.div
-              key={i}
-              whileTap={{ scale: 0.98 }}
-              className="min-w-[140px] h-48 rounded-2xl bg-cover bg-center relative overflow-hidden shadow-card"
-              style={{ backgroundImage: `url('${img}')` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Next Event */}
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        whileTap={{ scale: 0.98 }}
-        onClick={() => setShowEventEdit(true)}
-        className="bg-bone rounded-3xl p-6 border border-white relative overflow-hidden shadow-card group cursor-pointer mb-8"
-      >
-        <div className="flex justify-between items-start mb-4 relative z-10">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${nextEvent.type === 'None' ? 'bg-gray-400' : 'bg-gold'}`}></span>
-              <p className="text-[10px] font-medium text-gold uppercase tracking-[0.2em]">
-                {nextEvent.type === 'None' ? 'NO UPCOMING' : `接下來 • ${nextEvent.date ? formatDate(nextEvent.date) + ' ' : ''}${nextEvent.time}`}
-              </p>
-            </div>
-            <h3 className="text-xl font-light text-text-primary leading-tight">
-              {nextEvent.type === 'None' ? '目前無行程' : `${nextEvent.type === 'Dinner' ? '晚餐預約' : '行程'}：`}
-              <span className="font-normal font-serif">{nextEvent.title}</span>
-            </h3>
-            {/* Added details for clarity */}
-            {nextEvent.location && (
-              <p className="text-[10px] text-text-muted mt-1 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[12px]">location_on</span>
-                {nextEvent.location}
-              </p>
-            )}
-            {/* Added Travel Info if available */}
-            {/* @ts-ignore - travelTime optional */}
-            {nextEvent.travelTime && (
-              <p className="text-[10px] text-text-muted mt-0.5 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[12px]">directions_car</span>
-                需時 {nextEvent.travelTime}
-              </p>
-            )}
-          </div>
           <motion.button
             whileTap={{ scale: 0.9 }}
-            className="bg-white hover:bg-bone-alt text-gold rounded-full w-10 h-10 flex items-center justify-center transition-all shadow-sm"
+            className="flex flex-col items-center gap-2 min-w-[60px]"
           >
-            <span className="material-symbols-outlined text-[20px]">edit</span>
+            <div className="w-14 h-14 rounded-full border-2 border-dashed border-ios-gray3 flex items-center justify-center">
+              <span className="material-symbols-outlined text-ios-gray text-[24px]">add</span>
+            </div>
+            <span className="text-ios-caption2 text-ios-tertiaryLabel">新增</span>
           </motion.button>
         </div>
       </motion.div>
 
-      {/* Modals */}
-      <AnimatePresence>
-        {activeModal && (
-          <>
+      {/* Memories */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45 }}
+      >
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-ios-headline font-semibold text-ios-label">今日回憶</h2>
+          <button className="text-ios-footnote text-ios-blue font-medium">查看全部</button>
+        </div>
+        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-4">
+          {memories.slice(0, 4).map((img, i) => (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setActiveModal(null)}
-              className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed bottom-0 left-0 w-full bg-ivory rounded-t-3xl p-6 z-50 pb-safe"
+              key={i}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 + i * 0.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="shrink-0 w-28 h-36 rounded-ios-md overflow-hidden shadow-ios"
             >
-              <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6"></div>
-
-              {activeModal === 'translate' && (
-                <div>
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-medium text-text-primary">泰語快查</h3>
-                    <button
-                      onClick={() => window.open('https://translate.google.com/?sl=zh-TW&tl=th', '_blank')}
-                      className="text-xs font-bold text-gold uppercase tracking-wider"
-                    >
-                      Google 翻譯 &rarr;
-                    </button>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {phrases.map((p, i) => (
-                      <motion.button
-                        key={i}
-                        whileTap={{ scale: 0.95 }}
-                        className="bg-white p-4 rounded-2xl border border-black/5 shadow-sm text-left relative overflow-hidden group"
-                      >
-                        <div className="absolute right-2 top-2 text-2xl opacity-20 group-active:opacity-100 transition-opacity grayscale group-active:grayscale-0">{p.aud}</div>
-                        <p className="text-lg font-medium text-text-primary mb-1">{p.th}</p>
-                        <p className="text-xs text-text-muted">{p.en}</p>
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {activeModal === 'sos' && (
-                <div>
-                  <h3 className="text-xl font-medium text-text-primary mb-6">緊急聯絡</h3>
-                  <div className="space-y-4">
-                    <motion.a
-                      href="tel:1155"
-                      whileTap={{ scale: 0.98 }}
-                      className="flex items-center justify-between bg-red-50 p-5 rounded-2xl border border-red-100"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center">
-                          <span className="material-symbols-outlined">local_police</span>
-                        </div>
-                        <div>
-                          <p className="text-base font-bold text-text-primary">觀光警察</p>
-                          <p className="text-xs text-text-muted">Tourist Police</p>
-                        </div>
-                      </div>
-                      <span className="text-xl font-bold text-red-600">1155</span>
-                    </motion.a>
-                    <motion.a
-                      href="tel:191"
-                      whileTap={{ scale: 0.98 }}
-                      className="flex items-center justify-between bg-white p-5 rounded-2xl border border-black/5"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center">
-                          <span className="material-symbols-outlined">emergency</span>
-                        </div>
-                        <div>
-                          <p className="text-base font-bold text-text-primary">緊急求助</p>
-                          <p className="text-xs text-text-muted">Emergency</p>
-                        </div>
-                      </div>
-                      <span className="text-xl font-bold text-text-primary">191</span>
-                    </motion.a>
-                  </div>
-                </div>
-              )}
+              <img src={img} alt="" className="w-full h-full object-cover" />
             </motion.div>
-          </>
-        )}
-
-        {/* Memories Modal */}
-        {showMemories && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/95 z-[60] p-4 pt-12 overflow-y-auto"
+          ))}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            className="shrink-0 w-28 h-36 rounded-ios-md border-2 border-dashed border-ios-gray3 flex flex-col items-center justify-center gap-2"
           >
-            <div className="flex justify-between items-center mb-6 px-2">
-              <h2 className="text-white text-2xl font-light">所有回憶</h2>
-              <button onClick={() => setShowMemories(false)} className="text-white p-2 bg-white/10 rounded-full">
-                <span className="material-symbols-outlined text-[24px]">close</span>
-              </button>
-            </div>
-
-            {/* Add Memory Button */}
-            <div className="mb-6 px-2">
-              <button
-                onClick={addMemory}
-                className="w-full bg-white/10 hover:bg-white/20 text-white p-4 rounded-xl border border-dashed border-white/30 flex items-center justify-center gap-2 transition-colors"
-              >
-                <span className="material-symbols-outlined">add_a_photo</span>
-                <span className="text-sm font-medium">新增回憶</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {memories.map((img, i) => (
-                <div key={i} className="rounded-xl overflow-hidden aspect-[3/4]"><img src={img} className="w-full h-full object-cover" /></div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Edit Schedule Modal */}
-        {showEventEdit && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowEventEdit(false)}
-              className="fixed inset-0 bg-black/40 z-[60] backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              className="fixed bottom-0 left-0 w-full bg-ivory rounded-t-3xl p-6 z-[60] pb-safe h-[80vh] flex flex-col"
-            >
-              <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-6 shrink-0"></div>
-              <div className="flex justify-between items-center mb-6 shrink-0">
-                <h3 className="text-xl font-medium text-text-primary">行程規劃</h3>
-                <button onClick={() => setShowEventEdit(false)} className="text-xs font-bold text-text-muted">完成</button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto no-scrollbar relative">
-                {/* Schedule List */}
-                <div className="space-y-3 mb-6">
-                  {schedule.map(event => (
-                    <div key={event.id} className="flex items-center gap-3 p-4 bg-white rounded-xl border border-black/5 shadow-sm">
-                      <button
-                        onClick={() => toggleEvent(event.id)}
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${event.completed ? 'bg-gold border-gold' : 'border-gray-300'}`}
-                      >
-                        {event.completed && <span className="material-symbols-outlined text-white text-[16px]">check</span>}
-                      </button>
-                      <div className={event.completed ? 'opacity-40 line-through' : ''}>
-                        <p className="font-medium text-text-primary">{event.title}</p>
-                        <p className="text-xs text-text-muted">{event.time}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Add New Event UI */}
-                <div className="bg-bone rounded-xl p-4 sticky bottom-0">
-                  <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-3">新增行程</p>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      placeholder="標題"
-                      value={newEventTitle}
-                      onChange={e => setNewEventTitle(e.target.value)}
-                      className="flex-1 bg-white border-none rounded-lg p-3 text-sm outline-none shadow-sm"
-                    />
-                    <input
-                      type="time"
-                      value={newEventTime}
-                      onChange={e => setNewEventTime(e.target.value)}
-                      className="w-24 bg-white border-none rounded-lg p-3 text-sm outline-none shadow-sm"
-                    />
-                  </div>
-                  <button
-                    onClick={addEvent}
-                    disabled={!newEventTitle}
-                    className="w-full bg-text-primary text-ivory font-medium p-3 rounded-lg disabled:opacity-50"
-                  >
-                    加入清單
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+            <span className="material-symbols-outlined text-ios-gray text-[28px]">add_photo_alternate</span>
+            <span className="text-ios-caption2 text-ios-tertiaryLabel">新增照片</span>
+          </motion.button>
+        </div>
+      </motion.div>
     </div>
   );
 }
