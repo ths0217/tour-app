@@ -17,39 +17,35 @@ const navItems: { id: Tab; icon: string; label: string }[] = [
 
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
-    <nav className="absolute bottom-0 left-0 w-full bg-ivory/92 backdrop-blur-xl border-t border-black/5 nav-safe pt-2 z-50 shadow-nav">
-      <div className="flex justify-around items-center h-16 px-2">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md ios-glass border-t border-black/5 nav-safe z-50">
+      <div className="flex justify-around items-center h-[72px] px-2">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
-            <button
+            <motion.button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              className="relative flex flex-col items-center justify-center w-16 h-full gap-1 group outline-none"
+              whileTap={{ scale: 0.92 }}
+              className="relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 outline-none"
               style={{ WebkitTapHighlightColor: 'transparent' }}
             >
-              <div className="relative p-1">
+              <div className="relative">
                 <span 
-                  className={`material-symbols-outlined text-[24px] transition-all duration-300 ${
-                    isActive ? 'text-gold material-symbols-filled scale-110' : 'text-icon group-hover:text-text-primary'
+                  className={`material-symbols-outlined text-[26px] transition-all duration-200 ${
+                    isActive 
+                      ? 'text-ios-blue material-symbols-filled' 
+                      : 'text-ios-secondary'
                   }`}
                 >
                   {item.icon}
                 </span>
-                {isActive && (
-                  <motion.div
-                    layoutId="nav-indicator"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gold"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
               </div>
-              <span className={`text-[10px] font-medium tracking-widest transition-colors duration-300 ${
-                isActive ? 'text-gold' : 'text-text-muted group-hover:text-text-primary'
+              <span className={`text-[10px] font-medium transition-colors duration-200 ${
+                isActive ? 'text-ios-blue' : 'text-ios-secondary'
               }`}>
                 {item.label}
               </span>
-            </button>
+            </motion.button>
           );
         })}
       </div>
