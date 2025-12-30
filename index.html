@@ -3,17 +3,20 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="theme-color" content="#F8F8F8" />
+  <meta name="theme-color" content="#F2F2F7" />
   <title>曼谷家庭旅遊</title>
-  
-  <!-- iOS-style Fonts: Inter for UI, Noto Sans TC for Chinese -->
+
+  <!-- System Fonts + Noto Sans TC for Chinese -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -22,73 +25,86 @@
       theme: {
         extend: {
           colors: {
-            // iOS-inspired color palette
+            // iOS System Colors
             ios: {
               bg: "#F2F2F7",
-              card: "#FFFFFF",
-              separator: "#C6C6C8",
-              label: "#3C3C43",
-              secondary: "#8A8A8E",
-              tertiary: "#C7C7CC",
+              secondaryBg: "#FFFFFF",
+              tertiaryBg: "#F2F2F7",
+              groupedBg: "#F2F2F7",
+              separator: "rgba(60, 60, 67, 0.12)",
+              opaqueSeparator: "#C6C6C8",
+              label: "#000000",
+              secondaryLabel: "rgba(60, 60, 67, 0.6)",
+              tertiaryLabel: "rgba(60, 60, 67, 0.3)",
+              quaternaryLabel: "rgba(60, 60, 67, 0.18)",
+              // Accent Colors
               blue: "#007AFF",
               green: "#34C759",
+              indigo: "#5856D6",
               orange: "#FF9500",
-              red: "#FF3B30",
               pink: "#FF2D55",
               purple: "#AF52DE",
+              red: "#FF3B30",
               teal: "#5AC8FA",
+              yellow: "#FFCC00",
+              // Gray Scale
+              gray: "#8E8E93",
+              gray2: "#AEAEB2",
+              gray3: "#C7C7CC",
+              gray4: "#D1D1D6",
+              gray5: "#E5E5EA",
+              gray6: "#F2F2F7",
             },
-            // Keep legacy colors for gradual migration
-            ivory: "#F8F8FA",
-            bone: "#F2F2F7",
-            "bone-alt": "#FFFFFF",
-            gold: "#FF9500",
-            "text-primary": "#000000",
-            "text-secondary": "#3C3C43",
-            "text-muted": "#8A8A8E",
-            icon: "#8A8A8E",
           },
           fontFamily: {
-            sans: ["Inter", "Noto Sans TC", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
-            display: ["Inter", "Noto Sans TC", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
-            serif: ["Inter", "Noto Sans TC", "sans-serif"],
-            body: ["Inter", "Noto Sans TC", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+            // iOS System Font Stack
+            system: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "SF Pro Text", "Noto Sans TC", "Helvetica Neue", "Arial", "sans-serif"],
           },
           fontSize: {
-            'ios-title1': ['28px', { lineHeight: '34px', fontWeight: '700' }],
-            'ios-title2': ['22px', { lineHeight: '28px', fontWeight: '700' }],
+            // iOS Typography Scale (Apple HIG)
+            'ios-largeTitle': ['34px', { lineHeight: '41px', fontWeight: '700', letterSpacing: '-0.02em' }],
+            'ios-title1': ['28px', { lineHeight: '34px', fontWeight: '700', letterSpacing: '-0.02em' }],
+            'ios-title2': ['22px', { lineHeight: '28px', fontWeight: '700', letterSpacing: '-0.02em' }],
             'ios-title3': ['20px', { lineHeight: '25px', fontWeight: '600' }],
             'ios-headline': ['17px', { lineHeight: '22px', fontWeight: '600' }],
             'ios-body': ['17px', { lineHeight: '22px', fontWeight: '400' }],
             'ios-callout': ['16px', { lineHeight: '21px', fontWeight: '400' }],
-            'ios-subhead': ['15px', { lineHeight: '20px', fontWeight: '400' }],
+            'ios-subheadline': ['15px', { lineHeight: '20px', fontWeight: '400' }],
             'ios-footnote': ['13px', { lineHeight: '18px', fontWeight: '400' }],
             'ios-caption1': ['12px', { lineHeight: '16px', fontWeight: '400' }],
             'ios-caption2': ['11px', { lineHeight: '13px', fontWeight: '400' }],
           },
-          boxShadow: {
-            'ios': '0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05)',
-            'ios-sm': '0 1px 2px rgba(0, 0, 0, 0.04)',
-            'ios-lg': '0 8px 32px rgba(0, 0, 0, 0.12)',
-            'ios-inset': 'inset 0 1px 0 rgba(255, 255, 255, 0.5)',
-            soft: "0 8px 30px -8px rgba(0, 0, 0, 0.04)",
-            card: "0 1px 3px rgba(0, 0, 0, 0.06)",
-            glow: "0 4px 20px -5px rgba(255, 149, 0, 0.3)",
-            nav: "0 -1px 0 rgba(0,0,0,0.08)",
-          },
           borderRadius: {
+            // iOS Continuous Corners
+            'ios-sm': '10px',
             'ios': '12px',
-            'ios-lg': '16px',
-            'ios-xl': '20px',
-            'ios-2xl': '24px',
+            'ios-md': '16px',
+            'ios-lg': '22px',
+            'ios-xl': '28px',
+            'ios-2xl': '38px',
           },
-          letterSpacing: {
-            luxury: '0.02em',
-            widest: '0.1em',
+          boxShadow: {
+            // iOS Shadow System
+            'ios-sm': '0 1px 3px rgba(0, 0, 0, 0.06)',
+            'ios': '0 4px 12px rgba(0, 0, 0, 0.08)',
+            'ios-md': '0 8px 24px rgba(0, 0, 0, 0.08)',
+            'ios-lg': '0 12px 40px rgba(0, 0, 0, 0.12)',
+            'ios-card': '0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08)',
           },
-          backdropBlur: {
-            'ios': '20px',
-          }
+          animation: {
+            'ios-spring': 'iosSpring 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            'ios-fade': 'iosFade 0.3s ease-out',
+          },
+          keyframes: {
+            iosSpring: {
+              '0%': { transform: 'scale(0.95)', opacity: '0' },
+              '100%': { transform: 'scale(1)', opacity: '1' },
+            },
+            iosFade: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+          },
         },
       },
     }
@@ -104,25 +120,41 @@
     html {
       scroll-behavior: smooth;
       background: #F2F2F7;
+      /* Enable momentum scrolling */
+      -webkit-overflow-scrolling: touch;
     }
 
     body {
-      font-family: "Inter", "Noto Sans TC", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Noto Sans TC", "Helvetica Neue", Arial, sans-serif;
       background: #F2F2F7;
       color: #000000;
       -webkit-tap-highlight-color: transparent;
-      overscroll-behavior-y: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      overscroll-behavior: none;
       margin: 0;
       padding: 0;
-      font-feature-settings: "cv01", "cv02", "cv03", "cv04";
+      /* iOS Font Smoothing */
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
     }
 
-    /* iOS-like Scrolling */
-    .overflow-y-auto {
+    /* Allow text selection in inputs */
+    input,
+    textarea {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    /* iOS Momentum Scrolling */
+    .scroll-momentum {
       -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain;
+      overscroll-behavior-y: auto;
     }
 
+    /* Hide scrollbars but keep functionality */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -132,56 +164,74 @@
       scrollbar-width: none;
     }
 
-    /* Material Symbols - iOS style (thinner, more elegant) */
+    /* Material Symbols - iOS style weight */
     .material-symbols-outlined {
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
     }
 
     .material-symbols-filled {
-      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
     }
 
-    /* Safe area helpers for iOS */
+    /* Safe Area Insets */
+    .safe-area-top {
+      padding-top: max(var(--safe-top), 20px);
+    }
+
+    .safe-area-bottom {
+      padding-bottom: max(var(--safe-bottom), 34px);
+    }
+
     .safe-area-app {
-      padding-top: calc(var(--safe-top) + 0.5rem);
-      padding-bottom: calc(var(--safe-bottom) + 0.5rem);
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
     }
 
     .pb-safe {
-      padding-bottom: calc(var(--safe-bottom) + 1.5rem) !important;
+      padding-bottom: calc(var(--safe-bottom) + 16px) !important;
     }
 
-    .nav-safe {
-      padding-bottom: calc(var(--safe-bottom) + 0.75rem);
-    }
-
-    /* Smooth font rendering */
-    * {
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* iOS-like button press effect */
-    .ios-press:active {
-      transform: scale(0.97);
-      opacity: 0.8;
-    }
-
-    /* iOS-like list item separator */
-    .ios-separator {
-      border-bottom: 0.5px solid rgba(60, 60, 67, 0.12);
-    }
-
-    /* iOS-style glass effect */
+    /* iOS Glassmorphism */
     .ios-glass {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
     }
 
-    /* Smooth transitions */
-    .transition-ios {
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    .ios-glass-dark {
+      background: rgba(30, 30, 30, 0.72);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+    }
+
+    /* iOS Card Style */
+    .ios-card {
+      background: #FFFFFF;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    /* iOS List Separator */
+    .ios-separator {
+      height: 0.5px;
+      background: rgba(60, 60, 67, 0.12);
+      margin-left: 16px;
+    }
+
+    /* iOS Press Effect */
+    .ios-press {
+      transition: transform 0.1s ease-out, opacity 0.1s ease-out;
+    }
+
+    .ios-press:active {
+      transform: scale(0.96);
+      opacity: 0.7;
+    }
+
+    /* Continuous Corner Radius (like iOS) */
+    .continuous-corners {
+      -webkit-mask-image: -webkit-radial-gradient(white, black);
+      mask-image: radial-gradient(white, black);
     }
   </style>
   <script type="importmap">
