@@ -3,20 +3,17 @@
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="theme-color" content="#F2F2F7" />
+  <meta name="theme-color" content="#FAFAFA" />
   <title>曼谷家庭旅遊</title>
-
-  <!-- System Fonts + Noto Sans TC for Chinese -->
+  
+  <!-- Fonts: System + Noto Sans TC + Roboto Condensed for time display -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700;800;900&display=swap"
-    rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Roboto+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -25,84 +22,68 @@
       theme: {
         extend: {
           colors: {
-            // iOS System Colors
-            ios: {
-              bg: "#F2F2F7",
-              secondaryBg: "#FFFFFF",
-              tertiaryBg: "#F2F2F7",
-              groupedBg: "#F2F2F7",
-              separator: "rgba(60, 60, 67, 0.12)",
-              opaqueSeparator: "#C6C6C8",
-              label: "#000000",
-              secondaryLabel: "rgba(60, 60, 67, 0.6)",
-              tertiaryLabel: "rgba(60, 60, 67, 0.3)",
-              quaternaryLabel: "rgba(60, 60, 67, 0.18)",
-              // Accent Colors
-              blue: "#007AFF",
-              green: "#34C759",
-              indigo: "#5856D6",
-              orange: "#FF9500",
-              pink: "#FF2D55",
-              purple: "#AF52DE",
-              red: "#FF3B30",
-              teal: "#5AC8FA",
-              yellow: "#FFCC00",
-              // Gray Scale
-              gray: "#8E8E93",
-              gray2: "#AEAEB2",
-              gray3: "#C7C7CC",
-              gray4: "#D1D1D6",
-              gray5: "#E5E5EA",
-              gray6: "#F2F2F7",
+            // Xiaohongshu / Magazine Color Palette
+            red: {
+              xhs: "#FF2442", // Xiaohongshu signature red
+              light: "#FFE8EB",
             },
+            charcoal: "#333333",
+            stone: "#8E8E93",
+            cream: "#FAFAFA",
+            sand: "#F5F5DC",
+            mist: "#E0F7FA",
+            // Pastel accents
+            pastel: {
+              blue: "#E3F2FD",
+              pink: "#FCE4EC",
+              mint: "#E8F5E9",
+              peach: "#FFF3E0",
+              lavender: "#F3E5F5",
+            }
           },
           fontFamily: {
-            // iOS System Font Stack
-            system: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "SF Pro Text", "Noto Sans TC", "Helvetica Neue", "Arial", "sans-serif"],
+            sans: ["Noto Sans TC", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+            mono: ["Roboto Condensed", "SF Mono", "monospace"],
           },
           fontSize: {
-            // iOS Typography Scale (Apple HIG)
-            'ios-largeTitle': ['34px', { lineHeight: '41px', fontWeight: '700', letterSpacing: '-0.02em' }],
-            'ios-title1': ['28px', { lineHeight: '34px', fontWeight: '700', letterSpacing: '-0.02em' }],
-            'ios-title2': ['22px', { lineHeight: '28px', fontWeight: '700', letterSpacing: '-0.02em' }],
-            'ios-title3': ['20px', { lineHeight: '25px', fontWeight: '600' }],
-            'ios-headline': ['17px', { lineHeight: '22px', fontWeight: '600' }],
-            'ios-body': ['17px', { lineHeight: '22px', fontWeight: '400' }],
-            'ios-callout': ['16px', { lineHeight: '21px', fontWeight: '400' }],
-            'ios-subheadline': ['15px', { lineHeight: '20px', fontWeight: '400' }],
-            'ios-footnote': ['13px', { lineHeight: '18px', fontWeight: '400' }],
-            'ios-caption1': ['12px', { lineHeight: '16px', fontWeight: '400' }],
-            'ios-caption2': ['11px', { lineHeight: '13px', fontWeight: '400' }],
+            // Magazine typography
+            'mag-hero': ['28px', { lineHeight: '1.2', fontWeight: '700', letterSpacing: '-0.02em' }],
+            'mag-title': ['18px', { lineHeight: '1.4', fontWeight: '600' }],
+            'mag-body': ['15px', { lineHeight: '1.6', fontWeight: '400' }],
+            'mag-caption': ['13px', { lineHeight: '1.5', fontWeight: '400' }],
+            'mag-badge': ['11px', { lineHeight: '1', fontWeight: '600' }],
+            'mag-time': ['12px', { lineHeight: '1', fontWeight: '600', letterSpacing: '0.05em' }],
           },
           borderRadius: {
-            // iOS Continuous Corners
-            'ios-sm': '10px',
-            'ios': '12px',
-            'ios-md': '16px',
-            'ios-lg': '22px',
-            'ios-xl': '28px',
-            'ios-2xl': '38px',
+            'mag': '16px',
+            'mag-lg': '20px',
+            'mag-xl': '24px',
+            'pill': '100px',
           },
           boxShadow: {
-            // iOS Shadow System
-            'ios-sm': '0 1px 3px rgba(0, 0, 0, 0.06)',
-            'ios': '0 4px 12px rgba(0, 0, 0, 0.08)',
-            'ios-md': '0 8px 24px rgba(0, 0, 0, 0.08)',
-            'ios-lg': '0 12px 40px rgba(0, 0, 0, 0.12)',
-            'ios-card': '0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08)',
+            // Soft magazine shadows - no harsh borders
+            'mag': '0px 10px 40px -10px rgba(0, 0, 0, 0.08)',
+            'mag-hover': '0px 20px 50px -15px rgba(0, 0, 0, 0.12)',
+            'glass': '0 4px 30px rgba(0, 0, 0, 0.05)',
           },
           animation: {
-            'ios-spring': 'iosSpring 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-            'ios-fade': 'iosFade 0.3s ease-out',
+            'heart-pop': 'heartPop 0.4s cubic-bezier(0.17, 0.67, 0.35, 1.5)',
+            'float': 'float 6s ease-in-out infinite',
+            'shimmer': 'shimmer 2s infinite',
           },
           keyframes: {
-            iosSpring: {
-              '0%': { transform: 'scale(0.95)', opacity: '0' },
-              '100%': { transform: 'scale(1)', opacity: '1' },
+            heartPop: {
+              '0%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.4)' },
+              '100%': { transform: 'scale(1)' },
             },
-            iosFade: {
-              '0%': { opacity: '0' },
-              '100%': { opacity: '1' },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-20px)' },
+            },
+            shimmer: {
+              '0%': { backgroundPosition: '-200% 0' },
+              '100%': { backgroundPosition: '200% 0' },
             },
           },
         },
@@ -113,125 +94,122 @@
     :root {
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --safe-left: env(safe-area-inset-left, 0px);
-      --safe-right: env(safe-area-inset-right, 0px);
     }
 
-    html {
+    html, body {
+      background: #FAFAFA;
       scroll-behavior: smooth;
-      background: #F2F2F7;
-      /* Enable momentum scrolling */
       -webkit-overflow-scrolling: touch;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Noto Sans TC", "Helvetica Neue", Arial, sans-serif;
-      background: #F2F2F7;
-      color: #000000;
+      font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #333333;
       -webkit-tap-highlight-color: transparent;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      user-select: none;
-      overscroll-behavior: none;
-      margin: 0;
-      padding: 0;
-      /* iOS Font Smoothing */
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
+      margin: 0;
+      overflow-x: hidden;
     }
 
-    /* Allow text selection in inputs */
-    input,
-    textarea {
-      -webkit-user-select: text;
-      user-select: text;
+    /* Mesh Gradient Background Orbs */
+    .mesh-gradient {
+      position: fixed;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .mesh-orb-1 {
+      top: -10%;
+      left: -20%;
+      width: 60vw;
+      height: 60vw;
+      background: radial-gradient(circle, rgba(224, 247, 250, 0.8) 0%, transparent 70%);
+      filter: blur(80px);
+      animation: float 8s ease-in-out infinite;
+    }
+    .mesh-orb-2 {
+      bottom: -10%;
+      right: -20%;
+      width: 50vw;
+      height: 50vw;
+      background: radial-gradient(circle, rgba(245, 245, 220, 0.7) 0%, transparent 70%);
+      filter: blur(80px);
+      animation: float 10s ease-in-out infinite reverse;
+    }
+    .mesh-orb-3 {
+      top: 40%;
+      right: -10%;
+      width: 40vw;
+      height: 40vw;
+      background: radial-gradient(circle, rgba(252, 228, 236, 0.5) 0%, transparent 70%);
+      filter: blur(60px);
+      animation: float 12s ease-in-out infinite;
     }
 
-    /* iOS Momentum Scrolling */
-    .scroll-momentum {
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: auto;
+    /* Glassmorphism */
+    .glass {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+    }
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
     }
 
-    /* Hide scrollbars but keep functionality */
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
+    /* Image overlay gradient */
+    .img-overlay {
+      background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 40%, transparent 100%);
     }
 
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    /* Skeleton Loading */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
     }
 
-    /* Material Symbols - iOS style weight */
+    /* Hide scrollbar */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Material Symbols */
     .material-symbols-outlined {
-      font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     }
-
     .material-symbols-filled {
-      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
     }
 
-    /* Safe Area Insets */
-    .safe-area-top {
-      padding-top: max(var(--safe-top), 20px);
+    /* Safe areas */
+    .safe-top { padding-top: max(var(--safe-top), 12px); }
+    .safe-bottom { padding-bottom: max(var(--safe-bottom), 20px); }
+    .pb-safe { padding-bottom: calc(var(--safe-bottom) + 90px) !important; }
+
+    /* Masonry Grid */
+    .masonry {
+      column-count: 2;
+      column-gap: 12px;
+    }
+    .masonry-item {
+      break-inside: avoid;
+      margin-bottom: 12px;
     }
 
-    .safe-area-bottom {
-      padding-bottom: max(var(--safe-bottom), 34px);
+    /* Magazine card text on image */
+    .mag-card-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px;
+      z-index: 10;
     }
 
-    .safe-area-app {
-      padding-top: var(--safe-top);
-      padding-bottom: var(--safe-bottom);
-    }
-
-    .pb-safe {
-      padding-bottom: calc(var(--safe-bottom) + 16px) !important;
-    }
-
-    /* iOS Glassmorphism */
-    .ios-glass {
-      background: rgba(255, 255, 255, 0.72);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-    }
-
-    .ios-glass-dark {
-      background: rgba(30, 30, 30, 0.72);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-    }
-
-    /* iOS Card Style */
-    .ios-card {
-      background: #FFFFFF;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
-    }
-
-    /* iOS List Separator */
-    .ios-separator {
-      height: 0.5px;
-      background: rgba(60, 60, 67, 0.12);
-      margin-left: 16px;
-    }
-
-    /* iOS Press Effect */
-    .ios-press {
-      transition: transform 0.1s ease-out, opacity 0.1s ease-out;
-    }
-
-    .ios-press:active {
-      transform: scale(0.96);
-      opacity: 0.7;
-    }
-
-    /* Continuous Corner Radius (like iOS) */
-    .continuous-corners {
-      -webkit-mask-image: -webkit-radial-gradient(white, black);
-      mask-image: radial-gradient(white, black);
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(2deg); }
     }
   </style>
   <script type="importmap">
@@ -247,6 +225,11 @@
 </head>
 
 <body>
+  <!-- Mesh Gradient Background -->
+  <div class="mesh-gradient mesh-orb-1"></div>
+  <div class="mesh-gradient mesh-orb-2"></div>
+  <div class="mesh-gradient mesh-orb-3"></div>
+  
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
