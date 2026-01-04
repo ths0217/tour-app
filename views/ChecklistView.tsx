@@ -21,11 +21,11 @@ const initialItems: ChecklistItem[] = [
 ];
 
 const categories = [
-    { id: 'Documents', label: '文件', icon: 'description' },
-    { id: 'Medical', label: '藥品', icon: 'medication' },
-    { id: 'Gadgets', label: '電子', icon: 'devices' },
-    { id: 'Clothing', label: '衣物', icon: 'checkroom' },
-    { id: 'Other', label: '其他', icon: 'category' },
+    { id: 'Documents', label: '文件', icon: 'description', color: 'from-blue-400 to-indigo-500' },
+    { id: 'Medical', label: '藥品', icon: 'medication', color: 'from-green-400 to-emerald-500' },
+    { id: 'Gadgets', label: '電子', icon: 'devices', color: 'from-purple-400 to-violet-500' },
+    { id: 'Clothing', label: '衣物', icon: 'checkroom', color: 'from-pink-400 to-rose-500' },
+    { id: 'Other', label: '其他', icon: 'category', color: 'from-orange-400 to-amber-500' },
 ];
 
 const users = [
@@ -41,6 +41,7 @@ export default function ChecklistView() {
     const [newItemText, setNewItemText] = useState('');
     const [newItemCategory, setNewItemCategory] = useState<string>('Other');
     const [newItemUser, setNewItemUser] = useState(users[0]);
+    const [filterCategory, setFilterCategory] = useState<string | null>(null);
 
     const toggleItem = (id: string) => {
         setItems(items.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
@@ -59,99 +60,153 @@ export default function ChecklistView() {
         setNewItemText('');
     };
 
+    const filteredItems = filterCategory 
+        ? items.filter(i => i.category === filterCategory)
+        : items;
+
     const progress = Math.round((items.filter(i => i.checked).length / items.length) * 100);
+    const completedCount = items.filter(i => i.checked).length;
 
     return (
-        <div className="px-4 py-6 min-h-full">
-            {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-ios-title1 text-text-primary mb-1">行前準備</h1>
-                <p className="text-ios-subhead text-ios-secondary">1/27 − 2/2 • 4 位旅客</p>
-            </div>
+        <div className="min-h-full">
+            {/* Glassmorphism Header */}
+            <div className="sticky top-0 z-40 glass border-b border-black/5 safe-top">
+                <div className="px-4 pt-4 pb-3">
+                    <div className="flex justify-between items-center mb-4">
+                        <div>
+                            <h1 className="text-mag-hero text-charcoal">行前準備</h1>
+                            <p className="text-mag-caption text-stone mt-1">📦 出發前的打包清單</p>
+                        </div>
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setShowAddModal(true)}
+                            className="w-11 h-11 rounded-full bg-red-xhs flex items-center justify-center shadow-mag"
+                        >
+                            <span className="material-symbols-outlined text-white text-[22px]">add</span>
+                        </motion.button>
+                    </div>
 
-            {/* Progress Card */}
-            <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-ios-lg p-4 shadow-ios mb-6"
-            >
-                <div className="flex justify-between items-center mb-3">
-                    <span className="text-ios-subhead text-ios-secondary">完成進度</span>
-                    <span className="text-ios-headline text-ios-blue">{progress}%</span>
+                    {/* Progress Card */}
+                    <div className="bg-white rounded-mag p-4 shadow-mag mb-4">
+                        <div className="flex justify-between items-center mb-2">
+                            <span className="text-mag-caption text-stone">完成進度</span>
+                            <span className="text-mag-body font-semibold text-charcoal">{completedCount}/{items.length}</span>
+                        </div>
+                        <div className="h-2 bg-stone/10 rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progress}%` }}
+                                transition={{ duration: 0.6, ease: "easeOut" }}
+                                className="h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500"
+                            />
+                        </div>
+                        <p className="text-mag-badge text-stone mt-2">
+                            {progress === 100 ? '✨ 全部完成！準備出發！' : `還有 ${items.length - completedCount} 項待完成`}
+                        </p>
+                    </div>
+
+                    {/* Category Filter Pills */}
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
+                        <button
+                            onClick={() => setFilterCategory(null)}
+                            className={`px-4 py-2 rounded-pill text-mag-badge whitespace-nowrap transition-all ${
+                                !filterCategory
+                                    ? 'bg-charcoal text-white'
+                                    : 'bg-white/80 text-charcoal border border-black/5'
+                            }`}
+                        >
+                            全部
+                        </button>
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setFilterCategory(cat.id)}
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-pill text-mag-badge whitespace-nowrap transition-all ${
+                                    filterCategory === cat.id
+                                        ? 'bg-charcoal text-white'
+                                        : 'bg-white/80 text-charcoal border border-black/5'
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-[14px]">{cat.icon}</span>
+                                {cat.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <div className="h-2 w-full bg-ios-bg rounded-full overflow-hidden">
-                    <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        transition={{ duration: 0.6, ease: "easeOut" }}
-                        className="h-full bg-ios-blue rounded-full"
-                    />
-                </div>
-            </motion.div>
+            </div>
 
             {/* Checklist Items */}
-            <div className="bg-white rounded-ios-lg shadow-ios overflow-hidden">
-                {items.map((item, index) => (
-                    <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: index * 0.05 }}
-                        onClick={() => toggleItem(item.id)}
-                        className={`flex items-center gap-4 p-4 active:bg-ios-bg transition-colors cursor-pointer ${
-                            index !== items.length - 1 ? 'border-b border-ios-separator/30' : ''
-                        }`}
-                    >
-                        {/* Checkbox */}
-                        <div className={`flex items-center justify-center w-6 h-6 rounded-full border-2 transition-all ${
-                            item.checked 
-                                ? 'bg-ios-blue border-ios-blue' 
-                                : 'border-ios-tertiary'
-                        }`}>
-                            {item.checked && (
-                                <motion.span
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="material-symbols-outlined text-[16px] text-white font-bold"
+            <div className="px-4 pt-4 pb-safe">
+                <div className="space-y-3">
+                    <AnimatePresence>
+                        {filteredItems.map((item, index) => {
+                            const cat = categories.find(c => c.id === item.category);
+                            return (
+                                <motion.div
+                                    key={item.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    layout
+                                    onClick={() => toggleItem(item.id)}
+                                    className={`bg-white rounded-mag p-4 shadow-mag cursor-pointer transition-all ${
+                                        item.checked ? 'opacity-60' : ''
+                                    }`}
                                 >
-                                    check
-                                </motion.span>
-                            )}
-                        </div>
-                        
-                        {/* Text */}
-                        <div className="flex-1 min-w-0">
-                            <p className={`text-ios-body truncate ${
-                                item.checked ? 'line-through text-ios-tertiary' : 'text-text-primary'
-                            }`}>
-                                {item.text}
-                            </p>
-                            {item.sub && (
-                                <p className="text-ios-caption1 text-ios-secondary mt-0.5">{item.sub}</p>
-                            )}
-                        </div>
-                        
-                        {/* Assignee Avatar */}
-                        {item.assignee && (
-                            <img 
-                                src={item.assignee} 
-                                alt="Assignee" 
-                                className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-ios-sm" 
-                            />
-                        )}
-                    </motion.div>
-                ))}
+                                    <div className="flex items-center gap-4">
+                                        {/* Checkbox */}
+                                        <motion.div 
+                                            whileTap={{ scale: 0.8 }}
+                                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                                item.checked 
+                                                    ? 'bg-gradient-to-br ' + (cat?.color || 'from-green-400 to-emerald-500') + ' border-transparent' 
+                                                    : 'border-stone/30'
+                                            }`}
+                                        >
+                                            {item.checked && (
+                                                <motion.span
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    className="material-symbols-outlined text-white text-[16px]"
+                                                >
+                                                    check
+                                                </motion.span>
+                                            )}
+                                        </motion.div>
+                                        
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-mag-body transition-all ${
+                                                item.checked ? 'line-through text-stone' : 'text-charcoal'
+                                            }`}>
+                                                {item.text}
+                                            </p>
+                                            {item.sub && (
+                                                <p className="text-mag-caption text-stone mt-0.5">{item.sub}</p>
+                                            )}
+                                        </div>
+                                        
+                                        {/* Category Badge */}
+                                        <span className={`px-2.5 py-1 rounded-pill text-mag-badge bg-gradient-to-r ${cat?.color} text-white shrink-0`}>
+                                            {cat?.label}
+                                        </span>
+                                        
+                                        {/* Assignee */}
+                                        {item.assignee && (
+                                            <img 
+                                                src={item.assignee} 
+                                                alt="Assignee" 
+                                                className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-mag shrink-0" 
+                                            />
+                                        )}
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
+                </div>
             </div>
-
-            {/* Add Button */}
-            <motion.button
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setShowAddModal(true)}
-                className="w-full mt-4 flex items-center justify-center gap-2 p-4 rounded-ios-lg bg-white shadow-ios text-ios-blue text-ios-body font-medium active:bg-ios-bg transition-colors"
-            >
-                <span className="material-symbols-outlined text-[20px]">add</span>
-                新增項目
-            </motion.button>
 
             {/* Add Item Modal */}
             <AnimatePresence>
@@ -169,64 +224,72 @@ export default function ChecklistView() {
                             animate={{ y: 0 }}
                             exit={{ y: "100%" }}
                             transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                            className="fixed bottom-0 left-0 right-0 bg-ios-bg rounded-t-ios-2xl z-50 pb-safe max-h-[85vh] overflow-y-auto"
+                            className="fixed bottom-0 left-0 right-0 bg-cream rounded-t-mag-xl z-50 max-h-[85vh] overflow-y-auto"
                         >
-                            {/* Handle */}
-                            <div className="sticky top-0 bg-ios-bg pt-3 pb-2">
-                                <div className="w-10 h-1 bg-ios-tertiary rounded-full mx-auto" />
+                            <div className="sticky top-0 bg-cream pt-3 pb-2 z-10">
+                                <div className="w-10 h-1 bg-stone/30 rounded-full mx-auto" />
                             </div>
                             
-                            <div className="px-4 pb-6">
-                                <h3 className="text-ios-title3 text-text-primary mb-6 text-center">新增準備物品</h3>
+                            <div className="px-5 pb-safe">
+                                <div className="flex justify-between items-center mb-6">
+                                    <button onClick={() => setShowAddModal(false)} className="text-stone text-mag-body">取消</button>
+                                    <h3 className="text-mag-title text-charcoal">新增物品</h3>
+                                    <button onClick={addItem} className="text-red-xhs text-mag-body font-semibold">新增</button>
+                                </div>
 
                                 {/* User Selection */}
                                 <div className="mb-5">
-                                    <label className="text-ios-footnote text-ios-secondary block mb-3">負責人</label>
-                                    <div className="flex gap-3">
+                                    <label className="text-mag-caption text-stone block mb-3">負責人</label>
+                                    <div className="flex gap-4">
                                         {users.map(u => (
-                                            <button
+                                            <motion.button
                                                 key={u.name}
+                                                whileTap={{ scale: 0.95 }}
                                                 onClick={() => setNewItemUser(u)}
-                                                className={`flex flex-col items-center gap-1 transition-opacity ${
-                                                    newItemUser.name === u.name ? 'opacity-100' : 'opacity-40'
-                                                }`}
+                                                className="flex flex-col items-center gap-2"
                                             >
                                                 <img 
                                                     src={u.image} 
-                                                    className={`w-14 h-14 rounded-full ring-2 ${
-                                                        newItemUser.name === u.name ? 'ring-ios-blue' : 'ring-transparent'
+                                                    className={`w-14 h-14 rounded-full object-cover shadow-mag transition-all ${
+                                                        newItemUser.name === u.name 
+                                                            ? 'ring-2 ring-red-xhs' 
+                                                            : 'opacity-50'
                                                     }`} 
                                                 />
-                                                <span className="text-ios-caption2 text-text-primary">{u.name}</span>
-                                            </button>
+                                                <span className={`text-mag-badge ${
+                                                    newItemUser.name === u.name ? 'text-charcoal' : 'text-stone'
+                                                }`}>{u.name}</span>
+                                            </motion.button>
                                         ))}
                                     </div>
                                 </div>
 
                                 {/* Item Name */}
                                 <div className="mb-5">
-                                    <label className="text-ios-footnote text-ios-secondary block mb-2">物品名稱</label>
-                                    <input
-                                        type="text"
-                                        value={newItemText}
-                                        onChange={(e) => setNewItemText(e.target.value)}
-                                        className="w-full bg-white rounded-ios p-4 text-ios-body outline-none border border-ios-separator/30 focus:border-ios-blue transition-colors"
-                                        placeholder="例如: 暈車藥"
-                                    />
+                                    <label className="text-mag-caption text-stone block mb-2">物品名稱</label>
+                                    <div className="bg-white rounded-mag p-4 shadow-mag">
+                                        <input
+                                            type="text"
+                                            value={newItemText}
+                                            onChange={(e) => setNewItemText(e.target.value)}
+                                            className="w-full text-mag-body text-charcoal bg-transparent outline-none placeholder:text-stone/50"
+                                            placeholder="例如: 暈車藥"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Category */}
                                 <div className="mb-6">
-                                    <label className="text-ios-footnote text-ios-secondary block mb-2">分類</label>
-                                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+                                    <label className="text-mag-caption text-stone block mb-3">分類</label>
+                                    <div className="flex flex-wrap gap-2">
                                         {categories.map(cat => (
                                             <button
                                                 key={cat.id}
                                                 onClick={() => setNewItemCategory(cat.id)}
-                                                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-full whitespace-nowrap transition-all text-ios-subhead ${
+                                                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-pill text-mag-badge transition-all ${
                                                     newItemCategory === cat.id
-                                                        ? 'bg-ios-blue text-white'
-                                                        : 'bg-white text-text-primary border border-ios-separator/30'
+                                                        ? `bg-gradient-to-r ${cat.color} text-white`
+                                                        : 'bg-white text-charcoal border border-black/5'
                                                 }`}
                                             >
                                                 <span className="material-symbols-outlined text-[16px]">{cat.icon}</span>
@@ -236,13 +299,14 @@ export default function ChecklistView() {
                                     </div>
                                 </div>
 
-                                {/* Submit Button */}
-                                <button
+                                {/* Submit */}
+                                <motion.button
+                                    whileTap={{ scale: 0.98 }}
                                     onClick={addItem}
-                                    className="w-full bg-ios-blue text-white text-ios-body font-semibold p-4 rounded-ios-lg active:opacity-80 transition-opacity"
+                                    className="w-full bg-gradient-to-r from-red-400 to-rose-500 text-white text-mag-body font-semibold p-4 rounded-mag shadow-mag"
                                 >
                                     確認新增
-                                </button>
+                                </motion.button>
                             </div>
                         </motion.div>
                     </>

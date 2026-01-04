@@ -8,43 +8,55 @@ interface BottomNavProps {
 }
 
 const navItems: { id: Tab; icon: string; label: string }[] = [
-  { id: 'home', icon: 'grid_view', label: '首頁' },
-  { id: 'itinerary', icon: 'map', label: '行程' },
+  { id: 'home', icon: 'home', label: '首頁' },
+  { id: 'itinerary', icon: 'explore', label: '探索' },
   { id: 'wallet', icon: 'account_balance_wallet', label: '錢包' },
-  { id: 'checklist', icon: 'check_circle', label: '清單' },
-  { id: 'explore', icon: 'photo_library', label: '探索' },
+  { id: 'checklist', icon: 'checklist', label: '清單' },
+  { id: 'explore', icon: 'photo_library', label: '相簿' },
 ];
 
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
-    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md ios-glass border-t border-black/5 nav-safe z-50">
-      <div className="flex justify-around items-center h-[72px] px-2">
+    <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md glass-strong border-t border-black/5 safe-bottom z-50">
+      <div className="flex justify-around items-center h-[70px] px-2">
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <motion.button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              whileTap={{ scale: 0.92 }}
-              className="relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 outline-none"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
+              whileTap={{ scale: 0.85 }}
+              className="relative flex flex-col items-center justify-center flex-1 h-full gap-1 outline-none"
             >
-              <div className="relative">
+              <motion.div
+                animate={{
+                  scale: isActive ? 1.1 : 1,
+                  y: isActive ? -2 : 0,
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
                 <span 
-                  className={`material-symbols-outlined text-[26px] transition-all duration-200 ${
-                    isActive 
-                      ? 'text-ios-blue material-symbols-filled' 
-                      : 'text-ios-secondary'
+                  className={`material-symbols-${isActive ? 'filled' : 'outlined'} text-[26px] transition-colors duration-200 ${
+                    isActive ? 'text-red-xhs' : 'text-stone'
                   }`}
                 >
                   {item.icon}
                 </span>
-              </div>
+              </motion.div>
               <span className={`text-[10px] font-medium transition-colors duration-200 ${
-                isActive ? 'text-ios-blue' : 'text-ios-secondary'
+                isActive ? 'text-red-xhs' : 'text-stone'
               }`}>
                 {item.label}
               </span>
+              
+              {/* Active Indicator Dot */}
+              {isActive && (
+                <motion.div
+                  layoutId="nav-dot"
+                  className="absolute -top-1 w-1 h-1 rounded-full bg-red-xhs"
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                />
+              )}
             </motion.button>
           );
         })}
