@@ -23,6 +23,82 @@ const destinations = [
   { id: 4, name: '大皇宮', image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400', badge: '文化' },
 ];
 
+// 🔥 小紅書/Threads 爆紅行程 2024-2025
+const trendingItineraries = [
+  { 
+    id: 't1',
+    title: 'Mahanakhon SkyWalk 玻璃棧道',
+    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400',
+    source: '小紅書',
+    likes: '52.8萬',
+    tag: '必拍',
+    type: 'attraction',
+    location: 'King Power Mahanakhon',
+    time: '17:00',
+    desc: '314m 高空透明玻璃棧道，看曼谷夕陽超美 🌅'
+  },
+  { 
+    id: 't2',
+    title: 'Featherstone Café',
+    image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400',
+    source: 'Threads',
+    likes: '38.2萬',
+    tag: '網美',
+    type: 'coffee',
+    location: 'Ekkamai Soi 12',
+    time: '10:00',
+    desc: '曼谷最火的純白咖啡廳，拍照超出片 ☕'
+  },
+  { 
+    id: 't3',
+    title: 'Jodd Fairs 火山排骨',
+    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
+    source: '小紅書',
+    likes: '89.1萬',
+    tag: '美食',
+    type: 'restaurant',
+    location: 'Jodd Fairs Dan Neramit',
+    time: '19:00',
+    desc: '超大份火山排骨，現場火焰表演超震撼 🔥'
+  },
+  { 
+    id: 't4',
+    title: 'The Rim 河畔晚餐',
+    image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400',
+    source: 'Threads',
+    likes: '25.6萬',
+    tag: '浪漫',
+    type: 'restaurant',
+    location: 'The Siam Hotel',
+    time: '18:30',
+    desc: '鄭王廟夜景配米其林餐廳，約會首選 ✨'
+  },
+  { 
+    id: 't5',
+    title: '水門市場 Hainan Chicken',
+    image: 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=400',
+    source: '小紅書',
+    likes: '102萬',
+    tag: '必吃',
+    type: 'restaurant',
+    location: 'Pratunam Market',
+    time: '11:00',
+    desc: '海南雞飯只要40泰銖！在地人都吃這家 🍗'
+  },
+  { 
+    id: 't6',
+    title: 'Let\'s Relax Spa 按摩',
+    image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400',
+    source: 'Threads',
+    likes: '31.4萬',
+    tag: '放鬆',
+    type: 'spa',
+    location: 'Terminal 21',
+    time: '15:00',
+    desc: '全身精油按摩 2 小時只要 799 泰銖 💆'
+  },
+];
+
 interface HomeViewProps {
   user: User | null;
   budget?: { total: number; remaining: number; spent: number };
@@ -73,6 +149,31 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
     return a.time.localeCompare(b.time);
   });
   const nextEvent = sortedSchedule.find(e => !e.completed);
+
+  // Add trending item to schedule
+  const [addedTrending, setAddedTrending] = useState<Set<string>>(new Set());
+  const [showAddedToast, setShowAddedToast] = useState<string | null>(null);
+
+  const addTrendingToSchedule = (item: typeof trendingItineraries[0]) => {
+    if (addedTrending.has(item.id)) return;
+    
+    const newItem: ScheduleItem = {
+      id: Date.now(),
+      title: item.title,
+      time: item.time,
+      date: '2025-01-28', // Add to Day 2 by default
+      type: item.type,
+      location: item.location,
+      desc: item.desc,
+      completed: false,
+      image: item.image,
+    };
+    
+    setSchedule(prev => [...prev, newItem]);
+    setAddedTrending(prev => new Set([...prev, item.id]));
+    setShowAddedToast(item.title);
+    setTimeout(() => setShowAddedToast(null), 2000);
+  };
 
   return (
     <div className="min-h-full pb-safe">
@@ -213,6 +314,79 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
           ))}
         </div>
       </div>
+
+      {/* 🔥 Trending Itineraries - Xiaohongshu/Threads */}
+      <div className="px-4 mb-6">
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-mag-title text-charcoal">🔥 小紅書爆紅行程</h2>
+        </div>
+        
+        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
+          {trendingItineraries.map((item, i) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 + i * 0.05 }}
+              className="flex-shrink-0 w-48"
+            >
+              <div className="relative aspect-[3/4] rounded-mag overflow-hidden shadow-mag mb-2">
+                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 img-overlay" />
+                
+                {/* Source Badge */}
+                <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-pill text-[10px] font-bold ${
+                  item.source === '小紅書' ? 'bg-red-500 text-white' : 'bg-black text-white'
+                }`}>
+                  {item.source}
+                </span>
+                
+                {/* Tag */}
+                <span className="absolute top-2 right-2 px-2 py-0.5 rounded-pill text-[10px] bg-white/90 text-charcoal">
+                  {item.tag}
+                </span>
+                
+                {/* Content */}
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <h3 className="text-white text-mag-body font-semibold line-clamp-2 mb-1 drop-shadow-lg">{item.title}</h3>
+                  <div className="flex items-center gap-1 text-white/80 text-[10px]">
+                    <span className="material-symbols-outlined text-[12px]">favorite</span>
+                    {item.likes}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Add Button */}
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => addTrendingToSchedule(item)}
+                disabled={addedTrending.has(item.id)}
+                className={`w-full py-2 rounded-mag text-mag-badge font-medium transition-all ${
+                  addedTrending.has(item.id)
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-xhs text-white'
+                }`}
+              >
+                {addedTrending.has(item.id) ? '✓ 已加入' : '+ 加入行程'}
+              </motion.button>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Added Toast */}
+      <AnimatePresence>
+        {showAddedToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-24 left-4 right-4 bg-charcoal text-white p-4 rounded-mag shadow-lg text-center z-50"
+          >
+            ✓ 已將「{showAddedToast}」加入 Day 2 行程
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Destinations Grid - Magazine Masonry */}
       <div className="px-4">
