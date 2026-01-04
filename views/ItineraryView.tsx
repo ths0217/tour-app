@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { ScheduleItem } from '../types';
 import MagazineCard from '../components/MagazineCard';
+import SortableItem from '../components/SortableItem';
 
 const days = [
   { id: 1, date: '1/27', weekday: 'Mon', label: '抵達', fullDate: '2025-01-27' },
@@ -31,6 +34,10 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   const [selectedDay, setSelectedDay] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
+  
+  // View mode and search
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Form state
   const [newTime, setNewTime] = useState('');
@@ -39,6 +46,32 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   const [newType, setNewType] = useState('restaurant');
   const [newLocation, setNewLocation] = useState('');
   const [newImage, setNewImage] = useState<string | null>(null);
+
+  // Drag sensors for touch and pointer
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  // Handle drag end for reordering
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = schedule.findIndex(item => item.id === active.id);
+      const newIndex = schedule.findIndex(item => item.id === over.id);
+      const reordered = arrayMove(schedule, oldIndex, newIndex);
+      // Update times based on new order
+      setSchedule(reordered);
+    }
+  };
+
+  // Navigate to location
+  const handleNavigate = (item: ScheduleItem) => {
+    if (item.location) {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location + ' Bangkok')}`, '_blank');
+    }
+  };
 
   // Handle image upload from phone
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,6 +88,11 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   const currentDayData = days.find(d => d.id === selectedDay);
   const currentDaySchedule = schedule
     .filter(item => item.date === currentDayData?.fullDate)
+    .filter(item => 
+      searchQuery === '' || 
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.location?.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     .sort((a, b) => a.time.localeCompare(b.time));
 
   const handleToggle = (id: number) => {
@@ -117,37 +155,87 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                 key={day.id}
                 onClick={() => setSelectedDay(day.id)}
                 whileTap={{ scale: 0.95 }}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-pill whitespace-nowrap transition-all duration-200 ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-pill whitespace-nowrap transition-all duration-200 ${
                   selectedDay === day.id
                     ? 'bg-charcoal text-white shadow-mag'
                     : 'bg-white/80 text-charcoal border border-black/5'
                 }`}
               >
-                <span className="font-mono text-mag-time">{day.date}</span>
-                <span className={`text-mag-badge ${selectedDay === day.id ? 'text-white/70' : 'text-stone'}`}>
+                <span className="font-mono text-[11px]">{day.date}</span>
+                <span className={`text-[10px] ${selectedDay === day.id ? 'text-white/70' : 'text-stone'}`}>
                   {day.label}
                 </span>
               </motion.button>
             ))}
           </div>
+
+          {/* Search Bar + View Toggle */}
+          <div className="flex gap-2 mt-3">
+            <div className="flex-1 relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone text-[18px]">search</span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="搜尋行程..."
+                className="w-full pl-9 pr-3 py-2 rounded-mag bg-white/80 border border-black/5 text-[13px] text-charcoal placeholder:text-stone/50 outline-none focus:ring-1 focus:ring-red-xhs"
+              />
+            </div>
+            <div className="flex rounded-mag bg-white/80 border border-black/5 overflow-hidden">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-3 py-2 ${viewMode === 'list' ? 'bg-charcoal text-white' : 'text-stone'}`}
+              >
+                <span className="material-symbols-outlined text-[18px]">view_list</span>
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`px-3 py-2 ${viewMode === 'grid' ? 'bg-charcoal text-white' : 'text-stone'}`}
+              >
+                <span className="material-symbols-outlined text-[18px]">grid_view</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Masonry Grid */}
-      <div className="px-4 pt-4 pb-safe">
+      {/* Content Area */}
+      <div className="px-4 pt-4 pb-32">
         {currentDaySchedule.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-20 text-center"
+            className="flex flex-col items-center justify-center py-16 text-center"
           >
-            <div className="w-20 h-20 rounded-full bg-pastel-blue flex items-center justify-center mb-4">
-              <span className="material-symbols-outlined text-blue-500 text-[36px]">explore</span>
+            <div className="w-16 h-16 rounded-full bg-pastel-blue flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-blue-500 text-[28px]">
+                {searchQuery ? 'search_off' : 'explore'}
+              </span>
             </div>
-            <p className="text-mag-title text-charcoal mb-2">開始規劃你的冒險</p>
-            <p className="text-mag-caption text-stone">點擊右上角 + 新增第一個行程</p>
+            <p className="text-[15px] font-medium text-charcoal mb-1">
+              {searchQuery ? '找不到行程' : '開始規劃你的冒險'}
+            </p>
+            <p className="text-[12px] text-stone">
+              {searchQuery ? '試試其他關鍵字' : '點擊右上角 + 新增行程'}
+            </p>
           </motion.div>
+        ) : viewMode === 'list' ? (
+          /* Sortable List View */
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={currentDaySchedule.map(i => i.id)} strategy={verticalListSortingStrategy}>
+              {currentDaySchedule.map((item) => (
+                <SortableItem
+                  key={item.id}
+                  item={item}
+                  onToggle={handleToggle}
+                  onPress={(i) => setSelectedItem(i)}
+                  onNavigate={handleNavigate}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         ) : (
+          /* Masonry Grid View */
           <div className="masonry">
             {currentDaySchedule.map((item, index) => (
               <motion.div
