@@ -17,17 +17,17 @@ const quickActions = [
 ];
 
 const destinations = [
-  { id: 1, name: '鄭王廟', image: 'https://images.unsplash.com/photo-1563492065599-3520f775eeed?w=400', badge: '必訪' },
-  { id: 2, name: 'IconSiam', image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400', badge: '購物' },
-  { id: 3, name: 'Jodd Fairs', image: 'https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=400', badge: '夜市' },
-  { id: 4, name: '大皇宮', image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400', badge: '文化' },
+  { id: 1, name: '鄭王廟', image: 'https://images.unsplash.com/photo-1563492065599-3520f775eeed?w=400', badge: '必訪', lat: 13.7437, lng: 100.4890 },
+  { id: 2, name: 'IconSiam', image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=400', badge: '購物', lat: 13.7261, lng: 100.5099 },
+  { id: 3, name: 'Jodd Fairs', image: 'https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=400', badge: '夜市', lat: 13.7490, lng: 100.5677 },
+  { id: 4, name: '大皇宮', image: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=400', badge: '文化', lat: 13.7500, lng: 100.4914 },
 ];
 
 // 🔥 小紅書/Threads 爆紅行程 2024-2025
 const trendingItineraries = [
   { 
     id: 't1',
-    title: 'Mahanakhon SkyWalk 玻璃棧道',
+    title: 'Mahanakhon SkyWalk',
     image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400',
     source: '小紅書',
     likes: '52.8萬',
@@ -35,7 +35,8 @@ const trendingItineraries = [
     type: 'attraction',
     location: 'King Power Mahanakhon',
     time: '17:00',
-    desc: '314m 高空透明玻璃棧道，看曼谷夕陽超美 🌅'
+    desc: '314m 高空玻璃棧道 🌅',
+    lat: 13.7234, lng: 100.5296
   },
   { 
     id: 't2',
@@ -47,7 +48,8 @@ const trendingItineraries = [
     type: 'coffee',
     location: 'Ekkamai Soi 12',
     time: '10:00',
-    desc: '曼谷最火的純白咖啡廳，拍照超出片 ☕'
+    desc: '純白咖啡廳 ☕',
+    lat: 13.7182, lng: 100.5854
   },
   { 
     id: 't3',
@@ -57,9 +59,10 @@ const trendingItineraries = [
     likes: '89.1萬',
     tag: '美食',
     type: 'restaurant',
-    location: 'Jodd Fairs Dan Neramit',
+    location: 'Jodd Fairs',
     time: '19:00',
-    desc: '超大份火山排骨，現場火焰表演超震撼 🔥'
+    desc: '火焰表演超震撼 🔥',
+    lat: 13.7490, lng: 100.5677
   },
   { 
     id: 't4',
@@ -71,11 +74,12 @@ const trendingItineraries = [
     type: 'restaurant',
     location: 'The Siam Hotel',
     time: '18:30',
-    desc: '鄭王廟夜景配米其林餐廳，約會首選 ✨'
+    desc: '鄭王廟夜景 ✨',
+    lat: 13.7626, lng: 100.4876
   },
   { 
     id: 't5',
-    title: '水門市場 Hainan Chicken',
+    title: '水門雞飯',
     image: 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=400',
     source: '小紅書',
     likes: '102萬',
@@ -83,11 +87,12 @@ const trendingItineraries = [
     type: 'restaurant',
     location: 'Pratunam Market',
     time: '11:00',
-    desc: '海南雞飯只要40泰銖！在地人都吃這家 🍗'
+    desc: '40泰銖海南雞飯 🍗',
+    lat: 13.7509, lng: 100.5396
   },
   { 
     id: 't6',
-    title: 'Let\'s Relax Spa 按摩',
+    title: "Let's Relax Spa",
     image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400',
     source: 'Threads',
     likes: '31.4萬',
@@ -95,7 +100,8 @@ const trendingItineraries = [
     type: 'spa',
     location: 'Terminal 21',
     time: '15:00',
-    desc: '全身精油按摩 2 小時只要 799 泰銖 💆'
+    desc: '2hr 精油按摩 💆',
+    lat: 13.7378, lng: 100.5602
   },
 ];
 
@@ -347,8 +353,8 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
                 </span>
                 
                 {/* Content */}
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <h3 className="text-white text-mag-body font-semibold line-clamp-2 mb-1 drop-shadow-lg">{item.title}</h3>
+                <div className="absolute bottom-0 left-0 right-0 p-2">
+                  <h3 className="text-white text-[12px] font-semibold line-clamp-1 mb-0.5 drop-shadow-lg">{item.title}</h3>
                   <div className="flex items-center gap-1 text-white/80 text-[10px]">
                     <span className="material-symbols-outlined text-[12px]">favorite</span>
                     {item.likes}
@@ -356,19 +362,29 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
                 </div>
               </div>
               
-              {/* Add Button */}
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => addTrendingToSchedule(item)}
-                disabled={addedTrending.has(item.id)}
-                className={`w-full py-2 rounded-mag text-mag-badge font-medium transition-all ${
-                  addedTrending.has(item.id)
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-xhs text-white'
-                }`}
-              >
-                {addedTrending.has(item.id) ? '✓ 已加入' : '+ 加入行程'}
-              </motion.button>
+              {/* Action Buttons */}
+              <div className="flex gap-1.5 mt-1.5">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${item.lat},${item.lng}`, '_blank')}
+                  className="flex-1 py-1.5 rounded-mag bg-white border border-black/10 text-charcoal text-[10px] font-medium flex items-center justify-center gap-0.5"
+                >
+                  <span className="material-symbols-outlined text-[12px]">navigation</span>
+                  導航
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => addTrendingToSchedule(item)}
+                  disabled={addedTrending.has(item.id)}
+                  className={`flex-1 py-1.5 rounded-mag text-[10px] font-medium transition-all ${
+                    addedTrending.has(item.id)
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-xhs text-white'
+                  }`}
+                >
+                  {addedTrending.has(item.id) ? '✓ 已加' : '+ 加入'}
+                </motion.button>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -389,10 +405,9 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
       </AnimatePresence>
 
       {/* Destinations Grid - Magazine Masonry */}
-      <div className="px-4">
+      <div className="px-4 pb-32">
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-mag-title text-charcoal">推薦景點</h2>
-          <button className="text-mag-caption text-red-xhs font-medium">查看全部</button>
         </div>
         
         <div className="masonry">
@@ -410,7 +425,7 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
                 <div className="absolute inset-0 img-overlay" />
                 
                 {/* Badge */}
-                <span className="absolute top-3 left-3 px-3 py-1 rounded-pill text-mag-badge bg-white/90 text-charcoal border border-black/5">
+                <span className="absolute top-2 left-2 px-2 py-0.5 rounded-pill text-[10px] bg-white/90 text-charcoal">
                   {dest.badge}
                 </span>
                 
@@ -418,16 +433,24 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
                 <motion.button
                   onClick={(e) => { e.stopPropagation(); toggleLike(dest.id); }}
                   whileTap={{ scale: 1.4 }}
-                  className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center"
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center"
                 >
-                  <span className={`material-symbols-${likedDestinations.has(dest.id) ? 'filled' : 'outlined'} text-[18px] ${likedDestinations.has(dest.id) ? 'text-red-xhs' : 'text-stone'}`}>
+                  <span className={`material-symbols-${likedDestinations.has(dest.id) ? 'filled' : 'outlined'} text-[14px] ${likedDestinations.has(dest.id) ? 'text-red-xhs' : 'text-stone'}`}>
                     favorite
                   </span>
                 </motion.button>
                 
-                {/* Title */}
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="text-white text-mag-title font-semibold drop-shadow-lg">{dest.name}</h3>
+                {/* Title + Nav */}
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <h3 className="text-white text-[14px] font-semibold drop-shadow-lg mb-2">{dest.name}</h3>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lng}`, '_blank')}
+                    className="w-full py-1.5 rounded-pill bg-white/90 text-charcoal text-[11px] font-medium flex items-center justify-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">navigation</span>
+                    導航
+                  </motion.button>
                 </div>
               </div>
             </motion.div>
