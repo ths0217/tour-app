@@ -71,7 +71,8 @@ export default function MagazineCard({ item, onToggle, onPress, aspectRatio }: M
 
   const badgeColors = typeBadgeColors[item.type || ''] || typeBadgeColors.default;
   const typeLabel = typeLabels[item.type || ''] || '行程';
-  const imageUrl = typeImages[item.type || ''] || typeImages.default;
+  // Use custom image if provided, otherwise use type-based placeholder
+  const imageUrl = item.image || typeImages[item.type || ''] || typeImages.default;
   const ratio = aspectRatio || (item.id % 3 === 0 ? 'tall' : item.id % 3 === 1 ? 'medium' : 'short');
 
   const handleLike = (e: React.MouseEvent) => {

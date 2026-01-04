@@ -38,6 +38,19 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   const [newDesc, setNewDesc] = useState('');
   const [newType, setNewType] = useState('restaurant');
   const [newLocation, setNewLocation] = useState('');
+  const [newImage, setNewImage] = useState<string | null>(null);
+
+  // Handle image upload from phone
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const currentDayData = days.find(d => d.id === selectedDay);
   const currentDaySchedule = schedule
@@ -60,6 +73,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
       desc: newDesc,
       type: newType,
       location: newLocation,
+      image: newImage || undefined,
       completed: false
     };
     setSchedule([...schedule, newItem]);
@@ -73,6 +87,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
     setNewDesc('');
     setNewLocation('');
     setNewType('restaurant');
+    setNewImage(null);
   };
 
   return (
@@ -238,6 +253,37 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                         placeholder="例如：Wat Arun"
                         className="w-full text-mag-body text-charcoal bg-transparent outline-none placeholder:text-stone/50"
                       />
+                    </div>
+
+                    {/* Image Upload */}
+                    <div className="bg-white rounded-mag p-4 shadow-mag">
+                      <label className="text-mag-caption text-stone block mb-3">照片（選填）</label>
+                      {newImage ? (
+                        <div className="relative">
+                          <img 
+                            src={newImage} 
+                            alt="Preview" 
+                            className="w-full h-40 object-cover rounded-mag"
+                          />
+                          <button
+                            onClick={() => setNewImage(null)}
+                            className="absolute top-2 right-2 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center"
+                          >
+                            <span className="material-symbols-outlined text-white text-[18px]">close</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-stone/30 rounded-mag cursor-pointer hover:border-red-xhs transition-colors">
+                          <span className="material-symbols-outlined text-stone text-[32px] mb-2">add_photo_alternate</span>
+                          <span className="text-mag-caption text-stone">點擊上傳照片</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
                     </div>
 
                     <div className="bg-white rounded-mag p-4 shadow-mag">
