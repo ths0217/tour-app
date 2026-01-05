@@ -6,6 +6,7 @@ import { ScheduleItem } from '../types';
 import MagazineCard from '../components/MagazineCard';
 import SortableItem from '../components/SortableItem';
 import ShareModal from '../components/ShareModal';
+import AISuggestions from '../components/AISuggestions';
 
 const days = [
   { id: 1, date: '1/27', weekday: 'Mon', label: '抵達', fullDate: '2025-01-27' },
@@ -40,6 +41,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showAI, setShowAI] = useState(false);
 
   // Form state
   const [newTime, setNewTime] = useState('');
@@ -130,6 +132,11 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
     setNewImage(null);
   };
 
+  const handleAddAISuggestion = (item: Omit<ScheduleItem, 'id'>) => {
+    const newItem: ScheduleItem = { ...item, id: Date.now() };
+    setSchedule([...schedule, newItem]);
+  };
+
   return (
     <div className="min-h-full">
       {/* Glassmorphism Header */}
@@ -145,16 +152,23 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowShareModal(true)}
-                className="w-10 h-10 rounded-full bg-charcoal/80 flex items-center justify-center shadow-mag"
+                className="w-9 h-9 rounded-full bg-charcoal/80 flex items-center justify-center shadow-mag"
               >
-                <span className="material-symbols-outlined text-white text-[18px]">share</span>
+                <span className="material-symbols-outlined text-white text-[16px]">share</span>
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowAI(true)}
+                className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-mag"
+              >
+                <span className="material-symbols-outlined text-white text-[16px]">smart_toy</span>
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowAddModal(true)}
-                className="w-10 h-10 rounded-full bg-red-xhs flex items-center justify-center shadow-mag"
+                className="w-9 h-9 rounded-full bg-red-xhs flex items-center justify-center shadow-mag"
               >
-                <span className="material-symbols-outlined text-white text-[18px]">add</span>
+                <span className="material-symbols-outlined text-white text-[16px]">add</span>
               </motion.button>
             </div>
           </div>
@@ -474,6 +488,14 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
         schedule={schedule}
         tripName="曼谷探險"
         dateRange="2025/1/27 - 2/2"
+      />
+
+      {/* AI Suggestions Modal */}
+      <AISuggestions
+        isOpen={showAI}
+        onClose={() => setShowAI(false)}
+        schedule={schedule}
+        onAddSuggestion={handleAddAISuggestion}
       />
     </div>
   );
