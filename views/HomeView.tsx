@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ScheduleItem, User } from '../types';
 import CurrencyConverter from '../components/CurrencyConverter';
 import ThemeToggle from '../components/ThemeToggle';
+import EmergencyInfo from '../components/EmergencyInfo';
 
 const familyMembersData = [
   { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
@@ -119,6 +120,7 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
   const [weather, setWeather] = useState({ temp: '--', label: '載入中', icon: 'cloud' });
   const [likedDestinations, setLikedDestinations] = useState<Set<number>>(new Set());
   const [showCurrency, setShowCurrency] = useState(false);
+  const [showEmergency, setShowEmergency] = useState(false);
 
   const safeBudget = budget || { total: 50000, remaining: 38500, spent: 11500 };
   const spentPercent = (safeBudget.spent / safeBudget.total) * 100;
@@ -265,6 +267,7 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
                 if (action.id === 'taxi') window.open('https://www.grab.com/th/', '_blank');
                 else if (action.id === 'rate') setShowCurrency(true);
                 else if (action.id === 'translate') window.open('https://translate.google.com/?sl=auto&tl=th', '_blank');
+                else if (action.id === 'sos') setShowEmergency(true);
               }}
               className="flex flex-col items-center gap-2"
             >
@@ -471,6 +474,12 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
       <CurrencyConverter 
         isOpen={showCurrency} 
         onClose={() => setShowCurrency(false)} 
+      />
+
+      {/* Emergency Info Modal */}
+      <EmergencyInfo
+        isOpen={showEmergency}
+        onClose={() => setShowEmergency(false)}
       />
     </div>
   );

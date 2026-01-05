@@ -9,6 +9,7 @@ import ShareModal from '../components/ShareModal';
 import AISuggestions from '../components/AISuggestions';
 import ItineraryMap from '../components/ItineraryMap';
 import ConflictDetector from '../components/ConflictDetector';
+import DailySummary from '../components/DailySummary';
 
 const days = [
   { id: 1, date: '1/27', weekday: 'Mon', label: '抵達', fullDate: '2025-01-27' },
@@ -226,8 +227,15 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
         </div>
       </div>
 
-      {/* Map and Conflict Detector */}
+      {/* Daily Summary, Map and Conflict Detector */}
       <div className="px-4 pt-4 space-y-4">
+        {/* Daily Summary */}
+        <DailySummary 
+          schedule={schedule} 
+          selectedDate={currentDayData?.fullDate || ''}
+          weather={{ temp: '32°C', condition: '晴朗' }}
+        />
+
         {/* Conflict Detection */}
         <ConflictDetector 
           schedule={schedule} 

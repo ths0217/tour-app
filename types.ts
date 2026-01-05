@@ -58,4 +58,10 @@ export interface ScheduleItem {
   image?: string;
   travelTime?: string; // e.g. "15m"
   travelTip?: string; // e.g. "Grab XL"
+  // Deep travel features
+  notes?: string; // Personal notes, booking refs, etc.
+  bookingRef?: string; // Reservation/booking reference
+  openHours?: string; // e.g. "09:00-18:00"
+  closedDays?: string; // e.g. "週一休"
+  estimatedCost?: number; // Estimated cost in THB
 }
