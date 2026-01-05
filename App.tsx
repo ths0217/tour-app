@@ -217,8 +217,8 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Floating Theme Toggle */}
-      <div className="absolute top-4 right-4 z-50 safe-top">
+      {/* Floating Theme Toggle - Bottom Left */}
+      <div className="absolute bottom-24 left-4 z-40">
         <ThemeToggle />
       </div>
 

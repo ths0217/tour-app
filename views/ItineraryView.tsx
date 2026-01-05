@@ -7,6 +7,8 @@ import MagazineCard from '../components/MagazineCard';
 import SortableItem from '../components/SortableItem';
 import ShareModal from '../components/ShareModal';
 import AISuggestions from '../components/AISuggestions';
+import ItineraryMap from '../components/ItineraryMap';
+import ConflictDetector from '../components/ConflictDetector';
 
 const days = [
   { id: 1, date: '1/27', weekday: 'Mon', label: '抵達', fullDate: '2025-01-27' },
@@ -222,6 +224,22 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Map and Conflict Detector */}
+      <div className="px-4 pt-4 space-y-4">
+        {/* Conflict Detection */}
+        <ConflictDetector 
+          schedule={schedule} 
+          onResolve={(item) => setSelectedItem(item)}
+        />
+        
+        {/* Route Map */}
+        <ItineraryMap 
+          schedule={schedule} 
+          selectedDate={currentDayData?.fullDate || ''} 
+          onLocationClick={(item) => setSelectedItem(item)}
+        />
       </div>
 
       {/* Content Area */}
