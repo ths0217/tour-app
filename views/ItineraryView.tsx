@@ -5,6 +5,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { ScheduleItem } from '../types';
 import MagazineCard from '../components/MagazineCard';
 import SortableItem from '../components/SortableItem';
+import ShareModal from '../components/ShareModal';
 
 const days = [
   { id: 1, date: '1/27', weekday: 'Mon', label: '抵達', fullDate: '2025-01-27' },
@@ -38,6 +39,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   // View mode and search
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Form state
   const [newTime, setNewTime] = useState('');
@@ -139,13 +141,22 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
               <h1 className="text-mag-hero text-charcoal">曼谷探險</h1>
               <p className="text-mag-caption text-stone mt-1">✨ 7天6夜家庭之旅</p>
             </div>
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setShowAddModal(true)}
-              className="w-11 h-11 rounded-full bg-red-xhs flex items-center justify-center shadow-mag"
-            >
-              <span className="material-symbols-outlined text-white text-[22px]">add</span>
-            </motion.button>
+            <div className="flex gap-2">
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowShareModal(true)}
+                className="w-10 h-10 rounded-full bg-charcoal/80 flex items-center justify-center shadow-mag"
+              >
+                <span className="material-symbols-outlined text-white text-[18px]">share</span>
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowAddModal(true)}
+                className="w-10 h-10 rounded-full bg-red-xhs flex items-center justify-center shadow-mag"
+              >
+                <span className="material-symbols-outlined text-white text-[18px]">add</span>
+              </motion.button>
+            </div>
           </div>
 
           {/* Day Selector Pills */}
@@ -455,6 +466,15 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
           </>
         )}
       </AnimatePresence>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        schedule={schedule}
+        tripName="曼谷探險"
+        dateRange="2025/1/27 - 2/2"
+      />
     </div>
   );
 }
