@@ -322,19 +322,28 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
       </div>
 
       {/* 🔥 Trending Itineraries - Xiaohongshu/Threads */}
-      <div className="px-4 mb-6">
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-mag-title text-charcoal">🔥 小紅書爆紅行程</h2>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-3 px-4">
+          <h2 className="text-[15px] font-semibold text-charcoal">🔥 小紅書爆紅行程</h2>
         </div>
         
-        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
+        <div 
+          className="flex gap-3 overflow-x-scroll pb-3 px-4"
+          style={{ 
+            scrollSnapType: 'x mandatory', 
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}
+        >
           {trendingItineraries.map((item, i) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 + i * 0.05 }}
-              className="flex-shrink-0 w-48"
+              className="flex-shrink-0 w-40"
+              style={{ scrollSnapAlign: 'start' }}
             >
               <div className="relative aspect-[3/4] rounded-mag overflow-hidden shadow-mag mb-2">
                 <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
