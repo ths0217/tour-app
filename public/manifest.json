@@ -1,0 +1,42 @@
+{
+  "name": "曼谷探險",
+  "short_name": "曼谷探險",
+  "description": "家庭曼谷旅遊行程規劃 App",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#FF2442",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "lifestyle"],
+  "lang": "zh-TW",
+  "dir": "ltr",
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "行程",
+      "short_name": "行程",
+      "url": "/?tab=itinerary",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "錢包",
+      "short_name": "錢包",
+      "url": "/?tab=wallet",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

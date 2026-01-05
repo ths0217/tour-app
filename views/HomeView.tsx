@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScheduleItem, User } from '../types';
+import CurrencyConverter from '../components/CurrencyConverter';
 
 const familyMembersData = [
   { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
@@ -116,6 +117,7 @@ interface HomeViewProps {
 export default function HomeView({ user, budget, schedule, onLogout }: HomeViewProps) {
   const [weather, setWeather] = useState({ temp: '--', label: '載入中', icon: 'cloud' });
   const [likedDestinations, setLikedDestinations] = useState<Set<number>>(new Set());
+  const [showCurrency, setShowCurrency] = useState(false);
 
   const safeBudget = budget || { total: 50000, remaining: 38500, spent: 11500 };
   const spentPercent = (safeBudget.spent / safeBudget.total) * 100;
@@ -257,7 +259,7 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
               whileTap={{ scale: 0.9 }}
               onClick={() => {
                 if (action.id === 'taxi') window.open('https://www.grab.com/th/', '_blank');
-                else if (action.id === 'rate') window.open('https://www.google.com/finance/quote/THB-TWD', '_blank');
+                else if (action.id === 'rate') setShowCurrency(true);
                 else if (action.id === 'translate') window.open('https://translate.google.com/?sl=auto&tl=th', '_blank');
               }}
               className="flex flex-col items-center gap-2"
@@ -466,6 +468,12 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
           ))}
         </div>
       </div>
+
+      {/* Currency Converter Modal */}
+      <CurrencyConverter 
+        isOpen={showCurrency} 
+        onClose={() => setShowCurrency(false)} 
+      />
     </div>
   );
 }
