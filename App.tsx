@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tab, Expense, ScheduleItem, User } from './types';
 import BottomNav from './components/BottomNav';
-import ThemeToggle from './components/ThemeToggle';
 import HomeView from './views/HomeView';
 import ItineraryView from './views/ItineraryView';
 import WalletView from './views/WalletView';
@@ -216,11 +215,6 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
       </main>
-
-      {/* Floating Theme Toggle - Bottom Left */}
-      <div className="absolute bottom-24 left-4 z-40">
-        <ThemeToggle />
-      </div>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>

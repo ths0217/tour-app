@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScheduleItem, User } from '../types';
 import CurrencyConverter from '../components/CurrencyConverter';
+import ThemeToggle from '../components/ThemeToggle';
 
 const familyMembersData = [
   { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
@@ -205,19 +206,22 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
             </motion.h1>
           </div>
           
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={onLogout}
-            className="relative"
-          >
-            <div 
-              className="w-14 h-14 rounded-full bg-cover bg-center shadow-mag ring-2 ring-white"
-              style={{ backgroundImage: `url('${user?.image || '/avatars/me.jpg'}')` }}
-            />
-            <div className="absolute -bottom-1 -right-1 px-2 py-0.5 bg-red-xhs rounded-pill text-[10px] text-white font-semibold">
-              切換
-            </div>
-          </motion.button>
+          <div className="flex items-start gap-3">
+            <ThemeToggle />
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={onLogout}
+              className="relative"
+            >
+              <div 
+                className="w-14 h-14 rounded-full bg-cover bg-center shadow-mag ring-2 ring-white"
+                style={{ backgroundImage: `url('${user?.image || '/avatars/me.jpg'}')` }}
+              />
+              <div className="absolute -bottom-1 -right-1 px-2 py-0.5 bg-red-xhs rounded-pill text-[10px] text-white font-semibold">
+                切換
+              </div>
+            </motion.button>
+          </div>
         </div>
       </div>
 
@@ -330,13 +334,8 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
         </div>
         
         <div 
-          className="flex gap-3 overflow-x-scroll pb-3 px-4"
-          style={{ 
-            scrollSnapType: 'x mandatory', 
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}
+          className="flex gap-3 overflow-x-auto no-scrollbar pl-4 pr-4 pb-3"
+          onTouchStart={(e) => e.stopPropagation()}
         >
           {trendingItineraries.map((item, i) => (
             <motion.div
@@ -344,8 +343,7 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 + i * 0.05 }}
-              className="flex-shrink-0 w-40"
-              style={{ scrollSnapAlign: 'start' }}
+              className="flex-none w-40"
             >
               <div className="relative aspect-[3/4] rounded-mag overflow-hidden shadow-mag mb-2">
                 <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
