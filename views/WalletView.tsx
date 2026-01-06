@@ -405,17 +405,35 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
 
                             {/* Settlement Actions */}
                             <div className="bg-pastel-mint rounded-mag p-4">
-                                <p className="text-mag-body font-medium text-green-800 mb-2">💡 結算建議</p>
-                                <div className="space-y-1 text-mag-caption text-green-700">
-                                    {settlements.filter(s => s.balance < 0).map(debtor => {
-                                        const creditor = settlements.find(s => s.balance > 0);
-                                        if (!creditor) return null;
-                                        return (
-                                            <p key={debtor.id}>
-                                                {debtor.name} → {creditor.name}：฿{Math.abs(Math.round(debtor.balance)).toLocaleString()}
-                                            </p>
-                                        );
-                                    })}
+                                <p className="text-mag-body font-medium text-green-800 mb-3">💡 結算建議</p>
+                                <div className="space-y-2">
+                                    {settlements.filter(s => s.balance < 0).length === 0 ? (
+                                        <p className="text-mag-caption text-green-600">✨ 目前沒有需要結算的項目</p>
+                                    ) : (
+                                        settlements.filter(s => s.balance < 0).map(debtor => {
+                                            const creditor = settlements.find(s => s.balance > 0);
+                                            if (!creditor) return null;
+                                            const amount = Math.abs(Math.round(debtor.balance));
+                                            const transferText = `${debtor.name} 轉帳 ฿${amount.toLocaleString()} 給 ${creditor.name}`;
+                                            
+                                            return (
+                                                <motion.button
+                                                    key={debtor.id}
+                                                    whileTap={{ scale: 0.97 }}
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(transferText);
+                                                        alert(`已複製: ${transferText}`);
+                                                    }}
+                                                    className="w-full flex items-center justify-between p-3 bg-white/60 rounded-lg hover:bg-white/80 transition-colors text-left"
+                                                >
+                                                    <span className="text-mag-caption text-green-700">
+                                                        {debtor.name} → {creditor.name}：<span className="font-semibold">฿{amount.toLocaleString()}</span>
+                                                    </span>
+                                                    <span className="material-symbols-outlined text-green-600 text-[18px]">content_copy</span>
+                                                </motion.button>
+                                            );
+                                        })
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
