@@ -10,20 +10,13 @@ const categories = [
     { id: 'Entertainment', label: '娛樂', icon: 'attractions', color: 'from-green-400 to-emerald-500' },
 ];
 
-const familyMembers = [
-    { id: 'vickly', name: '我', image: '/avatars/me.jpg' },
-    { id: 'sister', name: '姊姊', image: '/avatars/sister.jpg' },
-    { id: 'mother', name: '媽媽', image: '/avatars/mother.jpg' },
-    { id: 'brother', name: '哥哥', image: '/avatars/brother.jpg' },
-];
-
 // Apple Wallet Style Passes
 const flightPass = {
     type: 'flight',
     airline: 'EVA AIR',
     logo: '🌲',
     flightNumber: 'BR 206',
-    departure: { code: 'TPE', city: '台北桃園', time: '08:30', date: '2025-01-27' },
+    departure: { code: 'TPE', city: '桃園國際機場', time: '08:50', date: '2025-01-27' },
     arrival: { code: 'BKK', city: '曼谷素萬那普', time: '11:15', date: '2025-01-27' },
     gate: 'D7',
     seat: '12A',
@@ -38,17 +31,17 @@ const returnFlightPass = {
     logo: '🌲',
     flightNumber: 'BR 207',
     departure: { code: 'BKK', city: '曼谷素萬那普', time: '17:50', date: '2025-02-02' },
-    arrival: { code: 'TPE', city: '台北桃園', time: '22:30', date: '2025-02-02' },
-    gate: 'C4',
+    arrival: { code: 'TPE', city: '桃園國際機場', time: '22:05', date: '2025-02-02' },
+    gate: 'C3',
     seat: '14F',
-    boarding: '17:10',
+    boarding: '17:00',
     passenger: 'CHEN/VICKLY',
     bookingRef: 'ABC123',
 };
 
-const hotelPass = {
+const hotelPassData = {
     type: 'hotel',
-    name: 'Grande Centre Point Sukhumvit 55',
+    hotelName: 'Grande Centre Point Terminal 21',
     logo: '🏨',
     checkIn: '2025-01-27',
     checkOut: '2025-02-02',
@@ -58,6 +51,13 @@ const hotelPass = {
     address: '300 Sukhumvit Rd, Khlong Toei, Bangkok',
 };
 
+interface FamilyMember {
+    id: string;
+    name: string;
+    role: string;
+    image: string;
+}
+
 interface WalletViewProps {
     user: User | null;
     expenses: Expense[];
@@ -66,9 +66,10 @@ interface WalletViewProps {
     setBudgetGoal: React.Dispatch<React.SetStateAction<number>>;
     hotelInfo: { name: string; bookingId: string; location: string };
     setHotelInfo: React.Dispatch<React.SetStateAction<{ name: string; bookingId: string; location: string }>>;
+    familyMembers: FamilyMember[];
 }
 
-export default function WalletView({ user, expenses, setExpenses, budgetGoal, setBudgetGoal }: WalletViewProps) {
+export default function WalletView({ user, expenses, setExpenses, budgetGoal, setBudgetGoal, familyMembers }: WalletViewProps) {
     const [activeTab, setActiveTab] = useState<'passes' | 'budget' | 'settle'>('passes');
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditBudget, setShowEditBudget] = useState(false);
@@ -299,7 +300,17 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                         return (
                                             <div key={member.id} className="bg-white rounded-mag p-4 shadow-mag">
                                                 <div className="flex items-center gap-3 mb-3">
-                                                    <img src={member.image} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                                                    {member.image.startsWith('gradient:') ? (
+                                                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${member.image.split(':')[1]} flex items-center justify-center text-white text-[14px] font-bold`}>
+                                                            {member.image.split(':')[2]}
+                                                        </div>
+                                                    ) : member.image.startsWith('data:') ? (
+                                                        <img src={member.image} alt={member.name} className="w-10 h-10 rounded-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-stone/20 to-stone/10 flex items-center justify-center text-[14px] font-bold text-stone">
+                                                            {member.name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
                                                     <div className="flex-1">
                                                         <p className="text-mag-body font-medium text-charcoal">{member.name}</p>
                                                         <p className="text-mag-badge text-stone">剩餘 ฿{Math.round(personalRemaining).toLocaleString()}</p>
@@ -366,7 +377,17 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                 <div className="space-y-3">
                                     {settlements.map(member => (
                                         <div key={member.id} className="bg-white rounded-mag p-4 shadow-mag flex items-center gap-4">
-                                            <img src={member.image} alt={member.name} className="w-12 h-12 rounded-full object-cover" />
+                                            {member.image.startsWith('gradient:') ? (
+                                                <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${member.image.split(':')[1]} flex items-center justify-center text-white text-[16px] font-bold`}>
+                                                    {member.image.split(':')[2]}
+                                                </div>
+                                            ) : member.image.startsWith('data:') ? (
+                                                <img src={member.image} alt={member.name} className="w-12 h-12 rounded-full object-cover" />
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-stone/20 to-stone/10 flex items-center justify-center text-[16px] font-bold text-stone">
+                                                    {member.name.charAt(0).toUpperCase()}
+                                                </div>
+                                            )}
                                             <div className="flex-1">
                                                 <p className="text-mag-body font-medium text-charcoal">{member.name}</p>
                                                 <p className="text-mag-badge text-stone">已付 ฿{Math.round(member.paid).toLocaleString()}</p>
@@ -452,8 +473,18 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                         <label className="text-mag-caption text-stone block mb-3">付款人</label>
                                         <div className="flex gap-3">
                                             {familyMembers.map(m => (
-                                                <motion.button key={m.id} whileTap={{ scale: 0.95 }} onClick={() => setNewPayer(m)} className="flex flex-col items-center gap-2">
-                                                    <img src={m.image} className={`w-12 h-12 rounded-full object-cover shadow-mag transition-all ${newPayer.id === m.id ? 'ring-2 ring-red-xhs' : 'opacity-50'}`} alt={m.name} />
+                                                <motion.button key={m.id} whileTap={{ scale: 0.95 }} onClick={() => setNewPayer(m)} className="flex flex-col items-center gap-2 flex-shrink-0">
+                                                    {m.image.startsWith('gradient:') ? (
+                                                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${m.image.split(':')[1]} flex items-center justify-center text-white text-[16px] font-bold shadow-mag transition-all ${newPayer.id === m.id ? 'ring-2 ring-red-xhs' : 'opacity-50'}`}>
+                                                            {m.image.split(':')[2]}
+                                                        </div>
+                                                    ) : m.image.startsWith('data:') ? (
+                                                        <img src={m.image} className={`w-12 h-12 rounded-full object-cover shadow-mag transition-all ${newPayer.id === m.id ? 'ring-2 ring-red-xhs' : 'opacity-50'}`} alt={m.name} />
+                                                    ) : (
+                                                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-stone/20 to-stone/10 flex items-center justify-center text-[16px] font-bold text-stone shadow-mag transition-all ${newPayer.id === m.id ? 'ring-2 ring-red-xhs' : 'opacity-50'}`}>
+                                                            {m.name.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
                                                     <span className={`text-mag-badge ${newPayer.id === m.id ? 'text-charcoal' : 'text-stone'}`}>{m.name}</span>
                                                 </motion.button>
                                             ))}

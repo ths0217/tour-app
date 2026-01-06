@@ -219,6 +219,7 @@ function App() {
         setBudgetGoal={setBudgetGoal}
         hotelInfo={hotelInfo}
         setHotelInfo={setHotelInfo}
+        familyMembers={familyMembers}
       />;
       case 'checklist': return <ChecklistView currentUser={currentUser} familyMembers={familyMembers} />;
       case 'explore': return <ExploreView hotelInfo={hotelInfo} />;
