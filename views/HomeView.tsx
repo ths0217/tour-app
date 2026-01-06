@@ -232,10 +232,24 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
               onClick={onLogout}
               className="relative"
             >
-              <div 
-                className="w-14 h-14 rounded-full bg-cover bg-center shadow-mag ring-2 ring-white"
-                style={{ backgroundImage: `url('${user?.image || '/avatars/me.jpg'}')` }}
-              />
+              {(() => {
+                const currentMember = familyMembers.find(m => m.id === user?.id);
+                const avatarImage = currentMember?.image || user?.image || '/avatars/me.jpg';
+                
+                if (avatarImage.startsWith('gradient:')) {
+                  return (
+                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${avatarImage.split(':')[1]} flex items-center justify-center text-white text-[20px] font-bold shadow-mag ring-2 ring-white`}>
+                      {avatarImage.split(':')[2]}
+                    </div>
+                  );
+                }
+                return (
+                  <div 
+                    className="w-14 h-14 rounded-full bg-cover bg-center shadow-mag ring-2 ring-white"
+                    style={{ backgroundImage: `url('${avatarImage}')` }}
+                  />
+                );
+              })()}
               <div className="absolute -bottom-1 -right-1 px-2 py-0.5 bg-red-xhs rounded-pill text-[10px] text-white font-semibold">
                 切換
               </div>

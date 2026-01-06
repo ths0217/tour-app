@@ -57,6 +57,9 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   const [newType, setNewType] = useState('restaurant');
   const [newLocation, setNewLocation] = useState('');
   const [newImage, setNewImage] = useState<string | null>(null);
+  const [newNotes, setNewNotes] = useState('');
+  const [newTravelTime, setNewTravelTime] = useState('');
+  const [newEstCost, setNewEstCost] = useState('');
 
   // Drag sensors for touch and pointer
   const sensors = useSensors(
@@ -123,7 +126,10 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
       type: newType,
       location: newLocation,
       image: newImage || undefined,
-      completed: false
+      completed: false,
+      notes: newNotes || undefined,
+      travelTime: newTravelTime || undefined,
+      estimatedCost: newEstCost ? parseInt(newEstCost) : undefined,
     };
     setSchedule([...schedule, newItem]);
     setShowAddModal(false);
@@ -137,6 +143,9 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
     setNewLocation('');
     setNewType('restaurant');
     setNewImage(null);
+    setNewNotes('');
+    setNewTravelTime('');
+    setNewEstCost('');
   };
 
   const handleAddAISuggestion = (item: Omit<ScheduleItem, 'id'>) => {
@@ -459,8 +468,47 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                         value={newDesc}
                         onChange={(e) => setNewDesc(e.target.value)}
                         placeholder="任何想記住的小提醒..."
-                        rows={3}
+                        rows={2}
                         className="w-full text-mag-body text-charcoal bg-transparent outline-none resize-none placeholder:text-stone/50"
+                      />
+                    </div>
+
+                    {/* Additional Details Row */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white rounded-mag p-4 shadow-mag">
+                        <label className="text-mag-caption text-stone block mb-2">🚗 交通時間</label>
+                        <input
+                          type="text"
+                          value={newTravelTime}
+                          onChange={(e) => setNewTravelTime(e.target.value)}
+                          placeholder="例如：BTS 15分鐘"
+                          className="w-full text-[13px] text-charcoal bg-transparent outline-none placeholder:text-stone/50"
+                        />
+                      </div>
+                      <div className="bg-white rounded-mag p-4 shadow-mag">
+                        <label className="text-mag-caption text-stone block mb-2">💰 預估花費</label>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[13px] text-stone">฿</span>
+                          <input
+                            type="number"
+                            value={newEstCost}
+                            onChange={(e) => setNewEstCost(e.target.value)}
+                            placeholder="0"
+                            className="w-full text-[13px] text-charcoal bg-transparent outline-none placeholder:text-stone/50"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Personal Notes */}
+                    <div className="bg-amber-50/80 rounded-mag p-4 shadow-mag border border-amber-200/50">
+                      <label className="text-mag-caption text-amber-700 block mb-2">📝 私人備註（不會分享）</label>
+                      <textarea
+                        value={newNotes}
+                        onChange={(e) => setNewNotes(e.target.value)}
+                        placeholder="訂位確認碼、密碼、個人提醒..."
+                        rows={2}
+                        className="w-full text-[13px] text-charcoal bg-transparent outline-none resize-none placeholder:text-amber-600/50"
                       />
                     </div>
                   </div>

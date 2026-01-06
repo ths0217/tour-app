@@ -9,6 +9,7 @@ import ChecklistView from './views/ChecklistView';
 import ExploreView from './views/ExploreView';
 import LoginView from './views/LoginView';
 import Onboarding from './components/Onboarding';
+import { ToastProvider } from './components/Toast';
 
 const STORAGE_KEYS = {
   user: 'tourapp_user',
@@ -82,7 +83,7 @@ const initialSchedule: ScheduleItem[] = [
   { id: 703, date: '2025-02-02', time: '15:00', title: '前往機場 (BKK)', type: 'flight_takeoff', desc: '✈️ 預留 3 小時辦理登機 • 回家囉 🏠', location: 'Suvarnabhumi', completed: false, travelTime: '🚗 45m', travelTip: 'Grab or Airport Rail' },
 ];
 
-export default function App() {
+function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(() => safeLoad<User | null>(STORAGE_KEYS.user, null));
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -250,5 +251,14 @@ export default function App() {
         onComplete={() => setShowOnboarding(false)}
       />
     </div>
+  );
+}
+
+// Export wrapped with ToastProvider
+export default function AppWithProviders() {
+  return (
+    <ToastProvider>
+      <App />
+    </ToastProvider>
   );
 }
