@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { openMap } from '../utils/device';
 
 interface TransportLinksProps {
   destination?: string;
@@ -47,15 +48,15 @@ const transportOptions = [
     fallback: 'https://www.mrta.co.th/en/',
     desc: '地鐵路線圖'
   },
-  { 
-    id: 'google', 
-    name: 'Maps', 
-    icon: '📍', 
+  {
+    id: 'google',
+    name: 'Maps',
+    icon: '📍',
     color: 'from-red-500 to-orange-500',
-    getUrl: (lat?: number, lng?: number) => 
-      lat && lng 
-        ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=transit`
-        : 'https://maps.google.com',
+    getUrl: (lat?: number, lng?: number) =>
+      lat && lng
+        ? { lat, lng }
+        : undefined,
     fallback: 'https://maps.google.com',
     desc: '路線規劃'
   },
@@ -79,8 +80,10 @@ export default function TransportLinks({ destination, lat, lng }: TransportLinks
       window.addEventListener('blur', () => {
         clearTimeout(timeout);
       }, { once: true });
+    } else if (option.id === 'google' && url && typeof url === 'object') {
+      openMap({ lat: url.lat, lng: url.lng });
     } else {
-      window.open(url, '_blank');
+      window.open(typeof url === 'string' ? url : option.fallback, '_blank');
     }
   };
 
@@ -152,7 +155,7 @@ export function TransportQuickLinks({ lat, lng }: { lat?: number; lng?: number }
       </motion.button>
       <motion.button
         whileTap={{ scale: 0.9 }}
-        onClick={() => lat && lng && window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=transit`, '_blank')}
+        onClick={() => lat && lng && openMap({ lat, lng })}
         className="px-2 py-1 rounded-pill bg-blue-500 text-white text-[10px] font-semibold flex items-center gap-1"
       >
         🚇 交通

@@ -12,7 +12,7 @@
 
   <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
-  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO2pRvsAAAAASUVORK5CYII=" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="曼谷探險" />
 
@@ -126,15 +126,19 @@
       -webkit-overflow-scrolling: touch;
     }
 
-    body {
-      font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
-      color: #333333;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      margin: 0;
-      overflow-x: hidden;
-    }
+      body {
+        font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+        color: #333333;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        margin: 0;
+        overflow-x: hidden;
+        padding-top: var(--safe-top);
+        padding-bottom: var(--safe-bottom);
+        overscroll-behavior-y: none;
+        touch-action: manipulation;
+      }
 
     /* Mesh Gradient Background Orbs */
     .mesh-gradient {
@@ -267,13 +271,19 @@
       padding-top: max(var(--safe-top), 12px);
     }
 
-    .safe-bottom {
-      padding-bottom: max(var(--safe-bottom), 20px);
-    }
+      .safe-bottom {
+        padding-bottom: max(var(--safe-bottom), 20px);
+      }
 
-    .pb-safe {
-      padding-bottom: calc(var(--safe-bottom) + 90px) !important;
-    }
+      .pb-safe {
+        padding-bottom: calc(var(--safe-bottom) + 90px) !important;
+      }
+
+      .safe-area-app {
+        padding-top: max(var(--safe-top), 12px);
+        padding-bottom: calc(var(--safe-bottom) + 8px);
+        min-height: calc(100vh + var(--safe-top) + var(--safe-bottom));
+      }
 
     /* Masonry Grid */
     .masonry {

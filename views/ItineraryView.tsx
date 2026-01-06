@@ -13,6 +13,8 @@ import DailySummary from '../components/DailySummary';
 import TripTemplates from '../components/TripTemplates';
 import BusinessHoursWarning from '../components/BusinessHoursWarning';
 import TransportLinks from '../components/TransportLinks';
+import DriverCard from '../components/DriverCard';
+import { openMap } from '../utils/device';
 
 const days = [
   { id: 1, date: '1/27', weekday: 'Mon', label: '抵達', fullDate: '2025-01-27' },
@@ -83,7 +85,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   // Navigate to location
   const handleNavigate = (item: ScheduleItem) => {
     if (item.location) {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location + ' Bangkok')}`, '_blank');
+      openMap({ query: `${item.location} Bangkok` });
     }
   };
 
@@ -558,6 +560,10 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                     <span className="material-symbols-outlined text-[18px]">location_on</span>
                     {selectedItem.location}
                   </div>
+                )}
+
+                {selectedItem.location && (
+                  <DriverCard title={selectedItem.title} location={selectedItem.location} />
                 )}
                 
                 {selectedItem.desc && (

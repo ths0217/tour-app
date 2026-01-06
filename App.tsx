@@ -5,6 +5,7 @@ import BottomNav from './components/BottomNav';
 import { ToastProvider } from './components/Toast';
 import { HomePageSkeleton } from './components/Skeleton';
 import ErrorBoundary from './components/ErrorBoundary';
+import AddToHomeScreenPrompt from './components/AddToHomeScreenPrompt';
 
 // Lazy load views for code splitting
 const HomeView = lazy(() => import('./views/HomeView'));
@@ -264,16 +265,19 @@ function App() {
         </Suspense>
       </main>
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Onboarding for first-time users */}
-      <Onboarding
-        isOpen={showOnboarding && currentUser !== null}
-        onComplete={() => setShowOnboarding(false)}
-      />
-    </div>
-  );
-}
+        {/* Onboarding for first-time users */}
+        <Onboarding
+          isOpen={showOnboarding && currentUser !== null}
+          onComplete={() => setShowOnboarding(false)}
+        />
+
+        {/* iOS Safari add-to-home-screen helper */}
+        <AddToHomeScreenPrompt />
+      </div>
+    );
+  }
 
 // Export wrapped with ToastProvider and ErrorBoundary
 export default function AppWithProviders() {

@@ -7,12 +7,12 @@ interface BottomNavProps {
   onTabChange: (tab: Tab) => void;
 }
 
-const navItems: { id: Tab; icon: string; label: string }[] = [
-  { id: 'home', icon: 'home', label: '首頁' },
-  { id: 'itinerary', icon: 'explore', label: '探索' },
-  { id: 'wallet', icon: 'account_balance_wallet', label: '錢包' },
-  { id: 'checklist', icon: 'checklist', label: '清單' },
-  { id: 'explore', icon: 'photo_library', label: '相簿' },
+const navItems: { id: Tab; icon: string; label: string; aria: string }[] = [
+  { id: 'home', icon: 'home', label: '首頁', aria: '首頁' },
+  { id: 'itinerary', icon: 'calendar_month', label: '行程', aria: '行程規劃' },
+  { id: 'wallet', icon: 'account_balance_wallet', label: '錢包', aria: '旅費錢包' },
+  { id: 'checklist', icon: 'checklist', label: '清單', aria: '旅遊清單' },
+  { id: 'explore', icon: 'explore', label: '探索', aria: '探索/相簿' },
 ];
 
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
@@ -32,6 +32,9 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
           return (
             <motion.button
               key={item.id}
+              type="button"
+              aria-label={item.aria}
+              aria-current={isActive}
               onClick={() => handleTabClick(item.id)}
               whileTap={{ scale: 0.85 }}
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}

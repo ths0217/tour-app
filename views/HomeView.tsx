@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScheduleItem, User } from '../types';
+import { openMap } from '../utils/device';
 import CurrencyConverter from '../components/CurrencyConverter';
 import ThemeToggle from '../components/ThemeToggle';
 import EmergencyInfo from '../components/EmergencyInfo';
@@ -429,7 +430,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
               <div className="flex gap-1.5 mt-1.5">
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${item.lat},${item.lng}`, '_blank')}
+                  onClick={() => openMap({ lat: item.lat, lng: item.lng, travelMode: 'd' })}
                   className="flex-1 py-1.5 rounded-mag bg-white border border-black/10 text-charcoal text-[10px] font-medium flex items-center justify-center gap-0.5"
                 >
                   <span className="material-symbols-outlined text-[12px]">navigation</span>
@@ -508,7 +509,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
                   <h3 className="text-white text-[14px] font-semibold drop-shadow-lg mb-2">{dest.name}</h3>
                   <motion.button
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest.lat},${dest.lng}`, '_blank')}
+                    onClick={() => openMap({ lat: dest.lat, lng: dest.lng, travelMode: 'd' })}
                     className="w-full py-1.5 rounded-pill bg-white/90 text-charcoal text-[11px] font-medium flex items-center justify-center gap-1"
                   >
                     <span className="material-symbols-outlined text-[14px]">navigation</span>
