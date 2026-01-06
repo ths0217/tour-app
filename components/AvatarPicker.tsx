@@ -102,7 +102,7 @@ export default function AvatarPicker({ isOpen, onClose, members, onUpdateMember 
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto overscroll-contain pb-8">
               {/* Member Selection */}
               {!selectedMember ? (
                 <div className="p-5">

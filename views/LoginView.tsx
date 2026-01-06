@@ -2,18 +2,19 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { User } from '../types';
 
-const users = [
-    { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
-    { id: 'sherry', name: 'Sherry', role: '姊姊', image: '/avatars/sister.jpg' },
-    { id: 'alex', name: 'Alexsander', role: '哥哥', image: '/avatars/brother.jpg' },
-    { id: 'jenny', name: 'Jenny', role: '媽媽', image: '/avatars/mother.jpg' },
-];
+interface FamilyMember {
+    id: string;
+    name: string;
+    role: string;
+    image: string;
+}
 
 interface LoginViewProps {
     onLogin: (user: User) => void;
+    familyMembers: FamilyMember[];
 }
 
-export default function LoginView({ onLogin }: LoginViewProps) {
+export default function LoginView({ onLogin, familyMembers }: LoginViewProps) {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
             {/* Background Image with Overlay */}
@@ -57,7 +58,7 @@ export default function LoginView({ onLogin }: LoginViewProps) {
                     <p className="text-center text-mag-caption text-stone mb-5">選擇你的身份開始旅程</p>
                     
                     <div className="grid grid-cols-2 gap-3">
-                        {users.map((user, index) => (
+                        {familyMembers.map((user, index) => (
                             <motion.button
                                 key={user.id}
                                 initial={{ opacity: 0, scale: 0.9 }}
@@ -68,11 +69,17 @@ export default function LoginView({ onLogin }: LoginViewProps) {
                                 className="flex flex-col items-center p-4 rounded-mag bg-cream hover:bg-white transition-colors duration-200 group"
                             >
                                 <div className="relative mb-3">
-                                    <img 
-                                        src={user.image} 
-                                        alt={user.name} 
-                                        className="w-16 h-16 rounded-full object-cover shadow-mag ring-2 ring-white group-hover:ring-red-xhs transition-all duration-200" 
-                                    />
+                                    {user.image.startsWith('gradient:') ? (
+                                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${user.image.split(':')[1]} flex items-center justify-center text-white text-[24px] font-bold shadow-mag ring-2 ring-white group-hover:ring-red-xhs transition-all duration-200`}>
+                                            {user.image.split(':')[2]}
+                                        </div>
+                                    ) : (
+                                        <img 
+                                            src={user.image} 
+                                            alt={user.name} 
+                                            className="w-16 h-16 rounded-full object-cover shadow-mag ring-2 ring-white group-hover:ring-red-xhs transition-all duration-200" 
+                                        />
+                                    )}
                                 </div>
                                 <span className="text-mag-body font-semibold text-charcoal">{user.name}</span>
                                 <span className="text-mag-badge text-stone">{user.role}</span>

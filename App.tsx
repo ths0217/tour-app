@@ -15,6 +15,7 @@ const STORAGE_KEYS = {
   expenses: 'tourapp_expenses',
   budget: 'tourapp_budget',
   schedule: 'tourapp_schedule',
+  familyMembers: 'tourapp_family',
 } as const;
 
 const safeLoad = <T,>(key: string, fallback: T, validator?: (value: T) => boolean): T => {
@@ -104,6 +105,25 @@ export default function App() {
     safeLoad<ScheduleItem[]>(STORAGE_KEYS.schedule, initialSchedule, (val) => Array.isArray(val) && val.length > 0),
   );
 
+  // Shared Family Members State (for avatars)
+  const initialFamily = [
+    { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
+    { id: 'sherry', name: 'Sherry', role: '姊姊', image: '/avatars/sister.jpg' },
+    { id: 'dad', name: 'Dad', role: '老爸', image: '/avatars/dad.jpg' },
+    { id: 'mom', name: 'Mom', role: '老媽', image: '/avatars/mom.jpg' },
+  ];
+  const [familyMembers, setFamilyMembers] = useState(() =>
+    safeLoad(STORAGE_KEYS.familyMembers, initialFamily, (val) => Array.isArray(val)),
+  );
+
+  const handleUpdateFamilyMember = (id: string, newImage: string) => {
+    setFamilyMembers(members => {
+      const updated = members.map(m => m.id === id ? { ...m, image: newImage } : m);
+      localStorage.setItem(STORAGE_KEYS.familyMembers, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   // Shared Hotel Info (for Wallet & Explore)
   const [hotelInfo, setHotelInfo] = useState({
     name: 'Avani+ Riverside',
@@ -169,6 +189,8 @@ export default function App() {
         schedule={schedule}
         setSchedule={setSchedule}
         onLogout={handleLogout}
+        familyMembers={familyMembers}
+        onUpdateFamilyMember={handleUpdateFamilyMember}
       />;
       case 'itinerary': return <ItineraryView
         schedule={schedule}
@@ -200,7 +222,7 @@ export default function App() {
   };
 
   if (!currentUser) {
-    return <LoginView onLogin={handleLogin} />;
+    return <LoginView onLogin={handleLogin} familyMembers={familyMembers} />;
   }
 
   return (

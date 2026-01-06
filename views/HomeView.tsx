@@ -113,15 +113,24 @@ const trendingItineraries = [
   },
 ];
 
+interface FamilyMember {
+  id: string;
+  name: string;
+  role: string;
+  image: string;
+}
+
 interface HomeViewProps {
   user: User | null;
   budget?: { total: number; remaining: number; spent: number };
   schedule: ScheduleItem[];
   setSchedule: React.Dispatch<React.SetStateAction<ScheduleItem[]>>;
   onLogout?: () => void;
+  familyMembers: FamilyMember[];
+  onUpdateFamilyMember: (id: string, newImage: string) => void;
 }
 
-export default function HomeView({ user, budget, schedule, onLogout }: HomeViewProps) {
+export default function HomeView({ user, budget, schedule, onLogout, familyMembers, onUpdateFamilyMember }: HomeViewProps) {
   const [weather, setWeather] = useState({ temp: '--', label: '載入中', icon: 'cloud' });
   const [likedDestinations, setLikedDestinations] = useState<Set<number>>(new Set());
   const [showCurrency, setShowCurrency] = useState(false);
@@ -129,13 +138,6 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [showTipCalc, setShowTipCalc] = useState(false);
   const [showLocalInfo, setShowLocalInfo] = useState(false);
-  const [familyMembers, setFamilyMembers] = useState(familyMembersData);
-
-  const handleUpdateMember = (id: string, newImage: string) => {
-    setFamilyMembers(members => 
-      members.map(m => m.id === id ? { ...m, image: newImage } : m)
-    );
-  };
 
   const safeBudget = budget || { total: 50000, remaining: 38500, spent: 11500 };
   const spentPercent = (safeBudget.spent / safeBudget.total) * 100;
@@ -519,7 +521,7 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
         isOpen={showAvatarPicker}
         onClose={() => setShowAvatarPicker(false)}
         members={familyMembers}
-        onUpdateMember={handleUpdateMember}
+        onUpdateMember={onUpdateFamilyMember}
       />
 
       {/* Tip Calculator Modal */}
