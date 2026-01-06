@@ -8,6 +8,7 @@ import WalletView from './views/WalletView';
 import ChecklistView from './views/ChecklistView';
 import ExploreView from './views/ExploreView';
 import LoginView from './views/LoginView';
+import Onboarding from './components/Onboarding';
 
 const STORAGE_KEYS = {
   user: 'tourapp_user',
@@ -83,6 +84,9 @@ const initialSchedule: ScheduleItem[] = [
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(() => safeLoad<User | null>(STORAGE_KEYS.user, null));
   const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return !localStorage.getItem('onboarding_complete');
+  });
 
   // Shared Budget State
   const [expenses, setExpenses] = useState<Expense[]>(() =>
@@ -217,6 +221,12 @@ export default function App() {
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Onboarding for first-time users */}
+      <Onboarding
+        isOpen={showOnboarding && currentUser !== null}
+        onComplete={() => setShowOnboarding(false)}
+      />
     </div>
   );
 }

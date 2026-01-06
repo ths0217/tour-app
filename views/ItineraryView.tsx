@@ -10,6 +10,9 @@ import AISuggestions from '../components/AISuggestions';
 import ItineraryMap from '../components/ItineraryMap';
 import ConflictDetector from '../components/ConflictDetector';
 import DailySummary from '../components/DailySummary';
+import TripTemplates from '../components/TripTemplates';
+import BusinessHoursWarning from '../components/BusinessHoursWarning';
+import TransportLinks from '../components/TransportLinks';
 
 const days = [
   { id: 1, date: '1/27', weekday: 'Mon', label: '抵達', fullDate: '2025-01-27' },
@@ -45,6 +48,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   const [searchQuery, setSearchQuery] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAI, setShowAI] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   // Form state
   const [newTime, setNewTime] = useState('');
@@ -140,6 +144,14 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
     setSchedule([...schedule, newItem]);
   };
 
+  const handleApplyTemplate = (items: Omit<ScheduleItem, 'id'>[]) => {
+    const newItems = items.map((item, i) => ({ 
+      ...item, 
+      id: Date.now() + i 
+    }));
+    setSchedule([...schedule, ...newItems]);
+  };
+
   return (
     <div className="min-h-full">
       {/* Glassmorphism Header */}
@@ -158,6 +170,13 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                 className="w-9 h-9 rounded-full bg-charcoal/80 flex items-center justify-center shadow-mag"
               >
                 <span className="material-symbols-outlined text-white text-[16px]">share</span>
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowTemplates(true)}
+                className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-mag"
+              >
+                <span className="material-symbols-outlined text-white text-[16px]">library_books</span>
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.9 }}
@@ -235,6 +254,15 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
           selectedDate={currentDayData?.fullDate || ''}
           weather={{ temp: '32°C', condition: '晴朗' }}
         />
+
+        {/* Business Hours Warning */}
+        <BusinessHoursWarning 
+          schedule={schedule} 
+          selectedDate={currentDayData?.fullDate || ''}
+        />
+
+        {/* Transport Links */}
+        <TransportLinks destination={currentDaySchedule[0]?.title} />
 
         {/* Conflict Detection */}
         <ConflictDetector 
@@ -522,6 +550,13 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
         onClose={() => setShowAI(false)}
         schedule={schedule}
         onAddSuggestion={handleAddAISuggestion}
+      />
+
+      {/* Trip Templates Modal */}
+      <TripTemplates
+        isOpen={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onApplyTemplate={handleApplyTemplate}
       />
     </div>
   );
