@@ -110,7 +110,7 @@ function App() {
   const initialFamily = [
     { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
     { id: 'sherry', name: 'Sherry', role: '姊姊', image: '/avatars/sister.jpg' },
-    { id: 'dad', name: 'Dad', role: '老爸', image: '/avatars/dad.jpg' },
+    { id: 'dad', name: 'wattbsttrrrog', role: '老爸', image: '/avatars/dad.jpg' },
     { id: 'mom', name: 'Mom', role: '老媽', image: '/avatars/mom.jpg' },
   ];
   const [familyMembers, setFamilyMembers] = useState(() =>
@@ -206,7 +206,7 @@ function App() {
         hotelInfo={hotelInfo}
         setHotelInfo={setHotelInfo}
       />;
-      case 'checklist': return <ChecklistView />;
+      case 'checklist': return <ChecklistView currentUser={currentUser} familyMembers={familyMembers} />;
       case 'explore': return <ExploreView hotelInfo={hotelInfo} />;
       default: return <HomeView
         user={currentUser}

@@ -8,6 +8,19 @@ interface ChecklistItem {
     checked: boolean;
     sub?: string;
     assignee?: string;
+    confirmedBy?: { id: string; name: string; image: string };
+}
+
+interface FamilyMember {
+    id: string;
+    name: string;
+    role: string;
+    image: string;
+}
+
+interface ChecklistViewProps {
+    currentUser?: { id: string; name: string } | null;
+    familyMembers: FamilyMember[];
 }
 
 const initialItems: ChecklistItem[] = [
@@ -28,23 +41,36 @@ const categories = [
     { id: 'Other', label: '其他', icon: 'category', color: 'from-orange-400 to-amber-500' },
 ];
 
-const users = [
-    { name: 'Vickly', image: '/avatars/me.jpg' },
-    { name: 'Sherry', image: '/avatars/sister.jpg' },
-    { name: 'Jenny', image: '/avatars/mother.jpg' },
-    { name: 'Alex', image: '/avatars/brother.jpg' },
-];
-
-export default function ChecklistView() {
+export default function ChecklistView({ currentUser, familyMembers }: ChecklistViewProps) {
     const [items, setItems] = useState(initialItems);
     const [showAddModal, setShowAddModal] = useState(false);
     const [newItemText, setNewItemText] = useState('');
     const [newItemCategory, setNewItemCategory] = useState<string>('Other');
-    const [newItemUser, setNewItemUser] = useState(users[0]);
+    const [selectedAssignee, setSelectedAssignee] = useState<FamilyMember | null>(familyMembers[0] || null);
     const [filterCategory, setFilterCategory] = useState<string | null>(null);
 
+    // Helper to get member image with gradient support
+    const getMemberImage = (memberId: string) => {
+        const member = familyMembers.find(m => m.id === memberId);
+        return member?.image || '/avatars/me.jpg';
+    };
+
     const toggleItem = (id: string) => {
-        setItems(items.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
+        const currentMember = familyMembers.find(m => m.id === currentUser?.id);
+        setItems(items.map(item => {
+            if (item.id !== id) return item;
+            const newChecked = !item.checked;
+            return { 
+                ...item, 
+                checked: newChecked,
+                confirmedBy: newChecked && currentMember ? {
+                    id: currentMember.id,
+                    name: currentMember.name,
+                    image: currentMember.image
+                } : undefined,
+                sub: newChecked && currentMember ? `${currentMember.name} 已確認` : undefined
+            };
+        }));
     };
 
     const addItem = () => {
@@ -54,7 +80,7 @@ export default function ChecklistView() {
             text: newItemText,
             category: newItemCategory as any,
             checked: false,
-            assignee: newItemUser.image
+            assignee: selectedAssignee?.image
         }]);
         setShowAddModal(false);
         setNewItemText('');
@@ -240,24 +266,34 @@ export default function ChecklistView() {
                                 {/* User Selection */}
                                 <div className="mb-5">
                                     <label className="text-mag-caption text-stone block mb-3">負責人</label>
-                                    <div className="flex gap-4">
-                                        {users.map(u => (
+                                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                                        {familyMembers.map(u => (
                                             <motion.button
-                                                key={u.name}
+                                                key={u.id}
                                                 whileTap={{ scale: 0.95 }}
-                                                onClick={() => setNewItemUser(u)}
-                                                className="flex flex-col items-center gap-2"
+                                                onClick={() => setSelectedAssignee(u)}
+                                                className="flex flex-col items-center gap-2 flex-shrink-0"
                                             >
-                                                <img 
-                                                    src={u.image} 
-                                                    className={`w-14 h-14 rounded-full object-cover shadow-mag transition-all ${
-                                                        newItemUser.name === u.name 
+                                                {u.image.startsWith('gradient:') ? (
+                                                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${u.image.split(':')[1]} flex items-center justify-center text-white text-[16px] font-bold shadow-mag transition-all ${
+                                                        selectedAssignee?.id === u.id 
                                                             ? 'ring-2 ring-red-xhs' 
                                                             : 'opacity-50'
-                                                    }`} 
-                                                />
-                                                <span className={`text-mag-badge ${
-                                                    newItemUser.name === u.name ? 'text-charcoal' : 'text-stone'
+                                                    }`}>
+                                                        {u.image.split(':')[2]}
+                                                    </div>
+                                                ) : (
+                                                    <img 
+                                                        src={u.image} 
+                                                        className={`w-12 h-12 rounded-full object-cover shadow-mag transition-all ${
+                                                            selectedAssignee?.id === u.id 
+                                                                ? 'ring-2 ring-red-xhs' 
+                                                                : 'opacity-50'
+                                                        }`} 
+                                                    />
+                                                )}
+                                                <span className={`text-[10px] ${
+                                                    selectedAssignee?.id === u.id ? 'text-charcoal font-medium' : 'text-stone'
                                                 }`}>{u.name}</span>
                                             </motion.button>
                                         ))}
