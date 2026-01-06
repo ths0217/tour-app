@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tab, Expense, ScheduleItem, User } from './types';
 import BottomNav from './components/BottomNav';
-import HomeView from './views/HomeView';
-import ItineraryView from './views/ItineraryView';
-import WalletView from './views/WalletView';
-import ChecklistView from './views/ChecklistView';
-import ExploreView from './views/ExploreView';
-import LoginView from './views/LoginView';
-import Onboarding from './components/Onboarding';
 import { ToastProvider } from './components/Toast';
+import { HomePageSkeleton } from './components/Skeleton';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Lazy load views for code splitting
+const HomeView = lazy(() => import('./views/HomeView'));
+const ItineraryView = lazy(() => import('./views/ItineraryView'));
+const WalletView = lazy(() => import('./views/WalletView'));
+const ChecklistView = lazy(() => import('./views/ChecklistView'));
+const ExploreView = lazy(() => import('./views/ExploreView'));
+const LoginView = lazy(() => import('./views/LoginView'));
+const Onboarding = lazy(() => import('./components/Onboarding'));
 
 const STORAGE_KEYS = {
   user: 'tourapp_user',
@@ -233,24 +237,30 @@ function App() {
   };
 
   if (!currentUser) {
-    return <LoginView onLogin={handleLogin} familyMembers={familyMembers} />;
+    return (
+      <Suspense fallback={<HomePageSkeleton />}>
+        <LoginView onLogin={handleLogin} familyMembers={familyMembers} />
+      </Suspense>
+    );
   }
 
   return (
     <div className="flex flex-col min-h-[100dvh] w-full max-w-md mx-auto bg-ios-bg overflow-hidden relative font-sans selection:bg-ios-blue/20 safe-area-app">
       <main className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar pb-[90px] relative bg-ios-bg">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            className="min-h-full"
-          >
-            {renderView()}
-          </motion.div>
-        </AnimatePresence>
+        <Suspense fallback={<HomePageSkeleton />}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              className="min-h-full"
+            >
+              {renderView()}
+            </motion.div>
+          </AnimatePresence>
+        </Suspense>
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
@@ -264,11 +274,13 @@ function App() {
   );
 }
 
-// Export wrapped with ToastProvider
+// Export wrapped with ToastProvider and ErrorBoundary
 export default function AppWithProviders() {
   return (
-    <ToastProvider>
-      <App />
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <App />
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
