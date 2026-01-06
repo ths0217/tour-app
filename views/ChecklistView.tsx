@@ -7,8 +7,8 @@ interface ChecklistItem {
     category: 'Documents' | 'Medical' | 'Gadgets' | 'Clothing' | 'Other';
     checked: boolean;
     sub?: string;
-    assignee?: string;
-    confirmedBy?: { id: string; name: string; image: string };
+    assigneeId?: string; // Changed from assignee (image path) to assigneeId (member id)
+    confirmedById?: string; // ID of who confirmed
 }
 
 interface FamilyMember {
@@ -23,14 +23,15 @@ interface ChecklistViewProps {
     familyMembers: FamilyMember[];
 }
 
+// Use member IDs instead of image paths
 const initialItems: ChecklistItem[] = [
-    { id: '1', text: '全家簽證 (e-VOA)', category: 'Documents', checked: true, sub: '姊姊已確認', assignee: '/avatars/sister.jpg' },
-    { id: '2', text: '機票行程單 (列印)', category: 'Documents', checked: false, assignee: '/avatars/sister.jpg' },
-    { id: '3', text: '常備藥品 (腸胃/感冒)', category: 'Medical', checked: false, assignee: '/avatars/mother.jpg' },
-    { id: '4', text: '相機 & 腳架', category: 'Gadgets', checked: true, assignee: '/avatars/me.jpg' },
-    { id: '5', text: '行動電源', category: 'Gadgets', checked: false, assignee: '/avatars/me.jpg' },
-    { id: '6', text: '泳衣 & 墨鏡', category: 'Clothing', checked: false, assignee: '/avatars/sister.jpg' },
-    { id: '7', text: '泰銖現金', category: 'Other', checked: false, assignee: '/avatars/brother.jpg' },
+    { id: '1', text: '全家簽證 (e-VOA)', category: 'Documents', checked: true, sub: '姊姊已確認', assigneeId: 'sherry', confirmedById: 'sherry' },
+    { id: '2', text: '機票行程單 (列印)', category: 'Documents', checked: false, assigneeId: 'sherry' },
+    { id: '3', text: '常備藥品 (腸胃/感冒)', category: 'Medical', checked: false, assigneeId: 'mom' },
+    { id: '4', text: '相機 & 腳架', category: 'Gadgets', checked: true, assigneeId: 'vickly', confirmedById: 'vickly' },
+    { id: '5', text: '行動電源', category: 'Gadgets', checked: false, assigneeId: 'vickly' },
+    { id: '6', text: '泳衣 & 墨鏡', category: 'Clothing', checked: false, assigneeId: 'sherry' },
+    { id: '7', text: '泰銖現金', category: 'Other', checked: false, assigneeId: 'dad' },
 ];
 
 const categories = [
@@ -49,12 +50,6 @@ export default function ChecklistView({ currentUser, familyMembers }: ChecklistV
     const [selectedAssignee, setSelectedAssignee] = useState<FamilyMember | null>(familyMembers[0] || null);
     const [filterCategory, setFilterCategory] = useState<string | null>(null);
 
-    // Helper to get member image with gradient support
-    const getMemberImage = (memberId: string) => {
-        const member = familyMembers.find(m => m.id === memberId);
-        return member?.image || '/avatars/me.jpg';
-    };
-
     const toggleItem = (id: string) => {
         const currentMember = familyMembers.find(m => m.id === currentUser?.id);
         setItems(items.map(item => {
@@ -63,11 +58,7 @@ export default function ChecklistView({ currentUser, familyMembers }: ChecklistV
             return { 
                 ...item, 
                 checked: newChecked,
-                confirmedBy: newChecked && currentMember ? {
-                    id: currentMember.id,
-                    name: currentMember.name,
-                    image: currentMember.image
-                } : undefined,
+                confirmedById: newChecked && currentMember ? currentMember.id : undefined,
                 sub: newChecked && currentMember ? `${currentMember.name} 已確認` : undefined
             };
         }));
@@ -80,7 +71,7 @@ export default function ChecklistView({ currentUser, familyMembers }: ChecklistV
             text: newItemText,
             category: newItemCategory as any,
             checked: false,
-            assignee: selectedAssignee?.image
+            assigneeId: selectedAssignee?.id
         }]);
         setShowAddModal(false);
         setNewItemText('');
@@ -218,33 +209,36 @@ export default function ChecklistView({ currentUser, familyMembers }: ChecklistV
                                             {cat?.label}
                                         </span>
                                         
-                                        {/* Assignee */}
-                                        {item.assignee && (() => {
-                                            // Find member by image or use confirmedBy
-                                            const confirmedMember = item.confirmedBy;
-                                            const assigneeImage = confirmedMember?.image || item.assignee;
+                                        {/* Assignee - Look up from familyMembers */}
+                                        {item.assigneeId && (() => {
+                                            // Look up current avatar from familyMembers
+                                            const member = familyMembers.find(m => m.id === item.assigneeId);
+                                            if (!member) return <span className="text-[14px]">👤</span>;
                                             
-                                            if (assigneeImage.startsWith('gradient:')) {
+                                            const avatarImage = member.image;
+                                            
+                                            if (avatarImage.startsWith('gradient:')) {
                                                 return (
-                                                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${assigneeImage.split(':')[1]} flex items-center justify-center text-white text-[12px] font-bold ring-2 ring-white shadow-mag shrink-0`}>
-                                                        {assigneeImage.split(':')[2]}
+                                                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarImage.split(':')[1]} flex items-center justify-center text-white text-[12px] font-bold ring-2 ring-white shadow-mag shrink-0`}>
+                                                        {avatarImage.split(':')[2]}
                                                     </div>
                                                 );
                                             }
-                                            return (
-                                                <div 
-                                                    className="w-8 h-8 rounded-full bg-gradient-to-br from-stone/20 to-stone/10 flex items-center justify-center ring-2 ring-white shadow-mag shrink-0 overflow-hidden"
-                                                >
+                                            
+                                            if (avatarImage.startsWith('data:')) {
+                                                return (
                                                     <img 
-                                                        src={assigneeImage} 
-                                                        alt="Assignee"
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => {
-                                                            e.currentTarget.style.display = 'none';
-                                                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                                                        }}
+                                                        src={avatarImage} 
+                                                        alt={member.name}
+                                                        className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-mag shrink-0"
                                                     />
-                                                    <span className="hidden text-[14px]">👤</span>
+                                                );
+                                            }
+                                            
+                                            // For paths like /avatars/xxx.jpg - show emoji fallback since these don't exist
+                                            return (
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone/20 to-stone/10 flex items-center justify-center ring-2 ring-white shadow-mag shrink-0 text-[14px]">
+                                                    {member.name.charAt(0).toUpperCase()}
                                                 </div>
                                             );
                                         })()}
