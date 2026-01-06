@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { openMap } from '../utils/device';
 
 const tags = ['全部', '美食', '景點', '購物', '按摩'];
 
@@ -11,7 +12,7 @@ interface ExploreItem {
     tags: string[];
     rating: number;
     saves: number;
-    mapUrl: string;
+    mapQuery: string;
     zone: string;
     category: 'food' | 'spot' | 'shop' | 'activity';
 }
@@ -25,7 +26,7 @@ const exploreData: ExploreItem[] = [
         tags: ['必去地標', '泰服體驗', 'IG打卡'],
         rating: 4.9,
         saves: 12400,
-        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Wat+Arun',
+        mapQuery: 'Wat Arun Bangkok',
         zone: 'Riverside',
         category: 'spot'
     },
@@ -37,7 +38,7 @@ const exploreData: ExploreItem[] = [
         tags: ['室內水上市場', '吹冷氣', '美食聚集'],
         rating: 4.8,
         saves: 8900,
-        mapUrl: 'https://www.google.com/maps/search/?api=1&query=ICONSIAM',
+        mapQuery: 'ICONSIAM Bangkok',
         zone: 'Riverside',
         category: 'shop'
     },
@@ -49,7 +50,7 @@ const exploreData: ExploreItem[] = [
         tags: ['火山排骨', '網紅夜市', '吃貨天堂'],
         rating: 4.7,
         saves: 15600,
-        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Jodd+Fairs+Rama+9',
+        mapQuery: 'Jodd Fairs Rama 9',
         zone: 'Rama9',
         category: 'food'
     },
@@ -61,7 +62,7 @@ const exploreData: ExploreItem[] = [
         tags: ['甜點控', '必吃', '消暑'],
         rating: 4.9,
         saves: 5400,
-        mapUrl: 'https://www.google.com/maps/search/?api=1&query=After+You+Dessert+Cafe',
+        mapQuery: 'After You Dessert Cafe Bangkok',
         zone: 'Siam',
         category: 'food'
     },
@@ -73,7 +74,7 @@ const exploreData: ExploreItem[] = [
         tags: ['按摩放鬆', '連鎖名店', '服務好'],
         rating: 4.6,
         saves: 3200,
-        mapUrl: 'https://www.google.com/maps/search/?api=1&query=Let\'s+Relax+Spa',
+        mapQuery: "Let's Relax Spa Bangkok",
         zone: 'Multiple',
         category: 'activity'
     }
@@ -187,15 +188,14 @@ export default function ExploreView({ hotelInfo }: ExploreViewProps) {
                                     <span className="material-symbols-outlined text-[14px]">favorite</span>
                                     {item.saves > 10000 ? `${(item.saves / 10000).toFixed(1)}w` : item.saves} 收藏
                                 </span>
-                                <a
-                                    href={item.mapUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="flex items-center gap-1 text-xs font-bold text-gold hover:underline"
-                                >
-                                    <span className="material-symbols-outlined text-[16px]">map</span>
-                                    導航
-                                </a>
+                                  <button
+                                      type="button"
+                                      onClick={() => openMap({ query: item.mapQuery })}
+                                      className="flex items-center gap-1 text-xs font-bold text-gold hover:underline"
+                                  >
+                                      <span className="material-symbols-outlined text-[16px]">map</span>
+                                      導航
+                                  </button>
                             </div>
                         </div>
                     </motion.div>

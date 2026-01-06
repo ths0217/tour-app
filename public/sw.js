@@ -1,106 +1,49 @@
-const CACHE_NAME = 'bangkok-tour-v1';
-const STATIC_ASSETS = [
+const CACHE_NAME = 'bangkok-spa-v3';
+const CORE_ASSETS = [
   '/',
   '/index.html',
+  '/style.css',
   '/manifest.json',
+  '/icons/app-icon.svg'
 ];
 
-// Install event - cache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Caching static assets');
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
   );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      );
-    })
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
   );
   self.clients.claim();
 });
 
-// Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // Skip external requests
-  if (!event.request.url.startsWith(self.location.origin)) return;
+  const url = new URL(event.request.url);
 
+  // Cache-first for same-origin static files
+  if (url.origin === location.origin) {
+    if (CORE_ASSETS.includes(url.pathname)) {
+      event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+      return;
+    }
+  }
+
+  // Network-first for everything else with offline fallback
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clone response and cache it
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         return response;
       })
-      .catch(() => {
-        // Network failed, try cache
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // Return offline page for navigation requests
-          if (event.request.mode === 'navigate') {
-            return caches.match('/');
-          }
-          return new Response('Offline', { status: 503 });
-        });
-      })
+      .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/index.html')))
   );
-});
-
-// Background sync for expenses
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-expenses') {
-    event.waitUntil(syncExpenses());
-  }
-});
-
-async function syncExpenses() {
-  // Sync local expenses to server when back online
-  console.log('[SW] Syncing expenses...');
-}
-
-// Push notifications
-self.addEventListener('push', (event) => {
-  const data = event.data?.json() || {};
-  const title = data.title || '曼谷探險';
-  const options = {
-    body: data.body || '您有新的通知',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
-    vibrate: [100, 50, 100],
-    data: data.url || '/',
-    actions: [
-      { action: 'open', title: '查看' },
-      { action: 'close', title: '關閉' },
-    ],
-  };
-
-  event.waitUntil(self.registration.showNotification(title, options));
-});
-
-// Notification click
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  if (event.action === 'open' || !event.action) {
-    event.waitUntil(
-      clients.openWindow(event.notification.data || '/')
-    );
-  }
 });

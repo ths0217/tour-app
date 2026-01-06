@@ -1,42 +1,29 @@
 {
-  "name": "曼谷探險",
-  "short_name": "曼谷探險",
-  "description": "家庭曼谷旅遊行程規劃 App",
-  "start_url": "/",
+  "name": "曼谷 iOS 行程助手",
+  "short_name": "曼谷行程",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#FAFAFA",
-  "theme_color": "#FF2442",
-  "orientation": "portrait",
+  "background_color": "#0b1220",
+  "theme_color": "#0f172a",
+  "description": "iOS-first PWA for Bangkok travelers with offline mode, driver card, and grab links.",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icons/app-icon.svg",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/app-icon.svg",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
-  ],
-  "categories": ["travel", "lifestyle"],
-  "lang": "zh-TW",
-  "dir": "ltr",
-  "screenshots": [],
-  "shortcuts": [
-    {
-      "name": "行程",
-      "short_name": "行程",
-      "url": "/?tab=itinerary",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
-      "name": "錢包",
-      "short_name": "錢包",
-      "url": "/?tab=wallet",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "src": "/icons/app-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }
