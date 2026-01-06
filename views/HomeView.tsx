@@ -4,6 +4,9 @@ import { ScheduleItem, User } from '../types';
 import CurrencyConverter from '../components/CurrencyConverter';
 import ThemeToggle from '../components/ThemeToggle';
 import EmergencyInfo from '../components/EmergencyInfo';
+import AvatarPicker from '../components/AvatarPicker';
+import TipCalculator from '../components/TipCalculator';
+import LocalInfo from '../components/LocalInfo';
 
 const familyMembersData = [
   { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
@@ -17,6 +20,8 @@ const quickActions = [
   { id: 'rate', icon: 'currency_exchange', label: '匯率', gradient: 'from-blue-400 to-indigo-500' },
   { id: 'translate', icon: 'translate', label: '翻譯', gradient: 'from-orange-400 to-amber-500' },
   { id: 'sos', icon: 'sos', label: '緊急', gradient: 'from-red-400 to-rose-500' },
+  { id: 'tip', icon: 'payments', label: '小費', gradient: 'from-purple-400 to-violet-500' },
+  { id: 'info', icon: 'info', label: '攻略', gradient: 'from-cyan-400 to-teal-500' },
 ];
 
 const destinations = [
@@ -121,6 +126,16 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
   const [likedDestinations, setLikedDestinations] = useState<Set<number>>(new Set());
   const [showCurrency, setShowCurrency] = useState(false);
   const [showEmergency, setShowEmergency] = useState(false);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [showTipCalc, setShowTipCalc] = useState(false);
+  const [showLocalInfo, setShowLocalInfo] = useState(false);
+  const [familyMembers, setFamilyMembers] = useState(familyMembersData);
+
+  const handleUpdateMember = (id: string, newImage: string) => {
+    setFamilyMembers(members => 
+      members.map(m => m.id === id ? { ...m, image: newImage } : m)
+    );
+  };
 
   const safeBudget = budget || { total: 50000, remaining: 38500, spent: 11500 };
   const spentPercent = (safeBudget.spent / safeBudget.total) * 100;
@@ -255,7 +270,7 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
 
       {/* Quick Actions */}
       <div className="px-4 mb-6">
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-6 gap-2">
           {quickActions.map((action, i) => (
             <motion.button
               key={action.id}
@@ -268,13 +283,15 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
                 else if (action.id === 'rate') setShowCurrency(true);
                 else if (action.id === 'translate') window.open('https://translate.google.com/?sl=auto&tl=th', '_blank');
                 else if (action.id === 'sos') setShowEmergency(true);
+                else if (action.id === 'tip') setShowTipCalc(true);
+                else if (action.id === 'info') setShowLocalInfo(true);
               }}
               className="flex flex-col items-center gap-2"
             >
-              <div className={`w-14 h-14 rounded-mag flex items-center justify-center bg-gradient-to-br ${action.gradient} shadow-mag`}>
-                <span className="material-symbols-outlined text-white text-[24px]">{action.icon}</span>
+              <div className={`w-11 h-11 rounded-mag flex items-center justify-center bg-gradient-to-br ${action.gradient} shadow-mag`}>
+                <span className="material-symbols-outlined text-white text-[20px]">{action.icon}</span>
               </div>
-              <span className="text-mag-badge text-charcoal">{action.label}</span>
+              <span className="text-[10px] text-charcoal">{action.label}</span>
             </motion.button>
           ))}
         </div>
@@ -306,26 +323,41 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
       <div className="px-4 mb-6">
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-mag-title text-charcoal">旅伴狀態</h2>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowAvatarPicker(true)}
+            className="text-[11px] text-red-xhs font-medium flex items-center gap-1"
+          >
+            <span className="material-symbols-outlined text-[14px]">edit</span>
+            編輯
+          </motion.button>
         </div>
         <div className="flex gap-4">
-          {companions.map((member, i) => (
-            <motion.div
+          {familyMembers.map((member, i) => (
+            <motion.button
               key={member.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + i * 0.05 }}
+              onClick={() => setShowAvatarPicker(true)}
               className="flex flex-col items-center gap-2"
             >
               <div className="relative">
-                <img 
-                  src={member.image} 
-                  alt={member.name}
-                  className="w-16 h-16 rounded-full object-cover shadow-mag ring-2 ring-white"
-                />
+                {member.image.startsWith('gradient:') ? (
+                  <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${member.image.split(':')[1]} flex items-center justify-center text-white text-[20px] font-bold shadow-mag ring-2 ring-white`}>
+                    {member.image.split(':')[2]}
+                  </div>
+                ) : (
+                  <img 
+                    src={member.image} 
+                    alt={member.name}
+                    className="w-16 h-16 rounded-full object-cover shadow-mag ring-2 ring-white"
+                  />
+                )}
                 <div className="absolute bottom-0 right-0 w-5 h-5 bg-green-500 rounded-full border-2 border-white" />
               </div>
               <span className="text-mag-badge text-charcoal">{member.name}</span>
-            </motion.div>
+            </motion.button>
           ))}
         </div>
       </div>
@@ -480,6 +512,26 @@ export default function HomeView({ user, budget, schedule, onLogout }: HomeViewP
       <EmergencyInfo
         isOpen={showEmergency}
         onClose={() => setShowEmergency(false)}
+      />
+
+      {/* Avatar Picker Modal */}
+      <AvatarPicker
+        isOpen={showAvatarPicker}
+        onClose={() => setShowAvatarPicker(false)}
+        members={familyMembers}
+        onUpdateMember={handleUpdateMember}
+      />
+
+      {/* Tip Calculator Modal */}
+      <TipCalculator
+        isOpen={showTipCalc}
+        onClose={() => setShowTipCalc(false)}
+      />
+
+      {/* Local Info Modal */}
+      <LocalInfo
+        isOpen={showLocalInfo}
+        onClose={() => setShowLocalInfo(false)}
       />
     </div>
   );
