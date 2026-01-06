@@ -113,9 +113,19 @@ function App() {
     { id: 'dad', name: 'wattbsttrrrog', role: '老爸', image: '/avatars/dad.jpg' },
     { id: 'mom', name: 'Mom', role: '老媽', image: '/avatars/mom.jpg' },
   ];
-  const [familyMembers, setFamilyMembers] = useState(() =>
-    safeLoad(STORAGE_KEYS.familyMembers, initialFamily, (val) => Array.isArray(val)),
-  );
+  
+  const [familyMembers, setFamilyMembers] = useState(() => {
+    const stored = safeLoad(STORAGE_KEYS.familyMembers, initialFamily, (val) => Array.isArray(val));
+    // Merge names/roles from initialFamily, keep custom images from stored
+    return initialFamily.map(init => {
+      const storedMember = stored.find((s: any) => s.id === init.id);
+      return {
+        ...init,
+        // Keep custom image if user updated it, otherwise use default
+        image: storedMember?.image || init.image
+      };
+    });
+  });
 
   const handleUpdateFamilyMember = (id: string, newImage: string) => {
     setFamilyMembers(members => {

@@ -219,13 +219,35 @@ export default function ChecklistView({ currentUser, familyMembers }: ChecklistV
                                         </span>
                                         
                                         {/* Assignee */}
-                                        {item.assignee && (
-                                            <img 
-                                                src={item.assignee} 
-                                                alt="Assignee" 
-                                                className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-mag shrink-0" 
-                                            />
-                                        )}
+                                        {item.assignee && (() => {
+                                            // Find member by image or use confirmedBy
+                                            const confirmedMember = item.confirmedBy;
+                                            const assigneeImage = confirmedMember?.image || item.assignee;
+                                            
+                                            if (assigneeImage.startsWith('gradient:')) {
+                                                return (
+                                                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${assigneeImage.split(':')[1]} flex items-center justify-center text-white text-[12px] font-bold ring-2 ring-white shadow-mag shrink-0`}>
+                                                        {assigneeImage.split(':')[2]}
+                                                    </div>
+                                                );
+                                            }
+                                            return (
+                                                <div 
+                                                    className="w-8 h-8 rounded-full bg-gradient-to-br from-stone/20 to-stone/10 flex items-center justify-center ring-2 ring-white shadow-mag shrink-0 overflow-hidden"
+                                                >
+                                                    <img 
+                                                        src={assigneeImage} 
+                                                        alt="Assignee"
+                                                        className="w-full h-full object-cover"
+                                                        onError={(e) => {
+                                                            e.currentTarget.style.display = 'none';
+                                                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                                        }}
+                                                    />
+                                                    <span className="hidden text-[14px]">👤</span>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </motion.div>
                             );
