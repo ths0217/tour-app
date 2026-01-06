@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../components/Toast';
 
 interface ChecklistItem {
     id: string;
@@ -43,6 +44,7 @@ const categories = [
 ];
 
 export default function ChecklistView({ currentUser, familyMembers }: ChecklistViewProps) {
+    const { showToast } = useToast();
     const [items, setItems] = useState(initialItems);
     const [showAddModal, setShowAddModal] = useState(false);
     const [newItemText, setNewItemText] = useState('');
@@ -65,7 +67,10 @@ export default function ChecklistView({ currentUser, familyMembers }: ChecklistV
     };
 
     const addItem = () => {
-        if (!newItemText) return;
+        if (!newItemText) {
+            showToast('請輸入項目名稱', 'warning');
+            return;
+        }
         setItems([...items, {
             id: Date.now().toString(),
             text: newItemText,
@@ -75,6 +80,7 @@ export default function ChecklistView({ currentUser, familyMembers }: ChecklistV
         }]);
         setShowAddModal(false);
         setNewItemText('');
+        showToast(`已新增: ${newItemText}`, 'success');
     };
 
     const filteredItems = filterCategory 

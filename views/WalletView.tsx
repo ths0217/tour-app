@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Expense, User } from '../types';
+import { useToast } from '../components/Toast';
 
 const categories = [
     { id: 'Dining', label: '餐飲', icon: 'restaurant', color: 'from-orange-400 to-amber-500' },
@@ -70,6 +71,7 @@ interface WalletViewProps {
 }
 
 export default function WalletView({ user, expenses, setExpenses, budgetGoal, setBudgetGoal, familyMembers }: WalletViewProps) {
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<'passes' | 'budget' | 'settle'>('passes');
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditBudget, setShowEditBudget] = useState(false);
@@ -114,7 +116,10 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
     });
 
     const handleAddExpense = () => {
-        if (!newTitle || !newAmount) return;
+        if (!newTitle || !newAmount) {
+            showToast('請填寫完整資訊', 'warning');
+            return;
+        }
         const newExp: Expense = {
             id: Date.now(),
             title: newTitle,
@@ -127,16 +132,19 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
         setShowAddModal(false);
         setNewTitle('');
         setNewAmount('');
+        showToast(`已新增消費: ${newTitle}`, 'success');
     };
 
     const handleSaveBudget = () => {
         setBudgetGoal(budgetInput);
         setShowEditBudget(false);
+        showToast('團體預算已更新', 'success');
     };
 
     const handleSavePersonalBudget = () => {
         if (editingPersonal) {
             setPersonalBudgets(prev => ({ ...prev, [editingPersonal]: personalInput }));
+            showToast('個人預算已更新', 'success');
         }
         setEditingPersonal(null);
     };
@@ -422,7 +430,7 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                                     whileTap={{ scale: 0.97 }}
                                                     onClick={() => {
                                                         navigator.clipboard.writeText(transferText);
-                                                        alert(`已複製: ${transferText}`);
+                                                        showToast(`已複製: ${transferText}`, 'success');
                                                     }}
                                                     className="w-full flex items-center justify-between p-3 bg-white/60 rounded-lg hover:bg-white/80 transition-colors text-left"
                                                 >
