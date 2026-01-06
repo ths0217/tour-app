@@ -1,9 +1,14 @@
-const CACHE_NAME = 'bangkok-tour-v1';
+const CACHE_NAME = 'bangkok-tour-v2';
+const RUNTIME_CACHE = 'runtime-assets-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/favicon.ico',
+  '/icons/app-icon.svg',
 ];
+
+const ASSET_PATTERNS = [/\.(png|jpg|jpeg|webp|svg|gif)$/i, /tiles\.mapbox\.com/, /googleapis\.com\/maps/];
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
@@ -22,7 +27,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
+          .filter((name) => name !== CACHE_NAME && name !== RUNTIME_CACHE)
           .map((name) => caches.delete(name))
       );
     })
@@ -35,32 +40,45 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // Skip external requests
+  const { url } = event.request;
+
+  // Cache-first for heavy assets (maps/images)
+  if (ASSET_PATTERNS.some((pattern) => pattern.test(url))) {
+    event.respondWith(
+      caches.open(RUNTIME_CACHE).then(async (cache) => {
+        const cached = await cache.match(event.request);
+        if (cached) return cached;
+
+        try {
+          const response = await fetch(event.request);
+          cache.put(event.request, response.clone());
+          return response;
+        } catch (error) {
+          return cached || new Response('Offline', { status: 503 });
+        }
+      })
+    );
+    return;
+  }
+
+  // Network-first for app shell/API, fallback to cache
   if (!event.request.url.startsWith(self.location.origin)) return;
 
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Clone response and cache it
         const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
         return response;
       })
-      .catch(() => {
-        // Network failed, try cache
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // Return offline page for navigation requests
+      .catch(() => caches.match(event.request)
+        .then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
           if (event.request.mode === 'navigate') {
             return caches.match('/');
           }
           return new Response('Offline', { status: 503 });
-        });
-      })
+        }))
   );
 });
 
@@ -82,8 +100,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || '曼谷探險';
   const options = {
     body: data.body || '您有新的通知',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: '/icons/app-icon.svg',
+    badge: '/icons/app-icon.svg',
     vibrate: [100, 50, 100],
     data: data.url || '/',
     actions: [

@@ -35,12 +35,14 @@ const getCoords = (location?: string) => {
 };
 
 export default function ItineraryMap({ schedule, selectedDate, onLocationClick }: ItineraryMapProps) {
-  const daySchedule = useMemo(() => 
+  const daySchedule = useMemo(() =>
     schedule
       .filter(item => item.date === selectedDate)
       .sort((a, b) => a.time.localeCompare(b.time)),
     [schedule, selectedDate]
   );
+
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
 
   if (daySchedule.length === 0) {
     return (
@@ -56,21 +58,16 @@ export default function ItineraryMap({ schedule, selectedDate, onLocationClick }
   const centerLat = coords.reduce((sum, c) => sum + c.lat, 0) / coords.length;
   const centerLng = coords.reduce((sum, c) => sum + c.lng, 0) / coords.length;
 
-  // Generate Google Maps Static API URL
-  const markers = daySchedule.map((item, i) => {
-    const c = getCoords(item.location);
-    return `markers=color:red%7Clabel:${i + 1}%7C${c.lat},${c.lng}`;
-  }).join('&');
+  const mapMarkers = daySchedule
+    .map((item, i) => {
+      const c = getCoords(item.location);
+      return `pin-s-${i + 1}+FF2442(${c.lng},${c.lat})`;
+    })
+    .join(',');
 
-  const path = daySchedule.map(item => {
-    const c = getCoords(item.location);
-    return `${c.lat},${c.lng}`;
-  }).join('|');
-
-  const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${centerLat},${centerLng}&zoom=12&size=400x200&scale=2&maptype=roadmap&${markers}&path=color:0xFF2442|weight:3|${path}&key=YOUR_API_KEY`;
-
-  // Use a placeholder map image for demo
-  const demoMapUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-s-1+FF2442(${coords[0].lng},${coords[0].lat})/100.52,13.73,11,0/400x200@2x?access_token=pk.demo`;
+  const mapPreview = mapboxToken
+    ? `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${mapMarkers}/${centerLng},${centerLat},12,0/600x320@2x?access_token=${mapboxToken}`
+    : '';
 
   return (
     <div className="bg-white dark:bg-charcoal/50 rounded-mag overflow-hidden shadow-mag">
@@ -85,6 +82,19 @@ export default function ItineraryMap({ schedule, selectedDate, onLocationClick }
 
       {/* Map Placeholder with Route Visualization */}
       <div className="relative h-40 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-indigo-900/20 overflow-hidden">
+        {mapPreview ? (
+          <img
+            src={mapPreview}
+            alt="曼谷行程地圖預覽"
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover opacity-90"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-[12px] text-stone">
+            請於 .env 設定 VITE_MAPBOX_TOKEN 以載入地圖
+          </div>
+        )}
+
         {/* Simple Route Visualization */}
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 160">
           {/* Route Path */}
@@ -100,7 +110,7 @@ export default function ItineraryMap({ schedule, selectedDate, onLocationClick }
             strokeDasharray="0"
             className="drop-shadow-sm"
           />
-          
+
           {/* Location Markers */}
           {daySchedule.map((item, i) => {
             const x = 40 + (i * (320 / Math.max(daySchedule.length - 1, 1)));

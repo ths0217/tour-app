@@ -27,6 +27,8 @@
 npm install
 ```
 
+> 📍 提示：若要顯示地圖預覽，請在根目錄建立 `.env` 並加入 `VITE_MAPBOX_TOKEN=<your_token>`。
+
 ### 2. 本地開發
 啟動開發伺服器：
 ```bash
