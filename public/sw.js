@@ -1,8 +1,9 @@
-const CACHE_NAME = 'bangkok-spa-v3';
+const CACHE_NAME = 'bangkok-spa-v4';
 const CORE_ASSETS = [
   '/',
   '/index.html',
   '/style.css',
+  '/script.js',
   '/manifest.json',
   '/icons/app-icon.svg'
 ];

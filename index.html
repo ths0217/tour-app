@@ -101,32 +101,7 @@
           <h2>必吃推薦</h2>
           <p class="muted">離線快取 · 適合漫遊</p>
         </div>
-        <div class="card-grid two">
-          <article class="card">
-            <div class="card-head">
-              <span class="badge badge-green">米其林</span>
-              <span class="chip">BTS Chong Nonsi</span>
-            </div>
-            <h3>Jay Fai</h3>
-            <p>抵達先抽號碼牌，等待可步行去附近咖啡。</p>
-            <div class="actions gap">
-              <button class="ghost" data-ride data-lat="13.7245" data-lng="100.5146">Ride with Grab</button>
-              <button class="primary" data-nav="itinerary">加入行程</button>
-            </div>
-          </article>
-          <article class="card">
-            <div class="card-head">
-              <span class="badge">在地</span>
-              <span class="chip">Ratchada</span>
-            </div>
-            <h3>火山排骨</h3>
-            <p>點餐時指定小辣，避免超辣。現金與行動支付皆可。</p>
-            <div class="actions gap">
-              <button class="ghost" data-open-driver data-title="Volcano Pork" data-thai="ซี่โครงหมูภูเขาไฟ" data-lat="13.7766" data-lng="100.5739">司機卡</button>
-              <button class="primary" data-ride data-lat="13.7766" data-lng="100.5739">叫車</button>
-            </div>
-          </article>
-        </div>
+        <div id="destinations-grid" class="card-grid two" aria-live="polite"></div>
       </section>
     </main>
 
@@ -135,6 +110,25 @@
       <button class="tab" data-nav="itinerary">行程</button>
       <button class="tab" data-nav="explore">探索</button>
     </nav>
+  </div>
+
+  <button id="converter-toggle" class="converter-fab" aria-expanded="false" aria-controls="converter-panel">฿/NT$</button>
+  <div id="converter-panel" class="converter-panel" hidden>
+    <div class="converter-header">
+      <p class="converter-title">Shopping Helper</p>
+      <button id="converter-close" class="converter-close" aria-label="關閉換匯工具">×</button>
+    </div>
+    <div class="converter-body">
+      <label class="converter-field">
+        <span>THB</span>
+        <input id="thb-input" type="number" inputmode="decimal" placeholder="1000" />
+      </label>
+      <label class="converter-field">
+        <span>Rate (→TWD)</span>
+        <input id="rate-input" type="number" inputmode="decimal" step="0.01" value="0.9" />
+      </label>
+      <div class="converter-result">≈ <span id="twd-output">0</span> TWD</div>
+    </div>
   </div>
 
   <div id="driver-modal" class="modal" aria-hidden="true" role="dialog">
@@ -151,134 +145,6 @@
     </div>
   </div>
 
-  <script>
-    const views = Array.from(document.querySelectorAll('.view'));
-    const tabs = Array.from(document.querySelectorAll('[data-nav]'));
-    const routerEl = document.getElementById('router');
-    let active = 'home';
-
-    const preferReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    function switchView(target) {
-      if (target === active) return;
-      const current = views.find(v => v.dataset.view === active);
-      const next = views.find(v => v.dataset.view === target);
-      if (!next || !current) return;
-
-      current.classList.remove('view--active');
-      current.classList.add(preferReduced ? 'view--hidden' : 'view--slide-out');
-      next.classList.add(preferReduced ? 'view--active' : 'view--slide-in');
-
-      tabs.forEach(btn => btn.classList.toggle('tab--active', btn.dataset.nav === target));
-      active = target;
-
-      setTimeout(() => {
-        views.forEach(v => {
-          v.classList.remove('view--slide-out', 'view--slide-in', 'view--hidden');
-          v.classList.toggle('view--active', v.dataset.view === active);
-        });
-      }, preferReduced ? 0 : 350);
-    }
-
-    tabs.forEach(btn => {
-      btn.addEventListener('click', () => switchView(btn.dataset.nav));
-    });
-
-    document.querySelectorAll('button[data-nav]').forEach(btn => {
-      btn.addEventListener('click', () => switchView(btn.dataset.nav));
-    });
-
-    const modal = document.getElementById('driver-modal');
-    const driverTitle = document.getElementById('driver-title');
-    const driverThai = document.getElementById('driver-thai');
-    const btnRide = document.getElementById('btn-ride');
-    const btnNavigate = document.getElementById('btn-navigate');
-    let selected = { lat: null, lng: null, title: '', thai: '' };
-
-    function openModal({ title, thai, lat, lng }) {
-      selected = { lat, lng, title, thai };
-      driverTitle.textContent = title;
-      driverThai.textContent = thai;
-      modal.setAttribute('aria-hidden', 'false');
-      modal.classList.add('modal--open');
-    }
-
-    function closeModal() {
-      modal.setAttribute('aria-hidden', 'true');
-      modal.classList.remove('modal--open');
-    }
-
-    modal.addEventListener('click', (e) => {
-      if (e.target.matches('[data-close]') || e.target.classList.contains('modal')) {
-        closeModal();
-      }
-    });
-
-    document.querySelectorAll('[data-open-driver]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const title = btn.dataset.title || 'Bangkok';
-        const thai = btn.dataset.thai || 'กรุงเทพฯ';
-        const lat = parseFloat(btn.dataset.lat);
-        const lng = parseFloat(btn.dataset.lng);
-        openModal({ title, thai, lat, lng });
-      });
-    });
-
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-    function openAppleOrGoogle(lat, lng) {
-      if (isIOS) {
-        window.location.href = `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`;
-      } else {
-        window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
-      }
-    }
-
-    function openGrab(lat, lng) {
-      const grabUrl = `grab://open?destination.latitude=${lat}&destination.longitude=${lng}`;
-      const webFallback = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-      const timeout = setTimeout(() => window.open(webFallback, '_blank'), 800);
-      const link = document.createElement('a');
-      link.style.display = 'none';
-      link.href = grabUrl;
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        document.body.removeChild(link);
-        clearTimeout(timeout);
-      }, 900);
-    }
-
-    document.querySelectorAll('[data-ride]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const lat = parseFloat(btn.dataset.lat);
-        const lng = parseFloat(btn.dataset.lng);
-        openGrab(lat, lng);
-      });
-    });
-
-    btnRide.addEventListener('click', () => {
-      if (selected.lat && selected.lng) {
-        openGrab(selected.lat, selected.lng);
-      }
-    });
-
-    btnNavigate.addEventListener('click', () => {
-      if (selected.lat && selected.lng) {
-        openAppleOrGoogle(selected.lat, selected.lng);
-      }
-    });
-
-    const addButton = document.getElementById('cta-add');
-    addButton.addEventListener('click', () => {
-      alert('在 Safari 點擊分享 → 加入主畫面，體驗全螢幕。');
-    });
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js');
-      });
-    }
-  </script>
+  <script src="/script.js"></script>
 </body>
 </html>
