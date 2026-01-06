@@ -1,12 +1,22 @@
-const CACHE_NAME = 'bangkok-spa-v4';
+const CACHE_NAME = 'bangkok-spa-v5';
 const CORE_ASSETS = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/manifest.json',
-  '/icons/app-icon.svg'
+  './',
+  './index.html',
+  './style.css',
+  './script.js',
+  './manifest.json',
+  './icons/app-icon.svg'
 ];
+
+const scopePath = new URL(self.registration?.scope || './', self.location.href).pathname;
+
+const normalizePath = (pathname) => {
+  if (pathname.startsWith(scopePath)) {
+    const trimmed = pathname.slice(scopePath.length);
+    return trimmed ? `./${trimmed}` : './';
+  }
+  return pathname;
+};
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -28,13 +38,12 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
+  const normalizedPath = normalizePath(url.pathname);
 
   // Cache-first for same-origin static files
-  if (url.origin === location.origin) {
-    if (CORE_ASSETS.includes(url.pathname)) {
-      event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
-      return;
-    }
+  if (url.origin === location.origin && CORE_ASSETS.includes(normalizedPath)) {
+    event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request)));
+    return;
   }
 
   // Network-first for everything else with offline fallback
@@ -45,6 +54,6 @@ self.addEventListener('fetch', (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/index.html')))
-  );
-});
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
+    );
+  });
