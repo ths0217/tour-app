@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Tab } from '../types';
 
 interface BottomNavProps {
@@ -22,28 +21,19 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
         {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
-            <motion.button
+            <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
-              whileTap={{ scale: 0.85 }}
-              className="relative flex flex-col items-center justify-center flex-1 h-full gap-1 outline-none"
+              className="relative flex flex-col items-center justify-center flex-1 h-full gap-1 outline-none active:scale-90 transition-transform duration-100"
             >
-              <motion.div
-                animate={{
-                  scale: isActive ? 1.1 : 1,
-                  y: isActive ? -2 : 0,
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              <span 
+                className={`material-symbols-${isActive ? 'filled' : 'outlined'} text-[26px] transition-all duration-150 ${
+                  isActive ? 'text-red-xhs scale-110 -translate-y-0.5' : 'text-stone'
+                }`}
               >
-                <span 
-                  className={`material-symbols-${isActive ? 'filled' : 'outlined'} text-[26px] transition-colors duration-200 ${
-                    isActive ? 'text-red-xhs' : 'text-stone'
-                  }`}
-                >
-                  {item.icon}
-                </span>
-              </motion.div>
-              <span className={`text-[10px] font-medium transition-colors duration-200 ${
+                {item.icon}
+              </span>
+              <span className={`text-[10px] font-medium transition-colors duration-150 ${
                 isActive ? 'text-red-xhs' : 'text-stone'
               }`}>
                 {item.label}
@@ -51,13 +41,9 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
               
               {/* Active Indicator Dot */}
               {isActive && (
-                <motion.div
-                  layoutId="nav-dot"
-                  className="absolute -top-1 w-1 h-1 rounded-full bg-red-xhs"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                />
+                <div className="absolute -top-1 w-1 h-1 rounded-full bg-red-xhs" />
               )}
-            </motion.button>
+            </button>
           );
         })}
       </div>
