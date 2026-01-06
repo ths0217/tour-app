@@ -7,6 +7,7 @@ import EmergencyInfo from '../components/EmergencyInfo';
 import AvatarPicker from '../components/AvatarPicker';
 import TipCalculator from '../components/TipCalculator';
 import LocalInfo from '../components/LocalInfo';
+import ExpertReview from '../components/ExpertReview';
 
 const familyMembersData = [
   { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
@@ -312,6 +313,8 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
           ))}
         </div>
       </div>
+
+      <ExpertReview schedule={schedule} budget={safeBudget} />
 
       {/* Next Event */}
       {nextEvent && (
