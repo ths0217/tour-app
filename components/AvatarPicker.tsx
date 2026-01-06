@@ -37,11 +37,42 @@ export default function AvatarPicker({ isOpen, onClose, members, onUpdateMember 
     const file = e.target.files?.[0];
     if (!file || !selectedMemberId) return;
 
+    // Compress and resize image
     const reader = new FileReader();
     reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      onUpdateMember(selectedMemberId, dataUrl);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          const maxSize = 200;
+          let { width, height } = img;
+          
+          // Resize proportionally
+          if (width > height && width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            // Compress to JPEG at 80% quality
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            onUpdateMember(selectedMemberId, compressedDataUrl);
+          }
+        } catch (err) {
+          console.error('Photo compression failed:', err);
+        }
+      };
+      img.onerror = () => console.error('Failed to load image');
+      img.src = event.target?.result as string;
     };
+    reader.onerror = () => console.error('Failed to read file');
     reader.readAsDataURL(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };

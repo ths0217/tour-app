@@ -31,7 +31,7 @@ const initialItems: ChecklistItem[] = [
     { id: '4', text: '相機 & 腳架', category: 'Gadgets', checked: true, assigneeId: 'vickly', confirmedById: 'vickly' },
     { id: '5', text: '行動電源', category: 'Gadgets', checked: false, assigneeId: 'vickly' },
     { id: '6', text: '泳衣 & 墨鏡', category: 'Clothing', checked: false, assigneeId: 'sherry' },
-    { id: '7', text: '泰銖現金', category: 'Other', checked: false, assigneeId: 'dad' },
+    { id: '7', text: '泰銖現金', category: 'Other', checked: false, assigneeId: 'brother' },
 ];
 
 const categories = [
