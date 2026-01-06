@@ -248,15 +248,15 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                             </motion.div>
 
                             {/* Hotel Pass */}
-                            <motion.div whileTap={{ scale: 0.98 }} onClick={() => setShowQRModal(hotelPass)} className="relative overflow-hidden rounded-[20px] cursor-pointer" style={{ background: 'linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%)' }}>
+                            <motion.div whileTap={{ scale: 0.98 }} onClick={() => setShowQRModal(hotelPassData)} className="relative overflow-hidden rounded-[20px] cursor-pointer" style={{ background: 'linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%)' }}>
                                 <div className="absolute -left-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-cream rounded-full" />
                                 <div className="absolute -right-6 top-1/2 -translate-y-1/2 w-12 h-12 bg-cream rounded-full" />
                                 <div className="p-5">
-                                    <div className="flex items-center gap-2 mb-2"><span className="text-2xl">{hotelPass.logo}</span><span className="text-white font-bold">飯店住宿</span></div>
-                                    <p className="text-white text-mag-title mb-3">{hotelPass.name}</p>
+                                    <div className="flex items-center gap-2 mb-2"><span className="text-2xl">{hotelPassData.logo}</span><span className="text-white font-bold">飯店住宿</span></div>
+                                    <p className="text-white text-mag-title mb-3">{hotelPassData.hotelName}</p>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div><p className="text-white/60 text-[10px] uppercase">入住</p><p className="text-white text-mag-badge font-mono">{formatDate(hotelPass.checkIn)}</p></div>
-                                        <div><p className="text-white/60 text-[10px] uppercase">退房</p><p className="text-white text-mag-badge font-mono">{formatDate(hotelPass.checkOut)}</p></div>
+                                        <div><p className="text-white/60 text-[10px] uppercase">入住</p><p className="text-white text-mag-badge font-mono">{formatDate(hotelPassData.checkIn)}</p></div>
+                                        <div><p className="text-white/60 text-[10px] uppercase">退房</p><p className="text-white text-mag-badge font-mono">{formatDate(hotelPassData.checkOut)}</p></div>
                                     </div>
                                 </div>
                             </motion.div>
