@@ -11,10 +11,10 @@ import LocalInfo from '../components/LocalInfo';
 // ExpertReview component removed per user request
 
 const familyMembersData = [
-  { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
-  { id: 'sherry', name: 'Sherry', role: '姊姊', image: '/avatars/sister.jpg' },
-  { id: 'alex', name: 'Alexsander', role: '哥哥', image: '/avatars/brother.jpg' },
-  { id: 'jenny', name: 'Jenny', role: '媽媽', image: '/avatars/mother.jpg' },
+  { id: 'vickly', name: 'Vickly', role: '我', image: './avatars/me.jpg' },
+  { id: 'sherry', name: 'Sherry', role: '姊姊', image: './avatars/sister.jpg' },
+  { id: 'brother', name: 'wattbsttrrrog', role: '哥哥', image: './avatars/brother.jpg' },
+  { id: 'mom', name: 'Mom', role: '老媽', image: './avatars/mom.jpg' },
 ];
 
 const quickActions = [
@@ -236,7 +236,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
             >
               {(() => {
                 const currentMember = familyMembers.find(m => m.id === user?.id);
-                const avatarImage = currentMember?.image || user?.image || '/avatars/me.jpg';
+                const avatarImage = currentMember?.image || user?.image || './avatars/me.jpg';
                 
                 if (avatarImage.startsWith('gradient:')) {
                   return (

@@ -41,7 +41,7 @@ const safeLoad = <T,>(key: string, fallback: T, validator?: (value: T) => boolea
 const initialExpenses: Expense[] = [
   { id: 1, title: 'Som Tam Nua 餐廳', amount: 1250, cat: 'Dining', time: '下午 12:30', payer: '媽媽' },
   { id: 2, title: 'Grab 商務車', amount: 350, cat: 'Transport', time: '上午 10:15', payer: '哥哥' },
-  { id: 3, title: 'Central World 購物', amount: 4500, cat: 'Retail', time: '昨天', payer: '妹妹' },
+  { id: 3, title: 'Central World 購物', amount: 4500, cat: 'Retail', time: '昨天', payer: '姊姊' },
 ];
 
 const initialSchedule: ScheduleItem[] = [
@@ -113,10 +113,10 @@ function App() {
 
   // Shared Family Members State (for avatars)
   const initialFamily = [
-    { id: 'vickly', name: 'Vickly', role: '我', image: '/avatars/me.jpg' },
-    { id: 'sherry', name: 'Sherry', role: '姊姊', image: '/avatars/sister.jpg' },
-    { id: 'brother', name: 'wattbsttrrrog', role: '哥哥', image: '/avatars/brother.jpg' },
-    { id: 'mom', name: 'Mom', role: '老媽', image: '/avatars/mom.jpg' },
+    { id: 'vickly', name: 'Vickly', role: '我', image: './avatars/me.jpg' },
+    { id: 'sherry', name: 'Sherry', role: '姊姊', image: './avatars/sister.jpg' },
+    { id: 'brother', name: 'wattbsttrrrog', role: '哥哥', image: './avatars/brother.jpg' },
+    { id: 'mom', name: 'Mom', role: '老媽', image: './avatars/mom.jpg' },
   ];
   
   const [familyMembers, setFamilyMembers] = useState(() => {
