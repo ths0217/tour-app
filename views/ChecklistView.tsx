@@ -93,20 +93,21 @@ export default function ChecklistView({ currentUser, familyMembers }: ChecklistV
     };
 
     const addItem = () => {
-        if (!newItemText) {
+        const trimmedText = newItemText.trim();
+        if (!trimmedText) {
             showToast('請輸入項目名稱', 'warning');
             return;
         }
         setItems([...items, {
             id: Date.now().toString(),
-            text: newItemText,
+            text: trimmedText,
             category: newItemCategory as any,
             checked: false,
             assigneeId: selectedAssignee?.id
         }]);
         setShowAddModal(false);
         setNewItemText('');
-        showToast(`已新增: ${newItemText}`, 'success');
+        showToast(`已新增: ${trimmedText}`, 'success');
     };
 
     const progress = Math.round((items.filter(i => i.checked).length / items.length) * 100);
