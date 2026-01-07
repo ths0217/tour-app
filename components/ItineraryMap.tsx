@@ -80,46 +80,75 @@ export default function ItineraryMap({ schedule, selectedDate, onLocationClick }
         <span className="text-[11px] text-stone">{daySchedule.length} 個地點</span>
       </div>
 
-      {/* Map Placeholder with Route Visualization */}
-      <div className="relative h-40 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-indigo-900/20 overflow-hidden">
-        {mapPreview ? (
+      {/* Map Area with Route Visualization */}
+      <div className="relative h-44 bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 dark:from-slate-800 dark:via-blue-900/30 dark:to-indigo-900/30 overflow-hidden">
+        {/* Decorative Background Pattern */}
+        <div className="absolute inset-0 opacity-30">
+          <svg className="w-full h-full" viewBox="0 0 400 180">
+            {/* Grid Pattern */}
+            {[...Array(8)].map((_, i) => (
+              <line key={`h${i}`} x1="0" y1={i * 25} x2="400" y2={i * 25} stroke="#6366f1" strokeWidth="0.5" strokeDasharray="4 4" />
+            ))}
+            {[...Array(16)].map((_, i) => (
+              <line key={`v${i}`} x1={i * 28} y1="0" x2={i * 28} y2="180" stroke="#6366f1" strokeWidth="0.5" strokeDasharray="4 4" />
+            ))}
+          </svg>
+        </div>
+
+        {/* Mapbox Image if token available */}
+        {mapPreview && (
           <img
             src={mapPreview}
             alt="曼谷行程地圖預覽"
             loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover opacity-90"
+            className="absolute inset-0 w-full h-full object-cover"
           />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-[12px] text-stone">
-            請於 .env 設定 VITE_MAPBOX_TOKEN 以載入地圖
-          </div>
         )}
 
-        {/* Simple Route Visualization */}
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 160">
-          {/* Route Path */}
+        {/* Route Visualization SVG */}
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 180">
+          {/* Route Connection Lines */}
+          <defs>
+            <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#f43f5e" />
+              <stop offset="100%" stopColor="#ec4899" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          
+          {/* Route Path with glow effect */}
           <path
             d={`M ${daySchedule.map((_, i) => {
-              const x = 40 + (i * (320 / Math.max(daySchedule.length - 1, 1)));
-              const y = 40 + Math.sin(i * 0.8) * 30 + (i % 2 ? 20 : 0);
+              const x = 50 + (i * (300 / Math.max(daySchedule.length - 1, 1)));
+              const y = 70 + Math.sin(i * 1.2) * 25 + (i % 2 ? 15 : -10);
               return `${x},${y}`;
             }).join(' L ')}`}
             fill="none"
-            stroke="#FF2442"
-            strokeWidth="3"
-            strokeDasharray="0"
-            className="drop-shadow-sm"
+            stroke="url(#routeGradient)"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            filter="url(#glow)"
           />
 
-          {/* Location Markers */}
+          {/* Location Markers with shadow */}
           {daySchedule.map((item, i) => {
-            const x = 40 + (i * (320 / Math.max(daySchedule.length - 1, 1)));
-            const y = 40 + Math.sin(i * 0.8) * 30 + (i % 2 ? 20 : 0);
+            const x = 50 + (i * (300 / Math.max(daySchedule.length - 1, 1)));
+            const y = 70 + Math.sin(i * 1.2) * 25 + (i % 2 ? 15 : -10);
             return (
               <g key={item.id}>
-                <circle cx={x} cy={y} r="14" fill="white" className="drop-shadow-md" />
-                <circle cx={x} cy={y} r="10" fill={item.completed ? '#22c55e' : '#FF2442'} />
-                <text x={x} y={y + 4} textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">
+                {/* Shadow */}
+                <ellipse cx={x} cy={y + 20} rx="8" ry="3" fill="rgba(0,0,0,0.15)" />
+                {/* Pin body */}
+                <circle cx={x} cy={y} r="16" fill="white" className="drop-shadow-lg" />
+                <circle cx={x} cy={y} r="12" fill={item.completed ? '#22c55e' : '#f43f5e'} />
+                <text x={x} y={y + 4} textAnchor="middle" fill="white" fontSize="11" fontWeight="bold">
                   {i + 1}
                 </text>
               </g>
@@ -127,11 +156,11 @@ export default function ItineraryMap({ schedule, selectedDate, onLocationClick }
           })}
         </svg>
 
-        {/* Time Labels */}
-        <div className="absolute bottom-2 left-0 right-0 flex justify-around px-4">
-          {daySchedule.slice(0, 4).map((item, i) => (
-            <div key={item.id} className="text-center">
-              <p className="text-[9px] text-charcoal/70 dark:text-white/70 font-mono">{item.time}</p>
+        {/* Bottom Time Labels */}
+        <div className="absolute bottom-2 left-0 right-0 flex justify-around px-6">
+          {daySchedule.slice(0, 5).map((item) => (
+            <div key={item.id} className="bg-white/80 dark:bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-full">
+              <p className="text-[9px] text-charcoal dark:text-white font-mono font-medium">{item.time}</p>
             </div>
           ))}
         </div>
