@@ -71,16 +71,24 @@ const ChecklistItem = React.memo(({ item, toggleItem, deleteItem, familyMembers,
                 className={`relative bg-white p-4 flex items-center gap-4 cursor-grab active:cursor-grabbing border-b border-black/5 last:border-0 ${item.checked ? 'bg-stone/5' : ''}`}
                 whileTap={{ scale: 0.995 }} // Slight press effect
             >
-                {/* Visual Checkbox (Matches WalletView logic but smaller) */}
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                    item.checked 
-                        ? 'bg-green-500 border-green-500' 
-                        : 'border-stone/30'
-                }`}>
+                {/* Visual Checkbox - Now Clickable! */}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isDragging) {
+                            toggleItem(item.id);
+                        }
+                    }}
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
+                        item.checked 
+                            ? 'bg-green-500 border-green-500' 
+                            : 'border-stone/30 hover:border-green-400'
+                    }`}
+                >
                     {item.checked && (
                         <span className="material-symbols-outlined text-white text-[14px] font-bold">check</span>
                     )}
-                </div>
+                </button>
 
                 {/* Text Content */}
                 <div className="flex-1 min-w-0 select-none">
