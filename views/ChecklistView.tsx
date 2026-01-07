@@ -1,30 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '../components/Toast';
-
-interface ChecklistItem {
-    id: string;
-    text: string;
-    category: 'Documents' | 'Medical' | 'Gadgets' | 'Clothing' | 'Other';
-    checked: boolean;
-    sub?: string;
-    assigneeId?: string; // Changed from assignee (image path) to assigneeId (member id)
-    confirmedById?: string; // ID of who confirmed
-}
-
-interface FamilyMember {
-    id: string;
-    name: string;
-    role: string;
-    image: string;
-}
+import ReactConfetti from 'react-confetti';
+import ChecklistItemComponent from '../components/ChecklistItem';
+import { ChecklistItem, FamilyMember } from '../types';
 
 interface ChecklistViewProps {
     currentUser?: { id: string; name: string } | null;
     familyMembers: FamilyMember[];
 }
 
-// Use member IDs instead of image paths
+// Keep initialItems but update structure if needed (using member IDs)
 const initialItems: ChecklistItem[] = [
     { id: '1', text: '全家簽證 (e-VOA)', category: 'Documents', checked: true, sub: '姊姊已確認', assigneeId: 'sherry', confirmedById: 'sherry' },
     { id: '2', text: '機票行程單 (列印)', category: 'Documents', checked: false, assigneeId: 'sherry' },
@@ -45,25 +31,65 @@ const categories = [
 
 export default function ChecklistView({ currentUser, familyMembers }: ChecklistViewProps) {
     const { showToast } = useToast();
-    const [items, setItems] = useState(initialItems);
+    // Load initial items from localStorage or use default
+    const [items, setItems] = useState<ChecklistItem[]>(() => {
+        const saved = localStorage.getItem('tourapp_checklist');
+        return saved ? JSON.parse(saved) : initialItems;
+    });
+
+    // Persist items to localStorage whenever they change
+    useEffect(() => {
+        localStorage.setItem('tourapp_checklist', JSON.stringify(items));
+    }, [items]);
+
     const [showAddModal, setShowAddModal] = useState(false);
     const [newItemText, setNewItemText] = useState('');
     const [newItemCategory, setNewItemCategory] = useState<string>('Other');
     const [selectedAssignee, setSelectedAssignee] = useState<FamilyMember | null>(familyMembers[0] || null);
-    const [filterCategory, setFilterCategory] = useState<string | null>(null);
+    
+    // Confetti State
+    const [showConfetti, setShowConfetti] = useState(false);
+    const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+    useEffect(() => {
+        const handleResize = () => setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const toggleItem = (id: string) => {
         const currentMember = familyMembers.find(m => m.id === currentUser?.id);
-        setItems(items.map(item => {
+        const newItems = items.map(item => {
             if (item.id !== id) return item;
             const newChecked = !item.checked;
+            
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(newChecked ? [10, 30] : 10);
+            }
+
             return { 
                 ...item, 
                 checked: newChecked,
                 confirmedById: newChecked && currentMember ? currentMember.id : undefined,
                 sub: newChecked && currentMember ? `${currentMember.name} 已確認` : undefined
             };
-        }));
+        });
+        setItems(newItems);
+        
+        // Check for 100% completion
+        const allChecked = newItems.every(i => i.checked);
+        if (allChecked && !items.every(i => i.checked)) {
+             setShowConfetti(true);
+             setTimeout(() => setShowConfetti(false), 5000); // Stop after 5s
+             showToast('🎉 全部完成！準備出發！', 'success');
+        }
+    };
+
+    const deleteItem = (id: string) => {
+        if (navigator.vibrate) navigator.vibrate(50);
+        setItems(prev => prev.filter(i => i.id !== id));
+        showToast('項目已刪除', 'info');
     };
 
     const addItem = () => {
@@ -83,39 +109,48 @@ export default function ChecklistView({ currentUser, familyMembers }: ChecklistV
         showToast(`已新增: ${newItemText}`, 'success');
     };
 
-    const filteredItems = filterCategory 
-        ? items.filter(i => i.category === filterCategory)
-        : items;
-
     const progress = Math.round((items.filter(i => i.checked).length / items.length) * 100);
     const completedCount = items.filter(i => i.checked).length;
 
+    // Group items by category (Memoized)
+    const groupedItems = useMemo(() => {
+        const groups: Record<string, ChecklistItem[]> = {};
+        categories.forEach(cat => groups[cat.id] = []);
+        items.forEach(item => {
+            if (groups[item.category]) groups[item.category].push(item);
+            else {
+                // Handle unknown categories
+                if (!groups['Other']) groups['Other'] = [];
+                groups['Other'].push(item);
+            }
+        });
+        return groups;
+    }, [items]);
+
     return (
-        <div className="min-h-full">
-            {/* Glassmorphism Header */}
-            <div className="sticky top-0 z-40 glass border-b border-black/5 safe-top">
-                <div className="px-4 pt-4 pb-3">
+        <div className="min-h-full bg-ios-bg pb-safe">
+            {showConfetti && <ReactConfetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={500} />}
+            
+            {/* Header */}
+            <div className="sticky top-0 z-40 glass border-b border-black/5 safe-top backdrop-blur-md bg-white/70">
+                <div className="px-5 pt-4 pb-3">
                     <div className="flex justify-between items-center mb-4">
                         <div>
-                            <h1 className="text-mag-hero text-charcoal">行前準備</h1>
-                            <p className="text-mag-caption text-stone mt-1">📦 出發前的打包清單</p>
+                            <h1 className="text-[28px] font-bold text-charcoal tracking-tight">行前準備</h1>
+                            <p className="text-[13px] text-stone mt-0.5 font-medium">✨ {items.length - completedCount} 個待辦事項</p>
                         </div>
                         <motion.button
                             whileTap={{ scale: 0.9 }}
                             onClick={() => setShowAddModal(true)}
-                            className="w-11 h-11 rounded-full bg-red-xhs flex items-center justify-center shadow-mag"
+                            className="w-9 h-9 rounded-full bg-charcoal flex items-center justify-center shadow-lg"
                         >
-                            <span className="material-symbols-outlined text-white text-[22px]">add</span>
+                            <span className="material-symbols-outlined text-white text-[20px]">add</span>
                         </motion.button>
                     </div>
 
-                    {/* Progress Card */}
-                    <div className="bg-white rounded-mag p-4 shadow-mag mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-mag-caption text-stone">完成進度</span>
-                            <span className="text-mag-body font-semibold text-charcoal">{completedCount}/{items.length}</span>
-                        </div>
-                        <div className="h-2 bg-stone/10 rounded-full overflow-hidden">
+                    {/* Compact Progress */}
+                    <div className="flex items-center gap-3">
+                        <div className="flex-1 h-1.5 bg-stone/10 rounded-full overflow-hidden">
                             <motion.div
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progress}%` }}
@@ -123,251 +158,135 @@ export default function ChecklistView({ currentUser, familyMembers }: ChecklistV
                                 className="h-full rounded-full bg-gradient-to-r from-green-400 to-emerald-500"
                             />
                         </div>
-                        <p className="text-mag-badge text-stone mt-2">
-                            {progress === 100 ? '✨ 全部完成！準備出發！' : `還有 ${items.length - completedCount} 項待完成`}
-                        </p>
-                    </div>
-
-                    {/* Category Filter Pills */}
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4">
-                        <button
-                            onClick={() => setFilterCategory(null)}
-                            className={`px-4 py-2 rounded-pill text-mag-badge whitespace-nowrap transition-all ${
-                                !filterCategory
-                                    ? 'bg-charcoal text-white'
-                                    : 'bg-white/80 text-charcoal border border-black/5'
-                            }`}
-                        >
-                            全部
-                        </button>
-                        {categories.map(cat => (
-                            <button
-                                key={cat.id}
-                                onClick={() => setFilterCategory(cat.id)}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-pill text-mag-badge whitespace-nowrap transition-all ${
-                                    filterCategory === cat.id
-                                        ? 'bg-charcoal text-white'
-                                        : 'bg-white/80 text-charcoal border border-black/5'
-                                }`}
-                            >
-                                <span className="material-symbols-outlined text-[14px]">{cat.icon}</span>
-                                {cat.label}
-                            </button>
-                        ))}
+                        <span className="text-[12px] font-bold text-stone w-8 text-right">{progress}%</span>
                     </div>
                 </div>
             </div>
 
-            {/* Checklist Items */}
-            <div className="px-4 pt-4 pb-safe">
-                <div className="space-y-3">
-                    <AnimatePresence>
-                        {filteredItems.map((item, index) => {
-                            const cat = categories.find(c => c.id === item.category);
-                            return (
-                                <motion.div
-                                    key={item.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    layout
-                                    onClick={() => toggleItem(item.id)}
-                                    className={`bg-white rounded-mag p-4 shadow-mag cursor-pointer transition-all ${
-                                        item.checked ? 'opacity-60' : ''
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        {/* Checkbox */}
-                                        <motion.div 
-                                            whileTap={{ scale: 0.8 }}
-                                            className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                                                item.checked 
-                                                    ? 'bg-gradient-to-br ' + (cat?.color || 'from-green-400 to-emerald-500') + ' border-transparent' 
-                                                    : 'border-stone/30'
-                                            }`}
-                                        >
-                                            {item.checked && (
-                                                <motion.span
-                                                    initial={{ scale: 0 }}
-                                                    animate={{ scale: 1 }}
-                                                    className="material-symbols-outlined text-white text-[16px]"
-                                                >
-                                                    check
-                                                </motion.span>
-                                            )}
-                                        </motion.div>
-                                        
-                                        {/* Content */}
-                                        <div className="flex-1 min-w-0">
-                                            <p className={`text-mag-body transition-all ${
-                                                item.checked ? 'line-through text-stone' : 'text-charcoal'
-                                            }`}>
-                                                {item.text}
-                                            </p>
-                                            {item.sub && (
-                                                <p className="text-mag-caption text-stone mt-0.5">{item.sub}</p>
-                                            )}
-                                        </div>
-                                        
-                                        {/* Category Badge */}
-                                        <span className={`px-2.5 py-1 rounded-pill text-mag-badge bg-gradient-to-r ${cat?.color} text-white shrink-0`}>
-                                            {cat?.label}
-                                        </span>
-                                        
-                                        {/* Assignee - Look up from familyMembers */}
-                                        {item.assigneeId && (() => {
-                                            // Look up current avatar from familyMembers
-                                            const member = familyMembers.find(m => m.id === item.assigneeId);
-                                            if (!member) return <span className="text-[14px]">👤</span>;
-                                            
-                                            const avatarImage = member.image;
-                                            
-                                            if (avatarImage.startsWith('gradient:')) {
-                                                return (
-                                                    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarImage.split(':')[1]} flex items-center justify-center text-white text-[12px] font-bold ring-2 ring-white shadow-mag shrink-0`}>
-                                                        {avatarImage.split(':')[2]}
-                                                    </div>
-                                                );
-                                            }
-                                            
-                                            if (avatarImage.startsWith('data:')) {
-                                                return (
-                                                    <img 
-                                                        src={avatarImage} 
-                                                        alt={member.name}
-                                                        className="w-8 h-8 rounded-full object-cover ring-2 ring-white shadow-mag shrink-0"
-                                                    />
-                                                );
-                                            }
-                                            
-                                            // For paths like /avatars/xxx.jpg - show emoji fallback since these don't exist
-                                            return (
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone/20 to-stone/10 flex items-center justify-center ring-2 ring-white shadow-mag shrink-0 text-[14px]">
-                                                    {member.name.charAt(0).toUpperCase()}
-                                                </div>
-                                            );
-                                        })()}
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
-                    </AnimatePresence>
-                </div>
-            </div>
+            {/* Empty State */}
+            {items.length === 0 && (
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col items-center justify-center pt-20 px-6 text-center"
+                >
+                    <div className="w-24 h-24 bg-stone/10 rounded-full flex items-center justify-center mb-6">
+                        <span className="material-symbols-outlined text-[40px] text-stone/50">checklist</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-charcoal mb-2">準備好出發了嗎？</h3>
+                    <p className="text-stone text-[15px] mb-8">目前清單是空的。<br/>點擊右上方或是下方按鈕來新增物品！</p>
+                    <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowAddModal(true)}
+                        className="px-6 py-3 bg-charcoal text-white rounded-xl font-bold shadow-lg"
+                    >
+                        開始新增
+                    </motion.button>
+                </motion.div>
+            )}
 
-            {/* Add Item Modal */}
+            {/* Grouped Lists (iOS Settings Style) */}
+            {items.length > 0 && (
+                <div className="px-4 py-6 space-y-6">
+                    {categories.map(cat => {
+                        const categoryItems = groupedItems[cat.id] || [];
+                        if (categoryItems.length === 0) return null;
+
+                        return (
+                            <div key={cat.id}>
+                                <h3 className="text-[13px] font-semibold text-stone ml-1 mb-2 uppercase tracking-wide flex items-center gap-1.5">
+                                    <span className={`text-[16px] bg-clip-text text-transparent bg-gradient-to-r ${cat.color} material-symbols-outlined`}>
+                                        {cat.icon}
+                                    </span>
+                                    {cat.label}
+                                </h3>
+                                <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-black/5">
+                                    <AnimatePresence initial={false}>
+                                        {categoryItems.map(item => (
+                                            <ChecklistItemComponent
+                                                key={item.id}
+                                                item={item}
+                                                toggleItem={toggleItem}
+                                                deleteItem={deleteItem}
+                                                familyMembers={familyMembers}
+                                                categories={categories}
+                                            />
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {/* Add Modal */}
             <AnimatePresence>
                 {showAddModal && (
-                    <>
+                    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center pointer-events-none">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setShowAddModal(false)}
-                            className="fixed inset-0 bg-black/40 z-50"
+                            className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto"
                         />
                         <motion.div
                             initial={{ y: "100%" }}
                             animate={{ y: 0 }}
                             exit={{ y: "100%" }}
-                            transition={{ type: "spring", damping: 28, stiffness: 300 }}
-                            className="fixed bottom-0 left-0 right-0 bg-cream rounded-t-mag-xl z-50 max-h-[85vh] overflow-y-auto"
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            className="w-full max-w-md bg-white rounded-t-[28px] sm:rounded-[28px] p-6 pb-safe pointer-events-auto m-0 sm:m-4"
                         >
-                            <div className="sticky top-0 bg-cream pt-3 pb-2 z-10">
-                                <div className="w-10 h-1 bg-stone/30 rounded-full mx-auto" />
-                            </div>
+                            <div className="w-12 h-1.5 bg-stone/20 rounded-full mx-auto mb-6" />
+                            <h2 className="text-xl font-bold text-charcoal mb-6">新增待辦事項</h2>
                             
-                            <div className="px-5 pb-safe">
-                                <div className="flex justify-between items-center mb-6">
-                                    <button onClick={() => setShowAddModal(false)} className="text-stone text-mag-body">取消</button>
-                                    <h3 className="text-mag-title text-charcoal">新增物品</h3>
-                                    <button onClick={addItem} className="text-red-xhs text-mag-body font-semibold">新增</button>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-xs font-bold text-stone uppercase mb-1.5 block">項目名稱</label>
+                                    <input
+                                        type="text"
+                                        value={newItemText}
+                                        onChange={(e) => setNewItemText(e.target.value)}
+                                        placeholder="例如：太陽眼鏡"
+                                        className="w-full h-12 bg-ios-bg rounded-xl px-4 text-mag-body focus:outline-none focus:ring-2 focus:ring-charcoal/20"
+                                        autoFocus
+                                    />
                                 </div>
-
-                                {/* User Selection */}
-                                <div className="mb-5">
-                                    <label className="text-mag-caption text-stone block mb-3">負責人</label>
-                                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                                        {familyMembers.map(u => (
-                                            <motion.button
-                                                key={u.id}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => setSelectedAssignee(u)}
-                                                className="flex flex-col items-center gap-2 flex-shrink-0"
-                                            >
-                                                {u.image.startsWith('gradient:') ? (
-                                                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${u.image.split(':')[1]} flex items-center justify-center text-white text-[16px] font-bold shadow-mag transition-all ${
-                                                        selectedAssignee?.id === u.id 
-                                                            ? 'ring-2 ring-red-xhs' 
-                                                            : 'opacity-50'
-                                                    }`}>
-                                                        {u.image.split(':')[2]}
-                                                    </div>
-                                                ) : (
-                                                    <img 
-                                                        src={u.image} 
-                                                        className={`w-12 h-12 rounded-full object-cover shadow-mag transition-all ${
-                                                            selectedAssignee?.id === u.id 
-                                                                ? 'ring-2 ring-red-xhs' 
-                                                                : 'opacity-50'
-                                                        }`} 
-                                                    />
-                                                )}
-                                                <span className={`text-[10px] ${
-                                                    selectedAssignee?.id === u.id ? 'text-charcoal font-medium' : 'text-stone'
-                                                }`}>{u.name}</span>
-                                            </motion.button>
-                                        ))}
+                                
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-stone uppercase mb-1.5 block">分類</label>
+                                        <select
+                                            value={newItemCategory}
+                                            onChange={(e) => setNewItemCategory(e.target.value)}
+                                            className="w-full h-12 bg-ios-bg rounded-xl px-4 text-mag-body focus:outline-none focus:ring-2 focus:ring-charcoal/20 appearance-none"
+                                        >
+                                            {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-stone uppercase mb-1.5 block">負責人</label>
+                                        <select
+                                            value={selectedAssignee?.id || ''}
+                                            onChange={(e) => setSelectedAssignee(familyMembers.find(m => m.id === e.target.value) || null)}
+                                            className="w-full h-12 bg-ios-bg rounded-xl px-4 text-mag-body focus:outline-none focus:ring-2 focus:ring-charcoal/20 appearance-none"
+                                        >
+                                            {familyMembers.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                                        </select>
                                     </div>
                                 </div>
 
-                                {/* Item Name */}
-                                <div className="mb-5">
-                                    <label className="text-mag-caption text-stone block mb-2">物品名稱</label>
-                                    <div className="bg-white rounded-mag p-4 shadow-mag">
-                                        <input
-                                            type="text"
-                                            value={newItemText}
-                                            onChange={(e) => setNewItemText(e.target.value)}
-                                            className="w-full text-mag-body text-charcoal bg-transparent outline-none placeholder:text-stone/50"
-                                            placeholder="例如: 暈車藥"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Category */}
-                                <div className="mb-6">
-                                    <label className="text-mag-caption text-stone block mb-3">分類</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {categories.map(cat => (
-                                            <button
-                                                key={cat.id}
-                                                onClick={() => setNewItemCategory(cat.id)}
-                                                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-pill text-mag-badge transition-all ${
-                                                    newItemCategory === cat.id
-                                                        ? `bg-gradient-to-r ${cat.color} text-white`
-                                                        : 'bg-white text-charcoal border border-black/5'
-                                                }`}
-                                            >
-                                                <span className="material-symbols-outlined text-[16px]">{cat.icon}</span>
-                                                {cat.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Submit */}
                                 <motion.button
-                                    whileTap={{ scale: 0.98 }}
+                                    whileTap={{ scale: 0.96 }}
                                     onClick={addItem}
-                                    className="w-full bg-gradient-to-r from-red-400 to-rose-500 text-white text-mag-body font-semibold p-4 rounded-mag shadow-mag"
+                                    className="w-full h-14 bg-charcoal text-white rounded-2xl font-bold text-[16px] shadow-lg mt-4"
                                 >
-                                    確認新增
+                                    新增項目
                                 </motion.button>
                             </div>
                         </motion.div>
-                    </>
+                    </div>
                 )}
             </AnimatePresence>
         </div>

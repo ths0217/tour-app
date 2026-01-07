@@ -212,15 +212,15 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
         <div className="flex justify-between items-start">
           <div>
             <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-mag-caption text-stone"
+              className="text-mag-caption text-stone flex items-center gap-2 h-[20px]"
             >
-              {weather.temp} {weather.label} ☀️
+              {weather.temp === '--' ? (
+                <span className="inline-block w-24 h-4 bg-stone/10 rounded animate-pulse" />
+              ) : (
+                <>{weather.temp} {weather.label} ☀️</>
+              )}
             </motion.p>
             <motion.h1 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
               className="text-mag-hero text-charcoal mt-1"
             >
               {getGreeting()}，<br/>{user?.name || '旅人'}
@@ -262,9 +262,6 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
 
       {/* Budget Card - Magazine Style */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
         className="mx-4 mb-6 p-5 bg-white rounded-mag-lg shadow-mag overflow-hidden relative"
       >
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pastel-mint to-transparent rounded-bl-full opacity-50" />
@@ -279,7 +276,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${spentPercent}%` }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.8 }}
             className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500"
           />
         </div>
@@ -292,9 +289,6 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
           {quickActions.map((action, i) => (
             <motion.button
               key={action.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15 + i * 0.05 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => {
                 if (action.id === 'taxi') window.open('https://www.grab.com/th/', '_blank');
@@ -371,6 +365,8 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
                   <img 
                     src={member.image} 
                     alt={member.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-16 h-16 rounded-full object-cover shadow-mag ring-2 ring-white"
                   />
                 )}
@@ -395,9 +391,6 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
           {trendingItineraries.map((item, i) => (
             <motion.div
               key={item.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 + i * 0.05 }}
               className="flex-none w-40"
             >
               <div className="relative aspect-[3/4] rounded-mag overflow-hidden shadow-mag mb-2">
@@ -478,9 +471,6 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
           {destinations.map((dest, i) => (
             <motion.div
               key={dest.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 + i * 0.08 }}
               whileTap={{ scale: 0.98 }}
               className="masonry-item"
             >
