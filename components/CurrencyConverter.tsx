@@ -6,65 +6,87 @@ interface CurrencyConverterProps {
   onClose: () => void;
 }
 
-const currencies = [
-  { code: 'THB', symbol: '฿', name: '泰銖', flag: '🇹🇭' },
-  { code: 'TWD', symbol: 'NT$', name: '台幣', flag: '🇹🇼' },
-  { code: 'USD', symbol: '$', name: '美元', flag: '🇺🇸' },
-  { code: 'JPY', symbol: '¥', name: '日圓', flag: '🇯🇵' },
-];
-
-// Approximate rates (THB base)
-const baseRates: Record<string, number> = {
-  THB: 1,
-  TWD: 0.91,    // 1 THB ≈ 0.91 TWD
-  USD: 0.028,   // 1 THB ≈ 0.028 USD
-  JPY: 4.3,     // 1 THB ≈ 4.3 JPY
-};
+// Fallback rate when offline (approximate)
+const FALLBACK_RATE = 1.1; // 1 TWD ≈ 1.1 THB
 
 export default function CurrencyConverter({ isOpen, onClose }: CurrencyConverterProps) {
-  const [amount, setAmount] = useState('100');
-  const [fromCurrency, setFromCurrency] = useState('THB');
-  const [toCurrency, setToCurrency] = useState('TWD');
-  const [rates, setRates] = useState(baseRates);
+  const [twdAmount, setTwdAmount] = useState('1000');
+  const [thbAmount, setThbAmount] = useState('');
+  const [rate, setRate] = useState<number | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeInput, setActiveInput] = useState<'twd' | 'thb'>('twd');
 
-  // Fetch real rates on mount
+  // Fetch exchange rate
   useEffect(() => {
-    const fetchRates = async () => {
+    const fetchRate = async () => {
+      setIsLoading(true);
       try {
-        // Using exchangerate-api free tier
-        const res = await fetch('https://api.exchangerate-api.com/v4/latest/THB');
-        const data = await res.json();
-        if (data.rates) {
-          setRates({
-            THB: 1,
-            TWD: data.rates.TWD || baseRates.TWD,
-            USD: data.rates.USD || baseRates.USD,
-            JPY: data.rates.JPY || baseRates.JPY,
-          });
+        // Try to get cached rate first
+        const cached = localStorage.getItem('tourapp_exchange_rate');
+        if (cached) {
+          const { rate: cachedRate, timestamp } = JSON.parse(cached);
+          const age = Date.now() - timestamp;
+          // Use cache if less than 1 hour old
+          if (age < 3600000) {
+            setRate(cachedRate);
+            setLastUpdated(new Date(timestamp).toLocaleTimeString('zh-TW'));
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // Fetch new rate from free API
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/TWD');
+        if (response.ok) {
+          const data = await response.json();
+          const newRate = data.rates.THB;
+          setRate(newRate);
           setLastUpdated(new Date().toLocaleTimeString('zh-TW'));
+          // Cache the rate
+          localStorage.setItem('tourapp_exchange_rate', JSON.stringify({
+            rate: newRate,
+            timestamp: Date.now()
+          }));
+        } else {
+          throw new Error('API failed');
         }
       } catch (error) {
-        console.log('Using offline rates');
+        console.warn('Using fallback rate');
+        setRate(FALLBACK_RATE);
+        setLastUpdated('離線模式');
       }
+      setIsLoading(false);
     };
-    if (isOpen) fetchRates();
+
+    if (isOpen) {
+      fetchRate();
+    }
   }, [isOpen]);
 
-  const convert = (value: number, from: string, to: string): number => {
-    // Convert to THB first, then to target
-    const inTHB = value / rates[from];
-    return inTHB * rates[to];
+  // Convert when rate or amount changes
+  useEffect(() => {
+    if (!rate) return;
+    if (activeInput === 'twd') {
+      const twd = parseFloat(twdAmount) || 0;
+      setThbAmount((twd * rate).toFixed(2));
+    } else {
+      const thb = parseFloat(thbAmount) || 0;
+      setTwdAmount((thb / rate).toFixed(2));
+    }
+  }, [rate, twdAmount, thbAmount, activeInput]);
+
+  const handleTwdChange = (value: string) => {
+    setActiveInput('twd');
+    setTwdAmount(value);
   };
 
-  const result = convert(parseFloat(amount) || 0, fromCurrency, toCurrency);
-  const fromCurrencyData = currencies.find(c => c.code === fromCurrency)!;
-  const toCurrencyData = currencies.find(c => c.code === toCurrency)!;
-
-  const swapCurrencies = () => {
-    setFromCurrency(toCurrency);
-    setToCurrency(fromCurrency);
+  const handleThbChange = (value: string) => {
+    setActiveInput('thb');
+    setThbAmount(value);
   };
+
+  const quickAmounts = [100, 500, 1000, 5000, 10000];
 
   return (
     <AnimatePresence>
@@ -75,112 +97,113 @@ export default function CurrencyConverter({ isOpen, onClose }: CurrencyConverter
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 z-50"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
           />
           <motion.div
-            initial={{ y: '100%' }}
+            initial={{ y: "100%" }}
             animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 bg-cream dark:bg-charcoal rounded-t-[24px] z-50"
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[28px] z-50 pb-safe"
           >
-            <div className="pt-3 pb-2">
-              <div className="w-10 h-1 bg-stone/30 rounded-full mx-auto" />
-            </div>
-            
-            <div className="px-5 pb-safe">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-[18px] font-bold text-charcoal dark:text-white">💱 匯率計算機</h2>
-                <button onClick={onClose} className="text-stone text-[14px]">關閉</button>
-              </div>
+            <div className="relative">
+              {/* Handle */}
+              <div className="w-12 h-1.5 bg-stone/20 rounded-full mx-auto mt-3 mb-4" />
 
-              {/* Amount Input */}
-              <div className="bg-white dark:bg-black/20 rounded-[16px] p-4 mb-4">
-                <label className="text-[11px] text-stone block mb-2">輸入金額</label>
-                <div className="flex items-center gap-3">
-                  <span className="text-[24px]">{fromCurrencyData.flag}</span>
-                  <input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="flex-1 text-[28px] font-bold text-charcoal dark:text-white bg-transparent outline-none"
-                    placeholder="0"
-                  />
-                  <span className="text-[14px] text-stone">{fromCurrency}</span>
-                </div>
-              </div>
-
-              {/* Currency Selectors */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex-1 bg-white dark:bg-black/20 rounded-[12px] p-3">
-                  <select
-                    value={fromCurrency}
-                    onChange={(e) => setFromCurrency(e.target.value)}
-                    className="w-full bg-transparent text-charcoal dark:text-white text-[14px] outline-none"
-                  >
-                    {currencies.map(c => (
-                      <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <motion.button
-                  whileTap={{ scale: 0.9, rotate: 180 }}
-                  onClick={swapCurrencies}
-                  className="w-10 h-10 rounded-full bg-red-xhs flex items-center justify-center"
-                >
-                  <span className="material-symbols-outlined text-white text-[18px]">swap_horiz</span>
-                </motion.button>
-
-                <div className="flex-1 bg-white dark:bg-black/20 rounded-[12px] p-3">
-                  <select
-                    value={toCurrency}
-                    onChange={(e) => setToCurrency(e.target.value)}
-                    className="w-full bg-transparent text-charcoal dark:text-white text-[14px] outline-none"
-                  >
-                    {currencies.map(c => (
-                      <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Result */}
-              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-[16px] p-5 text-white mb-4">
-                <p className="text-[12px] text-white/70 mb-1">換算結果</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-[32px] font-bold">
-                    {toCurrencyData.symbol}{result.toLocaleString('zh-TW', { maximumFractionDigits: 2 })}
-                  </span>
-                  <span className="text-[14px] text-white/70">{toCurrency}</span>
-                </div>
-                <p className="text-[11px] text-white/60 mt-2">
-                  1 {fromCurrency} = {convert(1, fromCurrency, toCurrency).toFixed(4)} {toCurrency}
-                </p>
-              </div>
-
-              {/* Last Updated */}
-              {lastUpdated && (
-                <p className="text-[11px] text-stone text-center">
-                  ✓ 匯率更新於 {lastUpdated}
-                </p>
-              )}
-
-              {/* Quick Amounts */}
-              <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
-                {[100, 500, 1000, 5000, 10000].map(val => (
-                  <button
-                    key={val}
-                    onClick={() => setAmount(val.toString())}
-                    className={`flex-shrink-0 px-4 py-2 rounded-pill text-[12px] font-medium ${
-                      amount === val.toString()
-                        ? 'bg-charcoal text-white dark:bg-white dark:text-charcoal'
-                        : 'bg-white dark:bg-black/20 text-charcoal dark:text-white border border-black/5'
-                    }`}
-                  >
-                    {val.toLocaleString()}
+              {/* Header */}
+              <div className="px-5 pb-4">
+                <div className="flex justify-between items-center mb-1">
+                  <h2 className="text-xl font-bold text-charcoal">匯率換算</h2>
+                  <button onClick={onClose} className="text-stone">
+                    <span className="material-symbols-outlined">close</span>
                   </button>
-                ))}
+                </div>
+                <div className="flex items-center gap-2 text-[12px] text-stone">
+                  {isLoading ? (
+                    <span className="animate-pulse">更新匯率中...</span>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-[14px]">schedule</span>
+                      <span>更新時間: {lastUpdated}</span>
+                      {rate && <span className="font-mono">(1 TWD = {rate.toFixed(4)} THB)</span>}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Converter */}
+              <div className="px-5 pb-6 space-y-4">
+                {/* TWD Input */}
+                <div className="bg-gray-50 rounded-2xl p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-2xl">🇹🇼</span>
+                    <span className="text-[13px] font-medium text-stone">台幣 TWD</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-2xl font-bold text-charcoal mr-2">NT$</span>
+                    <input
+                      type="number"
+                      value={twdAmount}
+                      onChange={(e) => handleTwdChange(e.target.value)}
+                      onFocus={() => setActiveInput('twd')}
+                      placeholder="0"
+                      className="flex-1 text-3xl font-bold text-charcoal bg-transparent outline-none text-right"
+                    />
+                  </div>
+                </div>
+
+                {/* Arrow */}
+                <div className="flex justify-center">
+                  <div className="w-10 h-10 rounded-full bg-charcoal flex items-center justify-center">
+                    <span className="material-symbols-outlined text-white">swap_vert</span>
+                  </div>
+                </div>
+
+                {/* THB Input */}
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 border border-amber-200/50">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-2xl">🇹🇭</span>
+                    <span className="text-[13px] font-medium text-stone">泰銖 THB</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-2xl font-bold text-amber-700 mr-2">฿</span>
+                    <input
+                      type="number"
+                      value={thbAmount}
+                      onChange={(e) => handleThbChange(e.target.value)}
+                      onFocus={() => setActiveInput('thb')}
+                      placeholder="0"
+                      className="flex-1 text-3xl font-bold text-amber-700 bg-transparent outline-none text-right"
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Amounts */}
+                <div>
+                  <p className="text-[12px] text-stone mb-2">快速選擇台幣金額：</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {quickAmounts.map(amount => (
+                      <motion.button
+                        key={amount}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleTwdChange(amount.toString())}
+                        className={`px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${parseFloat(twdAmount) === amount
+                            ? 'bg-charcoal text-white'
+                            : 'bg-gray-100 text-charcoal hover:bg-gray-200'
+                          }`}
+                      >
+                        NT${amount.toLocaleString()}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tips */}
+                <div className="bg-blue-50 rounded-xl p-3 mt-4">
+                  <p className="text-[12px] text-blue-700">
+                    💡 <strong>小提示：</strong>泰國大部分店家接受現金，建議在機場或 Super Rich 換匯
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>

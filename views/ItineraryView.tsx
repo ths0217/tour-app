@@ -51,6 +51,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAI, setShowAI] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [editingItem, setEditingItem] = useState<ScheduleItem | null>(null);
 
   // Form state
   const [newTime, setNewTime] = useState('');
@@ -144,6 +145,43 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
     resetForm();
   };
 
+  // Edit activity - prefill form and open modal
+  const handleEdit = (item: ScheduleItem) => {
+    setEditingItem(item);
+    setNewTime(item.time);
+    setNewTitle(item.title);
+    setNewDesc(item.desc || '');
+    setNewType(item.type);
+    setNewLocation(item.location || '');
+    setNewImage(item.image || null);
+    setNewNotes(item.notes || '');
+    setNewTravelTime(item.travelTime || '');
+    setNewEstCost(item.estimatedCost?.toString() || '');
+    setSelectedItem(null);
+    setShowAddModal(true);
+  };
+
+  // Save edited activity
+  const handleSaveEdit = () => {
+    if (!editingItem || !newTime || !newTitle) return;
+    const updatedItem: ScheduleItem = {
+      ...editingItem,
+      time: newTime,
+      title: newTitle,
+      desc: newDesc,
+      type: newType,
+      location: newLocation,
+      image: newImage || undefined,
+      notes: newNotes || undefined,
+      travelTime: newTravelTime || undefined,
+      estimatedCost: newEstCost ? parseInt(newEstCost) : undefined,
+    };
+    setSchedule(schedule.map(item => item.id === editingItem.id ? updatedItem : item));
+    setShowAddModal(false);
+    setEditingItem(null);
+    resetForm();
+  };
+
   const resetForm = () => {
     setNewTime('');
     setNewTitle('');
@@ -154,6 +192,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
     setNewNotes('');
     setNewTravelTime('');
     setNewEstCost('');
+    setEditingItem(null);
   };
 
   const handleAddAISuggestion = (item: Omit<ScheduleItem, 'id'>) => {
@@ -376,9 +415,9 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
               <div className="px-5 pb-safe">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
-                  <button onClick={() => setShowAddModal(false)} className="text-stone text-mag-body">取消</button>
-                  <h3 className="text-mag-title text-charcoal">新增行程</h3>
-                  <button onClick={handleAddActivity} className="text-red-xhs text-mag-body font-semibold">新增</button>
+                  <button onClick={() => { setShowAddModal(false); setEditingItem(null); resetForm(); }} className="text-stone text-mag-body">取消</button>
+                  <h3 className="text-mag-title text-charcoal">{editingItem ? '編輯行程' : '新增行程'}</h3>
+                  <button onClick={editingItem ? handleSaveEdit : handleAddActivity} className="text-red-xhs text-mag-body font-semibold">{editingItem ? '儲存' : '新增'}</button>
                 </div>
 
                 {/* Form */}
@@ -588,11 +627,21 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                   </div>
                 )}
 
+                {/* Edit Button */}
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleEdit(selectedItem)}
+                  className="w-full mt-6 py-3 rounded-mag bg-blue-500 text-white flex items-center justify-center gap-2 shadow-mag"
+                >
+                  <span className="material-symbols-outlined text-[18px]">edit</span>
+                  <span className="text-mag-body font-semibold">編輯此行程</span>
+                </motion.button>
+
                 {/* Delete Button */}
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => handleDelete(selectedItem.id)}
-                  className="w-full mt-6 py-3 rounded-mag bg-red-500 text-white flex items-center justify-center gap-2 shadow-mag"
+                  className="w-full mt-3 py-3 rounded-mag bg-red-500 text-white flex items-center justify-center gap-2 shadow-mag"
                 >
                   <span className="material-symbols-outlined text-[18px]">delete</span>
                   <span className="text-mag-body font-semibold">刪除此行程</span>

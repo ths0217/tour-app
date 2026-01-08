@@ -17,7 +17,7 @@ const LoginView = lazy(() => import('./views/LoginView'));
 const Onboarding = lazy(() => import('./components/Onboarding'));
 
 // Data version for cache invalidation
-const DATA_VERSION = 'v3.2.0';
+const DATA_VERSION = 'v3.3.0';
 const VERSION_KEY = 'tourapp_version';
 
 // Clear old data if version changed

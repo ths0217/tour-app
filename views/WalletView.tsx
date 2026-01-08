@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Expense, User } from '../types';
 import { useToast } from '../components/Toast';
+import CurrencyConverter from '../components/CurrencyConverter';
 
 const categories = [
     { id: 'Dining', label: '餐飲', icon: 'restaurant', color: 'from-orange-400 to-amber-500' },
@@ -76,6 +77,7 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditBudget, setShowEditBudget] = useState(false);
     const [showQRModal, setShowQRModal] = useState<any>(null);
+    const [showCurrency, setShowCurrency] = useState(false);
 
     // Budget system
     const [personalBudgets, setPersonalBudgets] = useState<Record<string, number>>({
@@ -115,7 +117,7 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
         // Generate optimal transfer instructions
         const transfers: Array<{ from: string; to: string; amount: number }> = [];
         let i = 0, j = 0;
-        
+
         while (i < debtors.length && j < creditors.length) {
             const debtAmount = Math.abs(debtors[i].balance);
             const creditAmount = creditors[j].balance;
@@ -213,9 +215,8 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as any)}
-                                className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-pill text-mag-badge font-medium transition-all ${
-                                    activeTab === tab.id ? 'bg-white text-charcoal shadow-mag' : 'text-stone'
-                                }`}
+                                className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-pill text-mag-badge font-medium transition-all ${activeTab === tab.id ? 'bg-white text-charcoal shadow-mag' : 'text-stone'
+                                    }`}
                             >
                                 <span className="material-symbols-outlined text-[14px]">{tab.icon}</span>
                                 {tab.label}
@@ -337,7 +338,7 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                         const spent = getPersonalSpent(member.id);
                                         const personalRemaining = budget - spent;
                                         const personalPercent = budget > 0 ? (spent / budget) * 100 : 0;
-                                        
+
                                         return (
                                             <div key={member.id} className="bg-white rounded-mag p-4 shadow-mag">
                                                 <div className="flex items-center gap-3 mb-3">
@@ -356,8 +357,8 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                                         <p className="text-mag-body font-medium text-charcoal">{member.name}</p>
                                                         <p className="text-mag-badge text-stone">剩餘 ฿{Math.round(personalRemaining).toLocaleString()}</p>
                                                     </div>
-                                                    <motion.button 
-                                                        whileTap={{ scale: 0.95 }} 
+                                                    <motion.button
+                                                        whileTap={{ scale: 0.95 }}
                                                         onClick={() => { setEditingPersonal(member.id); setPersonalInput(budget); }}
                                                         className="text-red-xhs text-mag-badge"
                                                     >
@@ -365,8 +366,8 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                                     </motion.button>
                                                 </div>
                                                 <div className="h-1.5 bg-stone/10 rounded-full overflow-hidden">
-                                                    <div 
-                                                        style={{ width: `${Math.min(personalPercent, 100)}%` }} 
+                                                    <div
+                                                        style={{ width: `${Math.min(personalPercent, 100)}%` }}
                                                         className={`h-full rounded-full ${personalPercent > 80 ? 'bg-red-xhs' : 'bg-green-500'}`}
                                                     />
                                                 </div>
@@ -492,8 +493,8 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-mag-body text-charcoal">{cat.label}</p>
                                                     <div className="w-full h-1.5 bg-stone/10 rounded-full overflow-hidden mt-1">
-                                                        <div 
-                                                            style={{ width: `${cat.percent}%` }} 
+                                                        <div
+                                                            style={{ width: `${cat.percent}%` }}
                                                             className={`h-full rounded-full bg-gradient-to-r ${cat.color}`}
                                                         />
                                                     </div>
@@ -533,7 +534,7 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                                         <span className="text-mag-badge text-stone w-12 text-right">{Math.round(member.percent)}%</span>
                                                     </div>
                                                     <div className="w-full h-2 bg-stone/10 rounded-full overflow-hidden">
-                                                        <motion.div 
+                                                        <motion.div
                                                             initial={{ width: 0 }}
                                                             animate={{ width: `${member.percent}%` }}
                                                             transition={{ duration: 0.5, delay: idx * 0.1 }}
@@ -600,7 +601,7 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                     ) : (
                                         transfers.map((transfer, idx) => {
                                             const transferText = `${transfer.from} 轉帳 ฿${transfer.amount.toLocaleString()} 給 ${transfer.to}`;
-                                            
+
                                             return (
                                                 <motion.button
                                                     key={idx}
@@ -782,6 +783,18 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                     </>
                 )}
             </AnimatePresence>
+
+            {/* Currency Converter FAB */}
+            <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowCurrency(true)}
+                className="fixed bottom-24 right-4 w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg z-40"
+            >
+                <span className="material-symbols-outlined text-white text-[24px]">currency_exchange</span>
+            </motion.button>
+
+            {/* Currency Converter Modal */}
+            <CurrencyConverter isOpen={showCurrency} onClose={() => setShowCurrency(false)} />
         </div>
     );
 }
