@@ -16,11 +16,14 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@types/leaflet": "^1.9.21",
     "framer-motion": "^12.24.7",
     "html2canvas": "^1.4.1",
+    "leaflet": "^1.9.4",
     "react": "^19.2.3",
     "react-confetti": "^6.4.0",
     "react-dom": "^19.2.3",
+    "react-leaflet": "^5.0.0",
     "react-use-measure": "^2.1.7"
   },
   "devDependencies": {

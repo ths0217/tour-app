@@ -14,11 +14,12 @@ const ItineraryView = lazy(() => import('./views/ItineraryView'));
 const WalletView = lazy(() => import('./views/WalletView'));
 const ChecklistView = lazy(() => import('./views/ChecklistView'));
 const ExploreView = lazy(() => import('./views/ExploreView'));
+const MapTimelineView = lazy(() => import('./views/MapTimelineView'));
 const LoginView = lazy(() => import('./views/LoginView'));
 const Onboarding = lazy(() => import('./components/Onboarding'));
 
 // Data version for cache invalidation
-const DATA_VERSION = 'v3.5.0';
+const DATA_VERSION = 'v3.6.0';
 const VERSION_KEY = 'tourapp_version';
 
 // Clear old data if version changed
@@ -244,6 +245,7 @@ function App() {
       />;
       case 'checklist': return <ChecklistView currentUser={currentUser} familyMembers={familyMembers} />;
       case 'explore': return <ExploreView hotelInfo={hotelInfo} />;
+      case 'map': return <MapTimelineView schedule={schedule} />;
       default: return <HomeView
         user={currentUser}
         budget={{

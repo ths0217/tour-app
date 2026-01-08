@@ -1,4 +1,4 @@
-export type Tab = 'home' | 'itinerary' | 'wallet' | 'checklist' | 'explore';
+export type Tab = 'home' | 'itinerary' | 'map' | 'wallet' | 'checklist' | 'explore';
 
 export interface User {
   id: string;

@@ -10,9 +10,9 @@ interface BottomNavProps {
 const navItems: { id: Tab; icon: string; label: string; aria: string }[] = [
   { id: 'home', icon: 'home', label: '首頁', aria: '首頁' },
   { id: 'itinerary', icon: 'calendar_month', label: '行程', aria: '行程規劃' },
+  { id: 'map', icon: 'map', label: '地圖', aria: '地圖總覽' },
   { id: 'wallet', icon: 'account_balance_wallet', label: '錢包', aria: '旅費錢包' },
   { id: 'checklist', icon: 'checklist', label: '清單', aria: '旅遊清單' },
-  { id: 'explore', icon: 'explore', label: '探索', aria: '探索/相簿' },
 ];
 
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
@@ -48,20 +48,18 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
                 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               >
-                <span 
-                  className={`material-symbols-${isActive ? 'filled' : 'outlined'} text-[26px] ${
-                    isActive ? 'text-red-xhs' : 'text-stone'
-                  }`}
+                <span
+                  className={`material-symbols-${isActive ? 'filled' : 'outlined'} text-[26px] ${isActive ? 'text-red-xhs' : 'text-stone'
+                    }`}
                 >
                   {item.icon}
                 </span>
               </motion.div>
-              <span className={`text-[10px] font-medium ${
-                isActive ? 'text-red-xhs' : 'text-stone'
-              }`}>
+              <span className={`text-[10px] font-medium ${isActive ? 'text-red-xhs' : 'text-stone'
+                }`}>
                 {item.label}
               </span>
-              
+
               {/* Active Indicator Dot with smooth animation */}
               <motion.div
                 initial={false}
