@@ -72,7 +72,7 @@ interface WalletViewProps {
 
 export default function WalletView({ user, expenses, setExpenses, budgetGoal, setBudgetGoal, familyMembers }: WalletViewProps) {
     const { showToast } = useToast();
-    const [activeTab, setActiveTab] = useState<'passes' | 'budget' | 'settle'>('passes');
+    const [activeTab, setActiveTab] = useState<'passes' | 'budget' | 'settle' | 'analytics'>('passes');
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditBudget, setShowEditBudget] = useState(false);
     const [showQRModal, setShowQRModal] = useState<any>(null);
@@ -202,11 +202,12 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                         </motion.button>
                     </div>
 
-                    {/* 3 Tab Switcher */}
+                    {/* 4 Tab Switcher */}
                     <div className="flex gap-1 bg-stone/10 rounded-pill p-1">
                         {[
                             { id: 'passes', label: '票卡', icon: 'credit_card' },
                             { id: 'budget', label: '預算', icon: 'savings' },
+                            { id: 'analytics', label: '分析', icon: 'pie_chart' },
                             { id: 'settle', label: '結算', icon: 'handshake' },
                         ].map(tab => (
                             <button
@@ -400,6 +401,153 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                             </div>
                         </motion.div>
                     )}
+
+                    {/* ANALYTICS TAB */}
+                    {activeTab === 'analytics' && (() => {
+                        // Calculate category totals
+                        const categoryTotals = categories.map(cat => {
+                            const total = expenses.filter(e => e.cat === cat.id).reduce((acc, curr) => acc + curr.amount, 0);
+                            return { ...cat, total, percent: totalGroupSpent > 0 ? (total / totalGroupSpent) * 100 : 0 };
+                        }).filter(c => c.total > 0).sort((a, b) => b.total - a.total);
+
+                        // Calculate member totals
+                        const memberTotals = familyMembers.map(member => {
+                            const total = expenses.filter(e => e.payer === member.name || e.payer === member.role).reduce((acc, curr) => acc + curr.amount, 0);
+                            return { ...member, total, percent: totalGroupSpent > 0 ? (total / totalGroupSpent) * 100 : 0 };
+                        }).sort((a, b) => b.total - a.total);
+
+                        // SVG Donut chart params
+                        const radius = 70;
+                        const circumference = 2 * Math.PI * radius;
+                        let cumulativePercent = 0;
+
+                        return (
+                            <motion.div key="analytics" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
+                                {/* Total Overview */}
+                                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-[20px] p-5 text-white">
+                                    <p className="text-white/70 text-mag-caption mb-1">📊 消費總覽</p>
+                                    <p className="text-[36px] font-bold">฿{Math.round(totalGroupSpent).toLocaleString()}</p>
+                                    <p className="text-white/70 text-mag-badge">{expenses.length} 筆消費 • 人均 ฿{Math.round(perPersonShare).toLocaleString()}</p>
+                                </div>
+
+                                {/* Donut Chart + Category Breakdown */}
+                                <div className="bg-white rounded-[20px] p-5 shadow-mag">
+                                    <p className="text-mag-caption text-stone mb-4">🍩 類別分佈</p>
+                                    <div className="flex items-center gap-4">
+                                        {/* SVG Donut Chart */}
+                                        <div className="relative w-[160px] h-[160px] flex-shrink-0">
+                                            <svg viewBox="0 0 180 180" className="w-full h-full -rotate-90">
+                                                {categoryTotals.map((cat, idx) => {
+                                                    const strokeDasharray = (cat.percent / 100) * circumference;
+                                                    const offset = (cumulativePercent / 100) * circumference;
+                                                    cumulativePercent += cat.percent;
+                                                    const colors = ['#f97316', '#3b82f6', '#8b5cf6', '#ec4899', '#10b981'];
+                                                    return (
+                                                        <circle
+                                                            key={cat.id}
+                                                            cx="90"
+                                                            cy="90"
+                                                            r={radius}
+                                                            fill="none"
+                                                            stroke={colors[idx % colors.length]}
+                                                            strokeWidth="24"
+                                                            strokeDasharray={`${strokeDasharray} ${circumference - strokeDasharray}`}
+                                                            strokeDashoffset={-offset}
+                                                            className="transition-all duration-500"
+                                                        />
+                                                    );
+                                                })}
+                                            </svg>
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                <p className="text-mag-caption text-stone">共</p>
+                                                <p className="text-[18px] font-bold text-charcoal">{categoryTotals.length} 類</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Category Legend */}
+                                        <div className="flex-1 space-y-2">
+                                            {categoryTotals.slice(0, 4).map((cat, idx) => {
+                                                const colors = ['bg-orange-500', 'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-green-500'];
+                                                return (
+                                                    <div key={cat.id} className="flex items-center gap-2">
+                                                        <div className={`w-3 h-3 rounded-full ${colors[idx % colors.length]}`} />
+                                                        <span className="text-mag-badge text-charcoal flex-1">{cat.label}</span>
+                                                        <span className="text-mag-badge text-stone">{Math.round(cat.percent)}%</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Category Details */}
+                                <div>
+                                    <p className="text-mag-caption text-stone mb-3">📋 類別明細</p>
+                                    <div className="space-y-2">
+                                        {categoryTotals.map(cat => (
+                                            <div key={cat.id} className="bg-white rounded-mag p-3 shadow-mag flex items-center gap-3">
+                                                <div className={`w-10 h-10 rounded-mag flex items-center justify-center bg-gradient-to-br ${cat.color}`}>
+                                                    <span className="material-symbols-outlined text-white text-[18px]">{cat.icon}</span>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-mag-body text-charcoal">{cat.label}</p>
+                                                    <div className="w-full h-1.5 bg-stone/10 rounded-full overflow-hidden mt-1">
+                                                        <div 
+                                                            style={{ width: `${cat.percent}%` }} 
+                                                            className={`h-full rounded-full bg-gradient-to-r ${cat.color}`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-mag-body font-bold text-charcoal">฿{cat.total.toLocaleString()}</p>
+                                                    <p className="text-mag-badge text-stone">{Math.round(cat.percent)}%</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {categoryTotals.length === 0 && (
+                                            <p className="text-center text-mag-caption text-stone py-4">尚無消費記錄</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Member Spending Comparison */}
+                                <div>
+                                    <p className="text-mag-caption text-stone mb-3">👥 成員消費比較</p>
+                                    <div className="bg-white rounded-[20px] p-4 shadow-mag space-y-4">
+                                        {memberTotals.map((member, idx) => {
+                                            const colors = ['bg-red-xhs', 'bg-blue-500', 'bg-purple-500', 'bg-green-500'];
+                                            return (
+                                                <div key={member.id}>
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        {member.image.startsWith('gradient:') ? (
+                                                            <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${member.image.split(':')[1]} flex items-center justify-center text-white text-[12px] font-bold`}>
+                                                                {member.image.split(':')[2]}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone/20 to-stone/10 flex items-center justify-center text-[12px] font-bold text-stone">
+                                                                {member.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                        <span className="text-mag-body text-charcoal flex-1">{member.name}</span>
+                                                        <span className="text-mag-body font-bold text-charcoal">฿{member.total.toLocaleString()}</span>
+                                                        <span className="text-mag-badge text-stone w-12 text-right">{Math.round(member.percent)}%</span>
+                                                    </div>
+                                                    <div className="w-full h-2 bg-stone/10 rounded-full overflow-hidden">
+                                                        <motion.div 
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${member.percent}%` }}
+                                                            transition={{ duration: 0.5, delay: idx * 0.1 }}
+                                                            className={`h-full rounded-full ${colors[idx % colors.length]}`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        );
+                    })()}
 
                     {/* SETTLE TAB */}
                     {activeTab === 'settle' && (
