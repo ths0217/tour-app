@@ -92,7 +92,19 @@ const initialSchedule: ScheduleItem[] = [
   { id: 501, date: '2025-01-31', time: '08:00', title: '曼谷水門文斯飯店 (有早餐)', type: 'dining', desc: '🍳 飯店自助早餐 • 停留 1 時', location: 'VIE Hotel Bangkok', completed: false },
   { id: 502, date: '2025-01-31', time: '09:00', title: '暹羅古城 Ancient City', type: 'activity', desc: '🏛️ 泰國縮影 • 停留 1 時', location: 'Ancient City', completed: false, travelTime: '自訂交通' },
   { id: 503, date: '2025-01-31', time: '10:00', title: '中央世界購物商場 CentralWorld', type: 'shopping', desc: '🛍️ 購物最後衝刺 • 停留 1 時', location: 'CentralWorld', completed: false, travelTime: '自訂交通' },
-  { id: 504, date: '2025-01-31', time: '11:00', title: '曼谷水門文斯飯店 退房', type: 'accommodation', desc: '🧳 收拾行李準備回程', location: 'VIE Hotel Bangkok', completed: false, travelTime: '自訂交通' },
+  { id: 504, date: '2025-01-31', time: '11:00', title: '曼谷水門文斯飯店 菁英大廈', type: 'accommodation', desc: '🏨 回飯店休息 • 停留 1 時', location: 'VIE Hotel Bangkok', completed: false, travelTime: '自訂交通' },
+
+  // Day 6: 02/01 (週日) - 市區觀光與週末市集
+  { id: 601, date: '2025-02-01', time: '08:00', title: '曼谷水門文斯飯店 (有早餐)', type: 'dining', desc: '🍳 飯店自助早餐 • 停留 1 時', location: 'VIE Hotel Bangkok', completed: false },
+  { id: 602, date: '2025-02-01', time: '09:00', title: '曼谷四面佛 Thao Maha Brahma', type: 'activity', desc: '🙏 許願求平安 • 停留 1 時', location: 'Erawan Shrine', completed: false, travelTime: '自訂交通' },
+  { id: 603, date: '2025-02-01', time: '10:00', title: '水門市場 Pratunam Market', type: 'shopping', desc: '👕 批發購物天堂 • 停留 1 時', location: 'Pratunam', completed: false, travelTime: '🚶 8分' },
+  { id: 604, date: '2025-02-01', time: '11:08', title: '洗頭) Sabaikay Head Massage-Sleep Salon', type: 'shopping', desc: '💆 舒壓洗頭按摩 • 停留 1 時', location: 'Sabaikay', completed: false, travelTime: '自訂交通' },
+  { id: 605, date: '2025-02-01', time: '12:08', title: '恰圖恰市集 Chatuchak Weekend Market', type: 'shopping', desc: '🛒 週末市集掃貨 • 停留 1 時', location: 'Chatuchak', completed: false, travelTime: '自訂交通' },
+  { id: 606, date: '2025-02-01', time: '13:08', title: '曼谷水門文斯飯店 菁英大廈', type: 'accommodation', desc: '🏨 回飯店休息 • 停留 1 時', location: 'VIE Hotel Bangkok', completed: false, travelTime: '自訂交通' },
+
+  // Day 7: 02/02 (週一) - 最後一天 & 回程
+  { id: 701, date: '2025-02-02', time: '08:00', title: '水門寺 Wat Paknam', type: 'activity', desc: '🛕 著名翡翠佛塔 • 停留 1 時', location: 'Wat Paknam', completed: false, travelTime: '自訂交通' },
+  { id: 702, date: '2025-02-02', time: '09:00', title: '曼谷水門文斯飯店 (有早餐)', type: 'dining', desc: '🍳 最後一天早餐 • 準備退房回程', location: 'VIE Hotel Bangkok', completed: false, travelTime: '自訂交通' },
 ];
 
 function App() {
@@ -125,7 +137,7 @@ function App() {
     { id: 'brother', name: 'wattbsttrrrog', role: '哥哥', image: './avatars/brother.jpg' },
     { id: 'mom', name: 'Mom', role: '老媽', image: './avatars/mom.jpg' },
   ];
-  
+
   const [familyMembers, setFamilyMembers] = useState(() => {
     const stored = safeLoad(STORAGE_KEYS.familyMembers, initialFamily, (val) => Array.isArray(val));
     // Merge names/roles from initialFamily, keep custom images from stored
@@ -272,19 +284,19 @@ function App() {
         </Suspense>
       </main>
 
-        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 
-        {/* Onboarding for first-time users */}
-        <Onboarding
-          isOpen={showOnboarding && currentUser !== null}
-          onComplete={() => setShowOnboarding(false)}
-        />
+      {/* Onboarding for first-time users */}
+      <Onboarding
+        isOpen={showOnboarding && currentUser !== null}
+        onComplete={() => setShowOnboarding(false)}
+      />
 
-        {/* iOS Safari add-to-home-screen helper */}
-        <AddToHomeScreenPrompt />
-      </div>
-    );
-  }
+      {/* iOS Safari add-to-home-screen helper */}
+      <AddToHomeScreenPrompt />
+    </div>
+  );
+}
 
 // Export wrapped with ToastProvider and ErrorBoundary
 export default function AppWithProviders() {
