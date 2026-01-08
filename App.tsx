@@ -6,6 +6,7 @@ import { ToastProvider } from './components/Toast';
 import { HomePageSkeleton } from './components/Skeleton';
 import ErrorBoundary from './components/ErrorBoundary';
 import AddToHomeScreenPrompt from './components/AddToHomeScreenPrompt';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 // Lazy load views for code splitting
 const HomeView = lazy(() => import('./views/HomeView'));
@@ -17,7 +18,7 @@ const LoginView = lazy(() => import('./views/LoginView'));
 const Onboarding = lazy(() => import('./components/Onboarding'));
 
 // Data version for cache invalidation
-const DATA_VERSION = 'v3.3.0';
+const DATA_VERSION = 'v3.4.0';
 const VERSION_KEY = 'tourapp_version';
 
 // Clear old data if version changed
@@ -298,13 +299,15 @@ function App() {
   );
 }
 
-// Export wrapped with ToastProvider and ErrorBoundary
+// Export wrapped with ToastProvider, LanguageProvider, and ErrorBoundary
 export default function AppWithProviders() {
   return (
     <ErrorBoundary>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
+      <LanguageProvider>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </LanguageProvider>
     </ErrorBoundary>
   );
 }

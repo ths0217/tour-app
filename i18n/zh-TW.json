@@ -1,0 +1,79 @@
+{
+    "common": {
+        "cancel": "取消",
+        "save": "儲存",
+        "add": "新增",
+        "edit": "編輯",
+        "delete": "刪除",
+        "confirm": "確認",
+        "back": "返回",
+        "search": "搜尋",
+        "loading": "載入中...",
+        "error": "錯誤",
+        "success": "成功",
+        "offline": "離線模式"
+    },
+    "nav": {
+        "home": "首頁",
+        "itinerary": "行程",
+        "wallet": "錢包",
+        "checklist": "清單",
+        "explore": "探索"
+    },
+    "home": {
+        "title": "曼谷探險",
+        "countdown": "距離出發還有",
+        "days": "天",
+        "quickActions": "快速操作",
+        "familyMembers": "家庭成員"
+    },
+    "itinerary": {
+        "title": "曼谷探險",
+        "subtitle": "7天6夜家庭之旅",
+        "addActivity": "新增行程",
+        "editActivity": "編輯行程",
+        "deleteActivity": "刪除此行程",
+        "noActivities": "開始規劃你的冒險",
+        "searchPlaceholder": "搜尋行程...",
+        "travelTime": "交通時間",
+        "estimatedCost": "預估花費",
+        "privateNotes": "私人備註（不會分享）"
+    },
+    "wallet": {
+        "title": "旅行錢包",
+        "passes": "票證",
+        "budget": "預算",
+        "settle": "結算",
+        "analytics": "分析",
+        "addExpense": "記帳",
+        "currencyConverter": "匯率換算",
+        "totalSpent": "總支出",
+        "budgetGoal": "預算目標",
+        "remaining": "剩餘"
+    },
+    "checklist": {
+        "title": "行前準備",
+        "todoItems": "個待辦事項",
+        "allComplete": "全部完成！準備出發！",
+        "addItem": "新增項目",
+        "categories": {
+            "documents": "文件",
+            "medical": "藥品",
+            "gadgets": "電子",
+            "clothing": "衣物",
+            "other": "其他"
+        }
+    },
+    "explore": {
+        "title": "探索曼谷",
+        "attractions": "景點推薦",
+        "restaurants": "美食推薦",
+        "shopping": "購物推薦"
+    },
+    "currency": {
+        "title": "匯率換算",
+        "lastUpdate": "更新時間",
+        "quickSelect": "快速選擇台幣金額",
+        "tip": "泰國大部分店家接受現金，建議在機場或 Super Rich 換匯"
+    }
+}

@@ -8,6 +8,7 @@ import EmergencyInfo from '../components/EmergencyInfo';
 import AvatarPicker from '../components/AvatarPicker';
 import TipCalculator from '../components/TipCalculator';
 import LocalInfo from '../components/LocalInfo';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 // ExpertReview component removed per user request
 
 const familyMembersData = [
@@ -35,7 +36,7 @@ const destinations = [
 
 // 🔥 小紅書/Threads 爆紅行程 2024-2025
 const trendingItineraries = [
-  { 
+  {
     id: 't1',
     title: 'Mahanakhon SkyWalk',
     image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400',
@@ -48,7 +49,7 @@ const trendingItineraries = [
     desc: '314m 高空玻璃棧道 🌅',
     lat: 13.7234, lng: 100.5296
   },
-  { 
+  {
     id: 't2',
     title: 'Featherstone Café',
     image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400',
@@ -61,7 +62,7 @@ const trendingItineraries = [
     desc: '純白咖啡廳 ☕',
     lat: 13.7182, lng: 100.5854
   },
-  { 
+  {
     id: 't3',
     title: 'Jodd Fairs 火山排骨',
     image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
@@ -74,7 +75,7 @@ const trendingItineraries = [
     desc: '火焰表演超震撼 🔥',
     lat: 13.7490, lng: 100.5677
   },
-  { 
+  {
     id: 't4',
     title: 'The Rim 河畔晚餐',
     image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400',
@@ -87,7 +88,7 @@ const trendingItineraries = [
     desc: '鄭王廟夜景 ✨',
     lat: 13.7626, lng: 100.4876
   },
-  { 
+  {
     id: 't5',
     title: '水門雞飯',
     image: 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=400',
@@ -100,7 +101,7 @@ const trendingItineraries = [
     desc: '40泰銖海南雞飯 🍗',
     lat: 13.7509, lng: 100.5396
   },
-  { 
+  {
     id: 't6',
     title: "Let's Relax Spa",
     image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=400',
@@ -186,7 +187,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
 
   const addTrendingToSchedule = (item: typeof trendingItineraries[0]) => {
     if (addedTrending.has(item.id)) return;
-    
+
     const newItem: ScheduleItem = {
       id: Date.now(),
       title: item.title,
@@ -198,7 +199,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
       completed: false,
       image: item.image,
     };
-    
+
     setSchedule(prev => [...prev, newItem]);
     setAddedTrending(prev => new Set([...prev, item.id]));
     setShowAddedToast(item.title);
@@ -211,7 +212,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
       <div className="px-5 pt-6 pb-4 safe-top">
         <div className="flex justify-between items-start">
           <div>
-            <motion.p 
+            <motion.p
               className="text-mag-caption text-stone flex items-center gap-2 h-[20px]"
             >
               {weather.temp === '--' ? (
@@ -220,14 +221,15 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
                 <>{weather.temp} {weather.label} ☀️</>
               )}
             </motion.p>
-            <motion.h1 
+            <motion.h1
               className="text-mag-hero text-charcoal mt-1"
             >
-              {getGreeting()}，<br/>{user?.name || '旅人'}
+              {getGreeting()}，<br />{user?.name || '旅人'}
             </motion.h1>
           </div>
-          
-          <div className="flex items-start gap-3">
+
+          <div className="flex items-start gap-2">
+            <LanguageSwitcher />
             <ThemeToggle />
             <motion.button
               whileTap={{ scale: 0.9 }}
@@ -237,7 +239,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
               {(() => {
                 const currentMember = familyMembers.find(m => m.id === user?.id);
                 const avatarImage = currentMember?.image || user?.image || './avatars/me.jpg';
-                
+
                 if (avatarImage.startsWith('gradient:')) {
                   return (
                     <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${avatarImage.split(':')[1]} flex items-center justify-center text-white text-[20px] font-bold shadow-mag ring-2 ring-white`}>
@@ -246,7 +248,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
                   );
                 }
                 return (
-                  <div 
+                  <div
                     className="w-14 h-14 rounded-full bg-cover bg-center shadow-mag ring-2 ring-white"
                     style={{ backgroundImage: `url('${avatarImage}')` }}
                   />
@@ -265,13 +267,13 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
         className="mx-4 mb-6 p-5 bg-white rounded-mag-lg shadow-mag overflow-hidden relative"
       >
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pastel-mint to-transparent rounded-bl-full opacity-50" />
-        
+
         <p className="text-mag-caption text-stone mb-1">個人剩餘預算</p>
         <div className="flex items-baseline gap-2 mb-4">
           <span className="text-[36px] font-bold text-charcoal leading-none">฿{Math.round(safeBudget.remaining).toLocaleString()}</span>
           <span className="text-mag-caption text-stone">/ ฿{Math.round(safeBudget.total).toLocaleString()}</span>
         </div>
-        
+
         <div className="h-2 bg-stone/10 rounded-full overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
@@ -362,8 +364,8 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
                     {member.image.split(':')[2]}
                   </div>
                 ) : (
-                  <img 
-                    src={member.image} 
+                  <img
+                    src={member.image}
                     alt={member.name}
                     loading="lazy"
                     decoding="async"
@@ -383,8 +385,8 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
         <div className="flex justify-between items-center mb-3 px-4">
           <h2 className="text-[15px] font-semibold text-charcoal">🔥 小紅書爆紅行程</h2>
         </div>
-        
-        <div 
+
+        <div
           className="flex gap-3 overflow-x-auto no-scrollbar pl-4 pr-4 pb-3"
           onTouchStart={(e) => e.stopPropagation()}
         >
@@ -396,19 +398,18 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
               <div className="relative aspect-[3/4] rounded-mag overflow-hidden shadow-mag mb-2">
                 <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 img-overlay" />
-                
+
                 {/* Source Badge */}
-                <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-pill text-[10px] font-bold ${
-                  item.source === '小紅書' ? 'bg-red-500 text-white' : 'bg-black text-white'
-                }`}>
+                <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-pill text-[10px] font-bold ${item.source === '小紅書' ? 'bg-red-500 text-white' : 'bg-black text-white'
+                  }`}>
                   {item.source}
                 </span>
-                
+
                 {/* Tag */}
                 <span className="absolute top-2 right-2 px-2 py-0.5 rounded-pill text-[10px] bg-white/90 text-charcoal">
                   {item.tag}
                 </span>
-                
+
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-2">
                   <h3 className="text-white text-[12px] font-semibold line-clamp-1 mb-0.5 drop-shadow-lg">{item.title}</h3>
@@ -418,7 +419,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
                   </div>
                 </div>
               </div>
-              
+
               {/* Action Buttons */}
               <div className="flex gap-1.5 mt-1.5">
                 <motion.button
@@ -433,11 +434,10 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
                   whileTap={{ scale: 0.95 }}
                   onClick={() => addTrendingToSchedule(item)}
                   disabled={addedTrending.has(item.id)}
-                  className={`flex-1 py-1.5 rounded-mag text-[10px] font-medium transition-all ${
-                    addedTrending.has(item.id)
+                  className={`flex-1 py-1.5 rounded-mag text-[10px] font-medium transition-all ${addedTrending.has(item.id)
                       ? 'bg-green-100 text-green-700'
                       : 'bg-red-xhs text-white'
-                  }`}
+                    }`}
                 >
                   {addedTrending.has(item.id) ? '✓ 已加' : '+ 加入'}
                 </motion.button>
@@ -466,7 +466,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-mag-title text-charcoal">推薦景點</h2>
         </div>
-        
+
         <div className="masonry">
           {destinations.map((dest, i) => (
             <motion.div
@@ -477,12 +477,12 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
               <div className={`relative rounded-mag overflow-hidden shadow-mag ${i % 2 === 0 ? 'aspect-[3/4]' : 'aspect-[4/5]'}`}>
                 <img src={dest.image} alt={dest.name} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 img-overlay" />
-                
+
                 {/* Badge */}
                 <span className="absolute top-2 left-2 px-2 py-0.5 rounded-pill text-[10px] bg-white/90 text-charcoal">
                   {dest.badge}
                 </span>
-                
+
                 {/* Heart */}
                 <motion.button
                   onClick={(e) => { e.stopPropagation(); toggleLike(dest.id); }}
@@ -493,7 +493,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
                     favorite
                   </span>
                 </motion.button>
-                
+
                 {/* Title + Nav */}
                 <div className="absolute bottom-0 left-0 right-0 p-3">
                   <h3 className="text-white text-[14px] font-semibold drop-shadow-lg mb-2">{dest.name}</h3>
@@ -513,9 +513,9 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
       </div>
 
       {/* Currency Converter Modal */}
-      <CurrencyConverter 
-        isOpen={showCurrency} 
-        onClose={() => setShowCurrency(false)} 
+      <CurrencyConverter
+        isOpen={showCurrency}
+        onClose={() => setShowCurrency(false)}
       />
 
       {/* Emergency Info Modal */}

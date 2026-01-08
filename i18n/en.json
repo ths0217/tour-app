@@ -1,0 +1,79 @@
+{
+    "common": {
+        "cancel": "Cancel",
+        "save": "Save",
+        "add": "Add",
+        "edit": "Edit",
+        "delete": "Delete",
+        "confirm": "Confirm",
+        "back": "Back",
+        "search": "Search",
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "offline": "Offline Mode"
+    },
+    "nav": {
+        "home": "Home",
+        "itinerary": "Itinerary",
+        "wallet": "Wallet",
+        "checklist": "Checklist",
+        "explore": "Explore"
+    },
+    "home": {
+        "title": "Bangkok Adventure",
+        "countdown": "Days until departure",
+        "days": "days",
+        "quickActions": "Quick Actions",
+        "familyMembers": "Family Members"
+    },
+    "itinerary": {
+        "title": "Bangkok Adventure",
+        "subtitle": "7 Days 6 Nights Family Trip",
+        "addActivity": "Add Activity",
+        "editActivity": "Edit Activity",
+        "deleteActivity": "Delete Activity",
+        "noActivities": "Start planning your adventure",
+        "searchPlaceholder": "Search activities...",
+        "travelTime": "Travel Time",
+        "estimatedCost": "Estimated Cost",
+        "privateNotes": "Private Notes (not shared)"
+    },
+    "wallet": {
+        "title": "Travel Wallet",
+        "passes": "Passes",
+        "budget": "Budget",
+        "settle": "Settle",
+        "analytics": "Analytics",
+        "addExpense": "Add Expense",
+        "currencyConverter": "Currency Converter",
+        "totalSpent": "Total Spent",
+        "budgetGoal": "Budget Goal",
+        "remaining": "Remaining"
+    },
+    "checklist": {
+        "title": "Packing List",
+        "todoItems": "items to do",
+        "allComplete": "All done! Ready to go!",
+        "addItem": "Add Item",
+        "categories": {
+            "documents": "Documents",
+            "medical": "Medical",
+            "gadgets": "Gadgets",
+            "clothing": "Clothing",
+            "other": "Other"
+        }
+    },
+    "explore": {
+        "title": "Explore Bangkok",
+        "attractions": "Attractions",
+        "restaurants": "Restaurants",
+        "shopping": "Shopping"
+    },
+    "currency": {
+        "title": "Currency Converter",
+        "lastUpdate": "Last updated",
+        "quickSelect": "Quick select TWD amount",
+        "tip": "Most shops in Thailand accept cash. We recommend exchanging at airports or Super Rich."
+    }
+}

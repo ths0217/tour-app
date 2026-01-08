@@ -1,0 +1,79 @@
+{
+    "common": {
+        "cancel": "ยกเลิก",
+        "save": "บันทึก",
+        "add": "เพิ่ม",
+        "edit": "แก้ไข",
+        "delete": "ลบ",
+        "confirm": "ยืนยัน",
+        "back": "กลับ",
+        "search": "ค้นหา",
+        "loading": "กำลังโหลด...",
+        "error": "ข้อผิดพลาด",
+        "success": "สำเร็จ",
+        "offline": "โหมดออฟไลน์"
+    },
+    "nav": {
+        "home": "หน้าแรก",
+        "itinerary": "แผนการเดินทาง",
+        "wallet": "กระเป๋าเงิน",
+        "checklist": "รายการ",
+        "explore": "สำรวจ"
+    },
+    "home": {
+        "title": "ผจญภัยกรุงเทพ",
+        "countdown": "นับถอยหลังสู่การเดินทาง",
+        "days": "วัน",
+        "quickActions": "การดำเนินการด่วน",
+        "familyMembers": "สมาชิกในครอบครัว"
+    },
+    "itinerary": {
+        "title": "ผจญภัยกรุงเทพ",
+        "subtitle": "ทริปครอบครัว 7 วัน 6 คืน",
+        "addActivity": "เพิ่มกิจกรรม",
+        "editActivity": "แก้ไขกิจกรรม",
+        "deleteActivity": "ลบกิจกรรมนี้",
+        "noActivities": "เริ่มวางแผนการผจญภัยของคุณ",
+        "searchPlaceholder": "ค้นหากิจกรรม...",
+        "travelTime": "เวลาเดินทาง",
+        "estimatedCost": "ค่าใช้จ่ายโดยประมาณ",
+        "privateNotes": "บันทึกส่วนตัว (ไม่แชร์)"
+    },
+    "wallet": {
+        "title": "กระเป๋าเงินเดินทาง",
+        "passes": "บัตร",
+        "budget": "งบประมาณ",
+        "settle": "ชำระ",
+        "analytics": "วิเคราะห์",
+        "addExpense": "บันทึกค่าใช้จ่าย",
+        "currencyConverter": "แปลงสกุลเงิน",
+        "totalSpent": "ใช้จ่ายทั้งหมด",
+        "budgetGoal": "เป้าหมายงบ",
+        "remaining": "คงเหลือ"
+    },
+    "checklist": {
+        "title": "รายการเตรียมตัว",
+        "todoItems": "รายการที่ต้องทำ",
+        "allComplete": "เสร็จหมดแล้ว! พร้อมออกเดินทาง!",
+        "addItem": "เพิ่มรายการ",
+        "categories": {
+            "documents": "เอกสาร",
+            "medical": "ยา",
+            "gadgets": "อุปกรณ์",
+            "clothing": "เสื้อผ้า",
+            "other": "อื่นๆ"
+        }
+    },
+    "explore": {
+        "title": "สำรวจกรุงเทพ",
+        "attractions": "สถานที่ท่องเที่ยว",
+        "restaurants": "ร้านอาหาร",
+        "shopping": "ช้อปปิ้ง"
+    },
+    "currency": {
+        "title": "แปลงสกุลเงิน",
+        "lastUpdate": "อัปเดตล่าสุด",
+        "quickSelect": "เลือกจำนวน TWD อย่างรวดเร็ว",
+        "tip": "ร้านค้าส่วนใหญ่ในไทยรับเงินสด แนะนำแลกที่สนามบินหรือ Super Rich"
+    }
+}
