@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { ScheduleItem } from '../types';
 import notificationService from '../services/NotificationService';
 
@@ -13,20 +13,20 @@ const locationCoordinates: Record<string, { lat: number; lng: number; nameEn: st
     '觀景名廬': { lat: 25.0330, lng: 121.5654, nameEn: 'Home' },
     'TPE': { lat: 25.0797, lng: 121.2324, nameEn: 'Taoyuan Airport' },
     'BKK': { lat: 13.6900, lng: 100.7501, nameEn: 'Suvarnabhumi Airport' },
-    'Bangkok Patio': { lat: 13.7428, lng: 100.5553, nameEn: 'Bangkok Patio Apartment' },
-    'Jodd Fairs': { lat: 13.7490, lng: 100.5677, nameEn: 'Jodd Fairs Night Market' },
-    'Terminal 21': { lat: 13.7378, lng: 100.5602, nameEn: 'Terminal 21 Asok' },
-    'IconSiam': { lat: 13.7261, lng: 100.5099, nameEn: 'IconSiam Mall' },
+    'Bangkok Patio': { lat: 13.7428, lng: 100.5553, nameEn: 'Bangkok Patio' },
+    'Jodd Fairs': { lat: 13.7490, lng: 100.5677, nameEn: 'Jodd Fairs' },
+    'Terminal 21': { lat: 13.7378, lng: 100.5602, nameEn: 'Terminal 21' },
+    'IconSiam': { lat: 13.7261, lng: 100.5099, nameEn: 'IconSiam' },
     'Siam Paragon': { lat: 13.7466, lng: 100.5343, nameEn: 'Siam Paragon' },
-    '大皇宮': { lat: 13.7500, lng: 100.4914, nameEn: 'Grand Palace Bangkok' },
-    '鄭王廟': { lat: 13.7437, lng: 100.4890, nameEn: 'Wat Arun Temple' },
-    'Mahanakhon': { lat: 13.7234, lng: 100.5296, nameEn: 'Mahanakhon Skywalk' },
-    'Chatuchak': { lat: 13.7999, lng: 100.5504, nameEn: 'Chatuchak Weekend Market' },
-    'Asiatique': { lat: 13.7053, lng: 100.5014, nameEn: 'Asiatique The Riverfront' },
+    '大皇宮': { lat: 13.7500, lng: 100.4914, nameEn: 'Grand Palace' },
+    '鄭王廟': { lat: 13.7437, lng: 100.4890, nameEn: 'Wat Arun' },
+    'Mahanakhon': { lat: 13.7234, lng: 100.5296, nameEn: 'Mahanakhon' },
+    'Chatuchak': { lat: 13.7999, lng: 100.5504, nameEn: 'Chatuchak Market' },
+    'Asiatique': { lat: 13.7053, lng: 100.5014, nameEn: 'Asiatique' },
     '水門市場': { lat: 13.7509, lng: 100.5396, nameEn: 'Pratunam Market' },
-    'Chinatown': { lat: 13.7407, lng: 100.5093, nameEn: 'Bangkok Chinatown' },
-    '臺灣桃園國際機場': { lat: 25.0797, lng: 121.2324, nameEn: 'Taoyuan Airport' },
-    '素萬那普機場': { lat: 13.6900, lng: 100.7501, nameEn: 'Suvarnabhumi Airport' },
+    'Chinatown': { lat: 13.7407, lng: 100.5093, nameEn: 'Chinatown' },
+    '臺灣桃園國際機場': { lat: 25.0797, lng: 121.2324, nameEn: 'TPE Airport' },
+    '素萬那普機場': { lat: 13.6900, lng: 100.7501, nameEn: 'BKK Airport' },
 };
 
 const getLocationInfo = (location?: string): { lat: number; lng: number; nameEn: string } | null => {
@@ -37,19 +37,38 @@ const getLocationInfo = (location?: string): { lat: number; lng: number; nameEn:
     return null;
 };
 
-export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimelineViewProps) {
-    const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
-    const [currentDay, setCurrentDay] = useState(selectedDay);
+// Parse travel time string to minutes
+const parseTravelMinutes = (travelTime?: string): number => {
+    if (!travelTime) return 0;
+    const match = travelTime.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+};
 
-    // Get unique dates and current date
+// Estimate walking time to station (in minutes)
+const estimateWalkingTime = (transportType?: string): number => {
+    if (!transportType) return 5;
+    if (transportType.includes('BTS') || transportType.includes('MRT')) return 8;
+    if (transportType.includes('Grab') || transportType.includes('🚗')) return 3;
+    if (transportType.includes('步行')) return 0;
+    return 5;
+};
+
+export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimelineViewProps) {
+    const [focusedIndex, setFocusedIndex] = useState<number>(0);
+    const [currentDay, setCurrentDay] = useState(selectedDay);
+    const [isMapExpanded, setIsMapExpanded] = useState(true);
+    const [showSmartAlert, setShowSmartAlert] = useState(false);
+    const [alertContent, setAlertContent] = useState({ title: '', body: '', walkTime: 0, bufferTime: 5 });
+    const timelineRef = useRef<HTMLDivElement>(null);
+
+    // Get unique dates
     const dayDates = useMemo(() => {
-        const dates = [...new Set(schedule.map(s => s.date))].sort();
-        return dates;
+        return [...new Set(schedule.map(s => s.date))].sort();
     }, [schedule]);
 
     const currentDate = dayDates[currentDay - 1];
 
-    // Get today's activities sorted by time
+    // Get today's activities
     const todaySchedule = useMemo(() => {
         return schedule
             .filter(item => item.date === currentDate)
@@ -67,281 +86,397 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
             .filter(item => item.coords !== null);
     }, [todaySchedule]);
 
-    // Generate Google Maps Static API URL with markers
-    const staticMapUrl = useMemo(() => {
-        if (locationsWithCoords.length === 0) return '';
+    // Current and next location for focused map
+    const currentLocation = locationsWithCoords[focusedIndex] || locationsWithCoords[0];
+    const nextLocation = locationsWithCoords[focusedIndex + 1];
 
-        // Build markers string for Google Maps Static API
-        const markers = locationsWithCoords
-            .map((item, idx) => {
-                const { lat, lng } = item.coords!;
-                return `markers=color:red%7Clabel:${idx + 1}%7C${lat},${lng}`;
-            })
-            .join('&');
+    // Generate focused map URL (current → next only for better visual hierarchy)
+    const focusedMapUrl = useMemo(() => {
+        if (!currentLocation?.coords) return '';
 
-        // Build path string for route line
-        const pathCoords = locationsWithCoords
-            .map(item => `${item.coords!.lat},${item.coords!.lng}`)
-            .join('|');
-        const path = locationsWithCoords.length > 1
-            ? `&path=color:0xF43F5E%7Cweight:3%7C${pathCoords}`
-            : '';
+        const current = currentLocation.coords;
+        let pins = `pin-l-${focusedIndex + 1}+F43F5E(${current.lng},${current.lat})`;
+        let pathCoords = `${current.lng},${current.lat}`;
+        let centerLat = current.lat;
+        let centerLng = current.lng;
+        let zoom = 14;
 
-        // Calculate center
-        const centerLat = locationsWithCoords.reduce((sum, item) => sum + item.coords!.lat, 0) / locationsWithCoords.length;
-        const centerLng = locationsWithCoords.reduce((sum, item) => sum + item.coords!.lng, 0) / locationsWithCoords.length;
+        if (nextLocation?.coords) {
+            const next = nextLocation.coords;
+            pins += `,pin-l-${focusedIndex + 2}+6366F1(${next.lng},${next.lat})`;
+            pathCoords += `;${next.lng},${next.lat}`;
+            centerLat = (current.lat + next.lat) / 2;
+            centerLng = (current.lng + next.lng) / 2;
+            zoom = 12;
+        }
 
-        // Use Google Maps Static API (with free tier - works without API key for limited use)
-        // For production, add your API key
-        return `https://maps.googleapis.com/maps/api/staticmap?center=${centerLat},${centerLng}&zoom=12&size=640x300&scale=2&maptype=roadmap&${markers}${path}&style=feature:poi%7Cvisibility:off`;
-    }, [locationsWithCoords]);
+        return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${pins},path-4+F43F5E-0.6(${encodeURIComponent(pathCoords)})/${centerLng},${centerLat},${zoom},0/640x300@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
+    }, [currentLocation, nextLocation, focusedIndex]);
 
-    // Fallback to Mapbox if Google Maps doesn't work
-    const mapboxUrl = useMemo(() => {
-        if (locationsWithCoords.length === 0) return '';
+    // Calculate current progress (0-100)
+    const currentProgress = useMemo(() => {
+        if (todaySchedule.length <= 1) return 0;
+        return (focusedIndex / (todaySchedule.length - 1)) * 100;
+    }, [focusedIndex, todaySchedule.length]);
 
-        const pins = locationsWithCoords
-            .map((item, idx) => {
-                const { lat, lng } = item.coords!;
-                return `pin-l-${idx + 1}+F43F5E(${lng},${lat})`;
-            })
-            .join(',');
+    // Handle timeline scroll - update focused index
+    const handleTimelineScroll = () => {
+        if (!timelineRef.current) return;
+        const scrollTop = timelineRef.current.scrollTop;
+        const itemHeight = 100; // Approximate card height
+        const newIndex = Math.min(
+            Math.floor(scrollTop / itemHeight),
+            todaySchedule.length - 1
+        );
+        if (newIndex !== focusedIndex && newIndex >= 0) {
+            setFocusedIndex(newIndex);
+        }
+    };
 
-        const centerLat = locationsWithCoords.reduce((sum, item) => sum + item.coords!.lat, 0) / locationsWithCoords.length;
-        const centerLng = locationsWithCoords.reduce((sum, item) => sum + item.coords!.lng, 0) / locationsWithCoords.length;
+    // Open Google Maps navigation
+    const openGoogleMaps = (item?: ScheduleItem) => {
+        if (!item) return;
+        const coords = getLocationInfo(item.location);
+        if (coords) {
+            window.open(`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`, '_blank');
+        }
+    };
 
-        return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${pins}/${centerLng},${centerLat},11,0/640x300@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
-    }, [locationsWithCoords]);
-
-    // Open Google Maps with all waypoints
-    const openGoogleMapsRoute = () => {
-        if (locationsWithCoords.length === 0) return;
-
+    // Open full route in Google Maps
+    const openFullRoute = () => {
+        if (locationsWithCoords.length < 2) return;
         const origin = locationsWithCoords[0].coords!;
-        const destination = locationsWithCoords[locationsWithCoords.length - 1].coords!;
+        const dest = locationsWithCoords[locationsWithCoords.length - 1].coords!;
         const waypoints = locationsWithCoords
             .slice(1, -1)
-            .map(item => `${item.coords!.lat},${item.coords!.lng}`)
+            .map(l => `${l.coords!.lat},${l.coords!.lng}`)
             .join('|');
 
-        let url = `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}`;
-        if (waypoints) {
-            url += `&waypoints=${waypoints}`;
-        }
-        url += '&travelmode=driving';
-
+        let url = `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${dest.lat},${dest.lng}`;
+        if (waypoints) url += `&waypoints=${waypoints}`;
         window.open(url, '_blank');
     };
 
-    // Open single location in Google Maps
-    const openLocationInMaps = (item: ScheduleItem) => {
-        const coords = getLocationInfo(item.location);
-        if (coords) {
-            const url = `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}&query_place_id=${encodeURIComponent(coords.nameEn)}`;
-            window.open(url, '_blank');
-        }
-    };
-
-    // Schedule smart commute reminders
+    // Smart notification with walking time + buffer
     useEffect(() => {
         if (notificationService.getPermissionStatus() !== 'granted') return;
 
         todaySchedule.forEach((item, index) => {
             if (index === 0 || !item.travelTime) return;
 
-            const travelMatch = item.travelTime?.match(/(\d+)/);
-            const travelMinutes = travelMatch ? parseInt(travelMatch[1]) : 0;
+            const travelMinutes = parseTravelMinutes(item.travelTime);
+            const walkingTime = estimateWalkingTime(item.travelTime);
+            const bufferTime = 5; // Dynamic buffer
 
             if (travelMinutes > 0) {
                 const [hours, minutes] = item.time.split(':').map(Number);
                 const activityTime = new Date();
                 activityTime.setHours(hours, minutes, 0, 0);
 
-                const notifyTime = new Date(activityTime.getTime() - (travelMinutes + 5) * 60 * 1000);
+                // Smart formula: activity_time - travel_time - walking_time - buffer
+                const totalLeadTime = travelMinutes + walkingTime + bufferTime;
+                const notifyTime = new Date(activityTime.getTime() - totalLeadTime * 60 * 1000);
 
                 if (notifyTime > new Date()) {
                     notificationService.scheduleNotification(
-                        `commute-${item.id}`,
-                        `🚗 ${travelMinutes}分鐘後出發`,
-                        `前往 ${item.title}（${item.location || ''}）`,
+                        `smart-commute-${item.id}`,
+                        `🚶 該離開了！`,
+                        `步行至車站需 ${walkingTime} 分鐘，車程 ${travelMinutes} 分鐘\n前往：${item.title}`,
                         notifyTime,
-                        { tag: 'commute-reminder' }
+                        { tag: 'smart-commute' }
                     );
                 }
             }
         });
     }, [todaySchedule]);
 
+    // Simulate smart alert for demo
+    const showDemoAlert = (item: ScheduleItem, nextItem?: ScheduleItem) => {
+        if (!nextItem) return;
+        const travelMinutes = parseTravelMinutes(nextItem.travelTime);
+        const walkingTime = estimateWalkingTime(nextItem.travelTime);
+
+        setAlertContent({
+            title: `🚶 該離開「${item.title}」了`,
+            body: `步行至車站需 ${walkingTime} 分鐘`,
+            walkTime: walkingTime,
+            bufferTime: 5,
+        });
+        setShowSmartAlert(true);
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        setTimeout(() => setShowSmartAlert(false), 4000);
+    };
+
     return (
-        <div className="min-h-full bg-[#1C1C1E] text-white pb-safe">
+        <div className="min-h-full bg-[#0A0A0B] text-white pb-safe flex flex-col">
             {/* Header */}
-            <div className="px-4 pt-6 pb-3 safe-top flex justify-between items-center">
+            <div className="px-4 pt-6 pb-2 safe-top flex justify-between items-center shrink-0">
                 <div className="flex items-center gap-2">
                     <span className="text-2xl">🗺️</span>
                     <h1 className="text-xl font-bold">今日路線</h1>
                 </div>
-                <span className="text-stone text-[14px]">{locationsWithCoords.length} 個景點</span>
+                <div className="flex items-center gap-2">
+                    <span className="text-[#F43F5E] font-bold">{locationsWithCoords.length}</span>
+                    <span className="text-stone text-[14px]">個景點</span>
+                </div>
             </div>
 
-            {/* Map Section - Clickable to open Google Maps */}
+            {/* Progress Bar */}
+            <div className="px-4 mb-3 shrink-0">
+                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div
+                        className="h-full bg-gradient-to-r from-[#F43F5E] to-[#6366F1] rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.max(currentProgress, 5)}%` }}
+                        transition={{ duration: 0.3 }}
+                    />
+                </div>
+                <div className="flex justify-between mt-1">
+                    <span className="text-[10px] text-stone">開始</span>
+                    <span className="text-[10px] text-[#F43F5E] font-medium">
+                        {focusedIndex + 1} / {todaySchedule.length}
+                    </span>
+                    <span className="text-[10px] text-stone">結束</span>
+                </div>
+            </div>
+
+            {/* Map Section - Collapsible */}
             <motion.div
-                className="mx-4 rounded-2xl overflow-hidden shadow-lg cursor-pointer relative"
-                whileTap={{ scale: 0.98 }}
-                onClick={openGoogleMapsRoute}
+                className="mx-4 rounded-2xl overflow-hidden shadow-xl shrink-0"
+                animate={{ height: isMapExpanded ? 200 : 80 }}
+                transition={{ duration: 0.3 }}
             >
-                {/* Map Image */}
-                <div className="relative h-[200px] bg-[#2C2C2E]">
+                <div
+                    className="relative h-full cursor-pointer"
+                    onClick={() => setIsMapExpanded(!isMapExpanded)}
+                >
+                    {/* Map Image */}
                     <img
-                        src={mapboxUrl}
-                        alt="Today's route map"
+                        src={focusedMapUrl}
+                        alt="Route map"
                         className="w-full h-full object-cover"
-                        onError={(e) => {
-                            // Fallback to a placeholder if map fails to load
-                            (e.target as HTMLImageElement).src = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/100.5018,13.7563,11,0/640x300@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
-                        }}
                     />
 
-                    {/* Overlay with tap hint */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
 
-                    {/* Open in Maps button */}
-                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-lg">
-                        <span className="material-symbols-outlined text-[16px] text-charcoal">open_in_new</span>
-                        <span className="text-[12px] font-medium text-charcoal">在 Google 地圖開啟</span>
+                    {/* Current Location Label */}
+                    <div className="absolute top-3 left-3 bg-[#F43F5E] rounded-full px-3 py-1.5 flex items-center gap-2 shadow-lg">
+                        <span className="text-white font-bold text-[14px]">{focusedIndex + 1}</span>
+                        <span className="text-white/90 text-[12px] max-w-[120px] truncate">
+                            {currentLocation?.title || '起點'}
+                        </span>
                     </div>
 
-                    {/* Location count badge */}
-                    <div className="absolute top-3 left-3 bg-[#F43F5E] rounded-full px-3 py-1 flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-white text-[14px]">route</span>
-                        <span className="text-[12px] font-bold text-white">{locationsWithCoords.length} 站</span>
+                    {/* Next Location Label */}
+                    {nextLocation && (
+                        <div className="absolute top-3 right-3 bg-[#6366F1] rounded-full px-3 py-1.5 flex items-center gap-2 shadow-lg">
+                            <span className="text-white font-bold text-[14px]">{focusedIndex + 2}</span>
+                            <span className="text-white/90 text-[12px] max-w-[100px] truncate">
+                                {nextLocation.title}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Bottom Actions */}
+                    <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={(e) => { e.stopPropagation(); openFullRoute(); }}
+                            className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-lg"
+                        >
+                            <span className="material-symbols-outlined text-[16px] text-charcoal">directions</span>
+                            <span className="text-[11px] font-medium text-charcoal">開啟 Google 地圖</span>
+                        </motion.button>
+
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
+                        >
+                            <span className="material-symbols-outlined text-white text-[18px]">
+                                {isMapExpanded ? 'expand_less' : 'expand_more'}
+                            </span>
+                        </motion.button>
                     </div>
                 </div>
             </motion.div>
 
-            {/* Info Banner */}
-            <div className="mx-4 mt-3 bg-blue-500/20 rounded-xl p-3 flex items-center gap-3">
-                <span className="text-xl">💡</span>
-                <p className="text-[12px] text-blue-300 flex-1">
-                    點擊地圖開啟 Google Maps 查看完整路線導航
-                </p>
-            </div>
+            {/* Timeline Section */}
+            <div
+                ref={timelineRef}
+                onScroll={handleTimelineScroll}
+                className="flex-1 overflow-y-auto mt-4 pb-40"
+            >
+                <div className="px-4">
+                    {/* Section Header */}
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-[12px] text-stone uppercase tracking-wider">行程表 Timeline</span>
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => focusedIndex > 0 && showDemoAlert(todaySchedule[focusedIndex - 1], todaySchedule[focusedIndex])}
+                            className="text-[11px] text-[#F43F5E] flex items-center gap-1"
+                        >
+                            <span className="material-symbols-outlined text-[14px]">notifications_active</span>
+                            測試提醒
+                        </motion.button>
+                    </div>
 
-            {/* Timeline List */}
-            <div className="mt-4 px-4 pb-32">
-                <h2 className="text-[13px] text-stone uppercase tracking-wide mb-3">行程表</h2>
+                    {/* Timeline Items */}
+                    <div className="relative">
+                        {/* Vertical Progress Line */}
+                        <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-white/10" />
+                        <motion.div
+                            className="absolute left-5 top-0 w-0.5 bg-gradient-to-b from-[#F43F5E] to-[#6366F1]"
+                            initial={{ height: 0 }}
+                            animate={{ height: `${currentProgress}%` }}
+                            transition={{ duration: 0.3 }}
+                        />
 
-                <AnimatePresence>
-                    {todaySchedule.map((item, index) => {
-                        const coords = getLocationInfo(item.location);
-                        return (
-                            <motion.div
-                                key={item.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                                onClick={() => {
-                                    setSelectedItemIndex(index);
-                                    if (coords) openLocationInMaps(item);
-                                }}
-                                className={`flex items-start gap-4 py-4 border-b border-white/10 cursor-pointer active:bg-white/5 rounded-lg -mx-2 px-2 ${selectedItemIndex === index ? 'bg-white/5' : ''
-                                    }`}
-                            >
-                                {/* Number Badge */}
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-lg ${item.completed ? 'bg-green-500' : 'bg-[#F43F5E]'
-                                    }`}>
-                                    {item.completed ? '✓' : index + 1}
-                                </div>
+                        {todaySchedule.map((item, index) => {
+                            const isActive = index === focusedIndex;
+                            const isPast = index < focusedIndex;
+                            const coords = getLocationInfo(item.location);
+                            const travelMinutes = parseTravelMinutes(item.travelTime);
+                            const walkingTime = estimateWalkingTime(item.travelTime);
 
-                                {/* Content */}
-                                <div className="flex-1 min-w-0">
-                                    <h3 className={`text-[16px] font-semibold ${item.completed ? 'text-stone line-through' : 'text-white'
+                            return (
+                                <motion.div
+                                    key={item.id}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: index * 0.03 }}
+                                    onClick={() => {
+                                        setFocusedIndex(index);
+                                        if (coords) openGoogleMaps(item);
+                                    }}
+                                    className={`relative flex gap-4 py-4 pl-2 cursor-pointer rounded-xl transition-all ${isActive ? 'bg-white/5 -mx-2 px-4' : ''
+                                        }`}
+                                >
+                                    {/* Timeline Node */}
+                                    <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 transition-all shadow-lg ${isPast ? 'bg-green-500 text-white' :
+                                            isActive ? 'bg-[#F43F5E] text-white scale-110 ring-4 ring-[#F43F5E]/30' :
+                                                'bg-[#2C2C2E] text-stone border-2 border-white/20'
                                         }`}>
-                                        {item.title}
-                                    </h3>
-                                    <div className="flex items-center gap-2 mt-1 text-[13px] text-stone">
-                                        <span className="font-mono">{item.time}</span>
+                                        {isPast ? '✓' : index + 1}
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className={`text-[13px] font-mono px-2 py-0.5 rounded-md ${isActive ? 'bg-[#F43F5E] text-white' : 'bg-white/10 text-stone'
+                                                }`}>
+                                                {item.time}
+                                            </span>
+                                            {item.travelTime && (
+                                                <span className="text-[11px] text-stone/70 flex items-center gap-1">
+                                                    {item.travelTime}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <h3 className={`text-[16px] font-semibold mb-1 ${isPast ? 'text-stone/50 line-through' : 'text-white'
+                                            }`}>
+                                            {item.title}
+                                        </h3>
+
                                         {item.location && (
-                                            <>
-                                                <span>•</span>
-                                                <span className="truncate">{item.location}</span>
-                                            </>
+                                            <p className="text-[12px] text-stone/70 flex items-center gap-1 mb-1">
+                                                <span className="material-symbols-outlined text-[14px]">location_on</span>
+                                                {item.location}
+                                            </p>
+                                        )}
+
+                                        {/* Smart Travel Info */}
+                                        {travelMinutes > 0 && isActive && (
+                                            <div className="mt-2 p-2 bg-blue-500/20 rounded-lg">
+                                                <p className="text-[11px] text-blue-300 flex items-center gap-2">
+                                                    <span className="material-symbols-outlined text-[14px]">info</span>
+                                                    步行 {walkingTime} 分 + 車程 {travelMinutes} 分 = 共 {walkingTime + travelMinutes} 分鐘
+                                                </p>
+                                            </div>
                                         )}
                                     </div>
-                                    {item.travelTime && (
-                                        <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-white/10 rounded-full text-[11px] text-stone">
-                                            {item.travelTime}
-                                        </div>
+
+                                    {/* Arrow */}
+                                    {coords && (
+                                        <span className="material-symbols-outlined text-stone/50 text-[18px] self-center">
+                                            chevron_right
+                                        </span>
                                     )}
-                                </div>
-
-                                {/* Map Icon */}
-                                {coords && (
-                                    <div className="flex items-center gap-1 text-stone">
-                                        <span className="material-symbols-outlined text-[18px]">location_on</span>
-                                    </div>
-                                )}
-                            </motion.div>
-                        );
-                    })}
-                </AnimatePresence>
-
-                {/* Empty State */}
-                {todaySchedule.length === 0 && (
-                    <div className="text-center py-16">
-                        <span className="text-5xl">🗺️</span>
-                        <p className="text-stone mt-4 text-[15px]">今日沒有行程安排</p>
-                        <p className="text-stone/70 mt-1 text-[13px]">前往「行程」頁面新增活動</p>
+                                </motion.div>
+                            );
+                        })}
                     </div>
-                )}
+                </div>
             </div>
 
             {/* Day Selector */}
             <div className="fixed bottom-20 left-0 right-0 px-4 z-10">
-                <div className="bg-[#2C2C2E]/95 backdrop-blur-sm rounded-2xl p-1.5 flex max-w-md mx-auto overflow-x-auto no-scrollbar shadow-lg">
+                <div className="bg-[#1C1C1E]/95 backdrop-blur-md rounded-2xl p-1.5 flex max-w-md mx-auto overflow-x-auto no-scrollbar shadow-xl border border-white/10">
                     {dayDates.map((date, index) => {
                         const dayNum = index + 1;
                         const isSelected = currentDay === dayNum;
-                        const daySchedule = schedule.filter(item => item.date === date);
-                        const hasLocations = daySchedule.some(item => getLocationInfo(item.location));
 
                         return (
                             <motion.button
                                 key={date}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => setCurrentDay(dayNum)}
-                                className={`flex-1 min-w-[65px] py-2 px-3 rounded-xl text-center transition-all ${isSelected
+                                onClick={() => { setCurrentDay(dayNum); setFocusedIndex(0); }}
+                                className={`flex-1 min-w-[55px] py-2 px-2 rounded-xl text-center transition-all ${isSelected
                                         ? 'bg-[#F43F5E] text-white shadow-lg'
                                         : 'text-stone hover:bg-white/5'
                                     }`}
                             >
-                                <p className="text-[10px] opacity-70">Day</p>
+                                <p className="text-[9px] opacity-70">DAY</p>
                                 <p className="text-[16px] font-bold">{dayNum}</p>
-                                {hasLocations && !isSelected && (
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#F43F5E] mx-auto mt-1" />
-                                )}
                             </motion.button>
                         );
                     })}
                 </div>
             </div>
 
-            {/* Smart Commute Banner */}
-            <div className="fixed bottom-32 left-4 right-4 max-w-md mx-auto z-10">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-r from-emerald-500/90 to-teal-500/90 backdrop-blur-sm rounded-xl p-3 flex items-center gap-3 shadow-lg"
-                >
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                        <span className="text-xl">🔔</span>
-                    </div>
-                    <div className="flex-1">
-                        <p className="text-white text-[13px] font-medium">智慧通勤提醒</p>
-                        <p className="text-white/70 text-[11px]">出發前 5 分鐘自動通知到手機</p>
-                    </div>
-                    <span className="material-symbols-outlined text-white/70 text-[20px]">check_circle</span>
-                </motion.div>
-            </div>
+            {/* Smart Alert Modal */}
+            <AnimatePresence>
+                {showSmartAlert && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 100, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 100, scale: 0.9 }}
+                        className="fixed bottom-36 left-4 right-4 max-w-md mx-auto z-50"
+                    >
+                        <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-4 shadow-2xl">
+                            <div className="flex items-start gap-3">
+                                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                                    <span className="text-2xl">🚶</span>
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="text-white font-bold text-[15px] mb-1">{alertContent.title}</h4>
+                                    <p className="text-white/80 text-[13px]">{alertContent.body}</p>
+                                    <div className="flex gap-2 mt-3">
+                                        <motion.button
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => {
+                                                setShowSmartAlert(false);
+                                                openGoogleMaps(todaySchedule[focusedIndex]);
+                                            }}
+                                            className="flex-1 py-2 bg-white text-charcoal rounded-lg text-[13px] font-medium"
+                                        >
+                                            開始導航
+                                        </motion.button>
+                                        <motion.button
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => setShowSmartAlert(false)}
+                                            className="px-4 py-2 bg-white/20 text-white rounded-lg text-[13px]"
+                                        >
+                                            稍後
+                                        </motion.button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
