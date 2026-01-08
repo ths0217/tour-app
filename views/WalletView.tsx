@@ -95,6 +95,12 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
     const [editingPersonal, setEditingPersonal] = useState<string | null>(null);
     const [personalInput, setPersonalInput] = useState(0);
 
+    // Calculations - must be before calculateSettlements
+    const totalGroupSpent = expenses.reduce((acc, curr) => acc + curr.amount, 0);
+    const remaining = budgetGoal - totalGroupSpent;
+    const spentPercent = budgetGoal > 0 ? (totalGroupSpent / budgetGoal) * 100 : 0;
+    const perPersonShare = totalGroupSpent / familyMembers.length;
+
     // Calculate optimal settlements (minimize number of transfers)
     const calculateSettlements = () => {
         const balances = familyMembers.map(member => {
@@ -135,22 +141,12 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
 
     const { balances: settlements, transfers } = calculateSettlements();
 
-    // Calculations
-    const groupExpenses = expenses.filter(e => e.payer === '團體' || !familyMembers.some(m => m.name === e.payer));
-    const totalGroupSpent = expenses.filter(e => e.payer !== '個人').reduce((acc, curr) => acc + curr.amount, 0);
-    const remaining = budgetGoal - totalGroupSpent;
-    const spentPercent = budgetGoal > 0 ? (totalGroupSpent / budgetGoal) * 100 : 0;
-    const perPersonShare = totalGroupSpent / familyMembers.length;
-
     // Personal spending per person
     const getPersonalSpent = (memberId: string) => {
         const member = familyMembers.find(m => m.id === memberId);
         if (!member) return 0;
         return expenses.filter(e => e.payer === member.name).reduce((acc, curr) => acc + curr.amount, 0);
     };
-
-
-
     const handleAddExpense = () => {
         if (!newTitle || !newAmount) {
             showToast('請填寫完整資訊', 'warning');
