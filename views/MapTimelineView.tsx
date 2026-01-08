@@ -8,36 +8,38 @@ interface MapTimelineViewProps {
     selectedDay?: number;
 }
 
-// Sample coordinates for Bangkok locations
-const locationCoordinates: Record<string, [number, number]> = {
-    '觀景名廬': [25.0330, 121.5654],
-    'TPE': [25.0797, 121.2324],
-    'BKK': [13.6900, 100.7501],
-    'Bangkok Patio': [13.7563, 100.5018],
-    'Jodd Fairs': [13.7490, 100.5677],
-    'Terminal 21': [13.7378, 100.5602],
-    'IconSiam': [13.7261, 100.5099],
-    'Siam Paragon': [13.7466, 100.5343],
-    '大皇宮': [13.7500, 100.4914],
-    '鄭王廟': [13.7437, 100.4890],
-    'Mahanakhon': [13.7234, 100.5296],
-    'Chatuchak': [13.7999, 100.5504],
-    'Asiatique': [13.7053, 100.5014],
-    '水門市場': [13.7509, 100.5396],
-    'Chinatown': [13.7407, 100.5093],
-    'default': [13.7563, 100.5018],
+// Real coordinates for Bangkok locations
+const locationCoordinates: Record<string, { lat: number; lng: number; nameEn: string }> = {
+    '觀景名廬': { lat: 25.0330, lng: 121.5654, nameEn: 'Home' },
+    'TPE': { lat: 25.0797, lng: 121.2324, nameEn: 'Taoyuan Airport' },
+    'BKK': { lat: 13.6900, lng: 100.7501, nameEn: 'Suvarnabhumi Airport' },
+    'Bangkok Patio': { lat: 13.7428, lng: 100.5553, nameEn: 'Bangkok Patio Apartment' },
+    'Jodd Fairs': { lat: 13.7490, lng: 100.5677, nameEn: 'Jodd Fairs Night Market' },
+    'Terminal 21': { lat: 13.7378, lng: 100.5602, nameEn: 'Terminal 21 Asok' },
+    'IconSiam': { lat: 13.7261, lng: 100.5099, nameEn: 'IconSiam Mall' },
+    'Siam Paragon': { lat: 13.7466, lng: 100.5343, nameEn: 'Siam Paragon' },
+    '大皇宮': { lat: 13.7500, lng: 100.4914, nameEn: 'Grand Palace Bangkok' },
+    '鄭王廟': { lat: 13.7437, lng: 100.4890, nameEn: 'Wat Arun Temple' },
+    'Mahanakhon': { lat: 13.7234, lng: 100.5296, nameEn: 'Mahanakhon Skywalk' },
+    'Chatuchak': { lat: 13.7999, lng: 100.5504, nameEn: 'Chatuchak Weekend Market' },
+    'Asiatique': { lat: 13.7053, lng: 100.5014, nameEn: 'Asiatique The Riverfront' },
+    '水門市場': { lat: 13.7509, lng: 100.5396, nameEn: 'Pratunam Market' },
+    'Chinatown': { lat: 13.7407, lng: 100.5093, nameEn: 'Bangkok Chinatown' },
+    '臺灣桃園國際機場': { lat: 25.0797, lng: 121.2324, nameEn: 'Taoyuan Airport' },
+    '素萬那普機場': { lat: 13.6900, lng: 100.7501, nameEn: 'Suvarnabhumi Airport' },
 };
 
-const getLocationCoords = (location?: string): [number, number] => {
-    if (!location) return locationCoordinates.default;
-    for (const [key, coords] of Object.entries(locationCoordinates)) {
-        if (location.includes(key)) return coords;
+const getLocationInfo = (location?: string): { lat: number; lng: number; nameEn: string } | null => {
+    if (!location) return null;
+    for (const [key, info] of Object.entries(locationCoordinates)) {
+        if (location.includes(key)) return info;
     }
-    return locationCoordinates.default;
+    return null;
 };
 
 export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimelineViewProps) {
     const [selectedItemIndex, setSelectedItemIndex] = useState<number | null>(null);
+    const [currentDay, setCurrentDay] = useState(selectedDay);
 
     // Get unique dates and current date
     const dayDates = useMemo(() => {
@@ -45,7 +47,7 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
         return dates;
     }, [schedule]);
 
-    const currentDate = dayDates[selectedDay - 1];
+    const currentDate = dayDates[currentDay - 1];
 
     // Get today's activities sorted by time
     const todaySchedule = useMemo(() => {
@@ -54,41 +56,91 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
             .sort((a, b) => a.time.localeCompare(b.time));
     }, [schedule, currentDate]);
 
-    // Generate static map URL with markers
+    // Get locations with coordinates
+    const locationsWithCoords = useMemo(() => {
+        return todaySchedule
+            .map((item, index) => ({
+                ...item,
+                index,
+                coords: getLocationInfo(item.location),
+            }))
+            .filter(item => item.coords !== null);
+    }, [todaySchedule]);
+
+    // Generate Google Maps Static API URL with markers
     const staticMapUrl = useMemo(() => {
-        if (todaySchedule.length === 0) return '';
+        if (locationsWithCoords.length === 0) return '';
 
-        const locations = todaySchedule
-            .filter(item => item.location)
-            .map((item, index) => {
-                const coords = getLocationCoords(item.location);
-                return `${coords[0]},${coords[1]}`;
-            });
+        // Build markers string for Google Maps Static API
+        const markers = locationsWithCoords
+            .map((item, idx) => {
+                const { lat, lng } = item.coords!;
+                return `markers=color:red%7Clabel:${idx + 1}%7C${lat},${lng}`;
+            })
+            .join('&');
 
-        if (locations.length === 0) return '';
+        // Build path string for route line
+        const pathCoords = locationsWithCoords
+            .map(item => `${item.coords!.lat},${item.coords!.lng}`)
+            .join('|');
+        const path = locationsWithCoords.length > 1
+            ? `&path=color:0xF43F5E%7Cweight:3%7C${pathCoords}`
+            : '';
 
-        // Use OpenStreetMap static image API
-        const markers = todaySchedule
-            .filter(item => item.location)
-            .map((item, i) => {
-                const coords = getLocationCoords(item.location);
-                return `pin-s-${i + 1}+F43F5E(${coords[1]},${coords[0]})`;
+        // Calculate center
+        const centerLat = locationsWithCoords.reduce((sum, item) => sum + item.coords!.lat, 0) / locationsWithCoords.length;
+        const centerLng = locationsWithCoords.reduce((sum, item) => sum + item.coords!.lng, 0) / locationsWithCoords.length;
+
+        // Use Google Maps Static API (with free tier - works without API key for limited use)
+        // For production, add your API key
+        return `https://maps.googleapis.com/maps/api/staticmap?center=${centerLat},${centerLng}&zoom=12&size=640x300&scale=2&maptype=roadmap&${markers}${path}&style=feature:poi%7Cvisibility:off`;
+    }, [locationsWithCoords]);
+
+    // Fallback to Mapbox if Google Maps doesn't work
+    const mapboxUrl = useMemo(() => {
+        if (locationsWithCoords.length === 0) return '';
+
+        const pins = locationsWithCoords
+            .map((item, idx) => {
+                const { lat, lng } = item.coords!;
+                return `pin-l-${idx + 1}+F43F5E(${lng},${lat})`;
             })
             .join(',');
 
-        // Calculate center
-        const allCoords = todaySchedule
-            .filter(item => item.location)
-            .map(item => getLocationCoords(item.location));
+        const centerLat = locationsWithCoords.reduce((sum, item) => sum + item.coords!.lat, 0) / locationsWithCoords.length;
+        const centerLng = locationsWithCoords.reduce((sum, item) => sum + item.coords!.lng, 0) / locationsWithCoords.length;
 
-        if (allCoords.length === 0) return '';
+        return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${pins}/${centerLng},${centerLat},11,0/640x300@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
+    }, [locationsWithCoords]);
 
-        const centerLat = allCoords.reduce((sum, c) => sum + c[0], 0) / allCoords.length;
-        const centerLng = allCoords.reduce((sum, c) => sum + c[1], 0) / allCoords.length;
+    // Open Google Maps with all waypoints
+    const openGoogleMapsRoute = () => {
+        if (locationsWithCoords.length === 0) return;
 
-        // Use a free static map service
-        return `https://api.mapbox.com/styles/v1/mapbox/light-v11/static/${markers}/${centerLng},${centerLat},11,0/400x200@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
-    }, [todaySchedule]);
+        const origin = locationsWithCoords[0].coords!;
+        const destination = locationsWithCoords[locationsWithCoords.length - 1].coords!;
+        const waypoints = locationsWithCoords
+            .slice(1, -1)
+            .map(item => `${item.coords!.lat},${item.coords!.lng}`)
+            .join('|');
+
+        let url = `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}`;
+        if (waypoints) {
+            url += `&waypoints=${waypoints}`;
+        }
+        url += '&travelmode=driving';
+
+        window.open(url, '_blank');
+    };
+
+    // Open single location in Google Maps
+    const openLocationInMaps = (item: ScheduleItem) => {
+        const coords = getLocationInfo(item.location);
+        if (coords) {
+            const url = `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}&query_place_id=${encodeURIComponent(coords.nameEn)}`;
+            window.open(url, '_blank');
+        }
+    };
 
     // Schedule smart commute reminders
     useEffect(() => {
@@ -97,7 +149,6 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
         todaySchedule.forEach((item, index) => {
             if (index === 0 || !item.travelTime) return;
 
-            // Parse travel time (e.g., "🚗 30分" → 30)
             const travelMatch = item.travelTime?.match(/(\d+)/);
             const travelMinutes = travelMatch ? parseInt(travelMatch[1]) : 0;
 
@@ -106,7 +157,6 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                 const activityTime = new Date();
                 activityTime.setHours(hours, minutes, 0, 0);
 
-                // Notification time = activity time - travel time - 5 min
                 const notifyTime = new Date(activityTime.getTime() - (travelMinutes + 5) * 60 * 1000);
 
                 if (notifyTime > new Date()) {
@@ -127,158 +177,112 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
             {/* Header */}
             <div className="px-4 pt-6 pb-3 safe-top flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                    <span className="text-red-500 text-xl">🗺️</span>
+                    <span className="text-2xl">🗺️</span>
                     <h1 className="text-xl font-bold">今日路線</h1>
                 </div>
-                <span className="text-stone text-[14px]">{todaySchedule.length} 個地點</span>
+                <span className="text-stone text-[14px]">{locationsWithCoords.length} 個景點</span>
             </div>
 
-            {/* Route Visualization */}
-            <div className="mx-4 rounded-2xl overflow-hidden bg-[#2C2C2E] relative">
-                {/* Static Map Background */}
-                <div
-                    className="h-[200px] bg-cover bg-center relative"
-                    style={{
-                        backgroundImage: `linear-gradient(to bottom, rgba(44,44,46,0.3), rgba(44,44,46,0.8)), url('https://api.mapbox.com/styles/v1/mapbox/light-v11/static/${todaySchedule.length > 0 ? getLocationCoords(todaySchedule[0]?.location)[1] : 100.5018},${todaySchedule.length > 0 ? getLocationCoords(todaySchedule[0]?.location)[0] : 13.7563},11,0/800x400@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw')`,
-                    }}
-                >
-                    {/* SVG Route Diagram Overlay */}
-                    <svg
-                        className="absolute inset-0 w-full h-full"
-                        viewBox="0 0 400 200"
-                        preserveAspectRatio="xMidYMid meet"
-                    >
-                        {/* Grid Background Pattern */}
-                        <defs>
-                            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
-                            </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#grid)" />
+            {/* Map Section - Clickable to open Google Maps */}
+            <motion.div
+                className="mx-4 rounded-2xl overflow-hidden shadow-lg cursor-pointer relative"
+                whileTap={{ scale: 0.98 }}
+                onClick={openGoogleMapsRoute}
+            >
+                {/* Map Image */}
+                <div className="relative h-[200px] bg-[#2C2C2E]">
+                    <img
+                        src={mapboxUrl}
+                        alt="Today's route map"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                            // Fallback to a placeholder if map fails to load
+                            (e.target as HTMLImageElement).src = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/100.5018,13.7563,11,0/640x300@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
+                        }}
+                    />
 
-                        {/* Route Lines */}
-                        {todaySchedule.length > 1 && (
-                            <path
-                                d={todaySchedule.map((_, index) => {
-                                    const x = 40 + (index * (320 / Math.max(todaySchedule.length - 1, 1)));
-                                    const y = 50 + (Math.sin(index * 1.2) * 40 + 40);
-                                    return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-                                }).join(' ')}
-                                fill="none"
-                                stroke="#F43F5E"
-                                strokeWidth="3"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        )}
+                    {/* Overlay with tap hint */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                        {/* Location Markers */}
-                        {todaySchedule.map((item, index) => {
-                            const x = todaySchedule.length === 1 ? 200 : 40 + (index * (320 / Math.max(todaySchedule.length - 1, 1)));
-                            const y = 50 + (Math.sin(index * 1.2) * 40 + 40);
-                            const isSelected = selectedItemIndex === index;
+                    {/* Open in Maps button */}
+                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-lg">
+                        <span className="material-symbols-outlined text-[16px] text-charcoal">open_in_new</span>
+                        <span className="text-[12px] font-medium text-charcoal">在 Google 地圖開啟</span>
+                    </div>
 
-                            return (
-                                <g key={item.id} onClick={() => setSelectedItemIndex(index)} style={{ cursor: 'pointer' }}>
-                                    {/* Shadow */}
-                                    <ellipse cx={x} cy={y + 25} rx="12" ry="4" fill="rgba(0,0,0,0.2)" />
-
-                                    {/* Marker Circle */}
-                                    <circle
-                                        cx={x}
-                                        cy={y}
-                                        r={isSelected ? 22 : 18}
-                                        fill="#F43F5E"
-                                        stroke="white"
-                                        strokeWidth="3"
-                                        className="transition-all duration-200"
-                                    />
-
-                                    {/* Number */}
-                                    <text
-                                        x={x}
-                                        y={y + 1}
-                                        textAnchor="middle"
-                                        dominantBaseline="middle"
-                                        fill="white"
-                                        fontSize={isSelected ? "16" : "14"}
-                                        fontWeight="bold"
-                                    >
-                                        {index + 1}
-                                    </text>
-
-                                    {/* Location Label (below marker) */}
-                                    <rect
-                                        x={x - 30}
-                                        y={y + 30}
-                                        width="60"
-                                        height="18"
-                                        rx="9"
-                                        fill="rgba(255,255,255,0.9)"
-                                    />
-                                    <text
-                                        x={x}
-                                        y={y + 40}
-                                        textAnchor="middle"
-                                        dominantBaseline="middle"
-                                        fill="#333"
-                                        fontSize="9"
-                                        fontWeight="500"
-                                    >
-                                        {item.time}
-                                    </text>
-                                </g>
-                            );
-                        })}
-                    </svg>
+                    {/* Location count badge */}
+                    <div className="absolute top-3 left-3 bg-[#F43F5E] rounded-full px-3 py-1 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-white text-[14px]">route</span>
+                        <span className="text-[12px] font-bold text-white">{locationsWithCoords.length} 站</span>
+                    </div>
                 </div>
+            </motion.div>
+
+            {/* Info Banner */}
+            <div className="mx-4 mt-3 bg-blue-500/20 rounded-xl p-3 flex items-center gap-3">
+                <span className="text-xl">💡</span>
+                <p className="text-[12px] text-blue-300 flex-1">
+                    點擊地圖開啟 Google Maps 查看完整路線導航
+                </p>
             </div>
 
             {/* Timeline List */}
-            <div className="mt-4 px-4 pb-24">
-                <AnimatePresence>
-                    {todaySchedule.map((item, index) => (
-                        <motion.div
-                            key={item.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            onClick={() => setSelectedItemIndex(index)}
-                            className={`flex items-start gap-4 py-4 border-b border-white/10 cursor-pointer ${selectedItemIndex === index ? 'bg-white/5 -mx-4 px-4 rounded-xl' : ''
-                                }`}
-                        >
-                            {/* Number Badge */}
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0 ${item.completed ? 'bg-green-500' : 'bg-[#F43F5E]'
-                                }`}>
-                                {item.completed ? '✓' : index + 1}
-                            </div>
+            <div className="mt-4 px-4 pb-32">
+                <h2 className="text-[13px] text-stone uppercase tracking-wide mb-3">行程表</h2>
 
-                            {/* Content */}
-                            <div className="flex-1 min-w-0">
-                                <h3 className={`text-[16px] font-semibold ${item.completed ? 'text-stone line-through' : 'text-white'
+                <AnimatePresence>
+                    {todaySchedule.map((item, index) => {
+                        const coords = getLocationInfo(item.location);
+                        return (
+                            <motion.div
+                                key={item.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                onClick={() => {
+                                    setSelectedItemIndex(index);
+                                    if (coords) openLocationInMaps(item);
+                                }}
+                                className={`flex items-start gap-4 py-4 border-b border-white/10 cursor-pointer active:bg-white/5 rounded-lg -mx-2 px-2 ${selectedItemIndex === index ? 'bg-white/5' : ''
+                                    }`}
+                            >
+                                {/* Number Badge */}
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0 shadow-lg ${item.completed ? 'bg-green-500' : 'bg-[#F43F5E]'
                                     }`}>
-                                    {item.title}
-                                </h3>
-                                <div className="flex items-center gap-2 mt-1 text-[13px] text-stone">
-                                    <span>{item.time}</span>
-                                    {item.location && (
-                                        <>
-                                            <span>•</span>
-                                            <span className="truncate">{item.location}</span>
-                                        </>
+                                    {item.completed ? '✓' : index + 1}
+                                </div>
+
+                                {/* Content */}
+                                <div className="flex-1 min-w-0">
+                                    <h3 className={`text-[16px] font-semibold ${item.completed ? 'text-stone line-through' : 'text-white'
+                                        }`}>
+                                        {item.title}
+                                    </h3>
+                                    <div className="flex items-center gap-2 mt-1 text-[13px] text-stone">
+                                        <span className="font-mono">{item.time}</span>
+                                        {item.location && (
+                                            <>
+                                                <span>•</span>
+                                                <span className="truncate">{item.location}</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    {item.travelTime && (
+                                        <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-white/10 rounded-full text-[11px] text-stone">
+                                            {item.travelTime}
+                                        </div>
                                     )}
                                 </div>
-                                {item.travelTime && (
-                                    <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-white/10 rounded-full text-[11px] text-stone">
-                                        {item.travelTime}
+
+                                {/* Map Icon */}
+                                {coords && (
+                                    <div className="flex items-center gap-1 text-stone">
+                                        <span className="material-symbols-outlined text-[18px]">location_on</span>
                                     </div>
                                 )}
-                            </div>
-
-                            {/* Arrow */}
-                            <span className="material-symbols-outlined text-stone text-[20px]">chevron_right</span>
-                        </motion.div>
-                    ))}
+                            </motion.div>
+                        );
+                    })}
                 </AnimatePresence>
 
                 {/* Empty State */}
@@ -293,37 +297,50 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
 
             {/* Day Selector */}
             <div className="fixed bottom-20 left-0 right-0 px-4 z-10">
-                <div className="bg-[#2C2C2E] rounded-full p-1 flex max-w-md mx-auto overflow-x-auto no-scrollbar">
+                <div className="bg-[#2C2C2E]/95 backdrop-blur-sm rounded-2xl p-1.5 flex max-w-md mx-auto overflow-x-auto no-scrollbar shadow-lg">
                     {dayDates.map((date, index) => {
                         const dayNum = index + 1;
-                        const isSelected = selectedDay === dayNum;
+                        const isSelected = currentDay === dayNum;
+                        const daySchedule = schedule.filter(item => item.date === date);
+                        const hasLocations = daySchedule.some(item => getLocationInfo(item.location));
+
                         return (
                             <motion.button
                                 key={date}
                                 whileTap={{ scale: 0.95 }}
-                                className={`flex-1 min-w-[60px] py-2 px-3 rounded-full text-center transition-colors ${isSelected
-                                        ? 'bg-[#F43F5E] text-white'
-                                        : 'text-stone'
+                                onClick={() => setCurrentDay(dayNum)}
+                                className={`flex-1 min-w-[65px] py-2 px-3 rounded-xl text-center transition-all ${isSelected
+                                        ? 'bg-[#F43F5E] text-white shadow-lg'
+                                        : 'text-stone hover:bg-white/5'
                                     }`}
                             >
                                 <p className="text-[10px] opacity-70">Day</p>
-                                <p className="text-[14px] font-bold">{dayNum}</p>
+                                <p className="text-[16px] font-bold">{dayNum}</p>
+                                {hasLocations && !isSelected && (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#F43F5E] mx-auto mt-1" />
+                                )}
                             </motion.button>
                         );
                     })}
                 </div>
             </div>
 
-            {/* Smart Commute Info Banner */}
+            {/* Smart Commute Banner */}
             <div className="fixed bottom-32 left-4 right-4 max-w-md mx-auto z-10">
-                <div className="bg-gradient-to-r from-blue-500/90 to-indigo-500/90 backdrop-blur-sm rounded-xl p-3 flex items-center gap-3">
-                    <span className="text-2xl">🔔</span>
-                    <div className="flex-1">
-                        <p className="text-white text-[13px] font-medium">智慧通勤提醒已啟用</p>
-                        <p className="text-white/70 text-[11px]">出發前 5 分鐘自動通知</p>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-gradient-to-r from-emerald-500/90 to-teal-500/90 backdrop-blur-sm rounded-xl p-3 flex items-center gap-3 shadow-lg"
+                >
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <span className="text-xl">🔔</span>
                     </div>
-                    <span className="material-symbols-outlined text-white/50">check_circle</span>
-                </div>
+                    <div className="flex-1">
+                        <p className="text-white text-[13px] font-medium">智慧通勤提醒</p>
+                        <p className="text-white/70 text-[11px]">出發前 5 分鐘自動通知到手機</p>
+                    </div>
+                    <span className="material-symbols-outlined text-white/70 text-[20px]">check_circle</span>
+                </motion.div>
             </div>
         </div>
     );
