@@ -17,15 +17,16 @@ const LoginView = lazy(() => import('./views/LoginView'));
 const Onboarding = lazy(() => import('./components/Onboarding'));
 
 // Data version for cache invalidation
-const DATA_VERSION = 'v2.1.0';
+const DATA_VERSION = 'v3.0.0';
 const VERSION_KEY = 'tourapp_version';
 
 // Clear old data if version changed
 if (typeof window !== 'undefined') {
   const storedVersion = localStorage.getItem(VERSION_KEY);
   if (storedVersion !== DATA_VERSION) {
-    // Clear expenses to force reload with new payers
+    // Clear expenses and schedule to force reload with new data
     localStorage.removeItem('tourapp_expenses');
+    localStorage.removeItem('tourapp_schedule');
     localStorage.setItem(VERSION_KEY, DATA_VERSION);
   }
 }
