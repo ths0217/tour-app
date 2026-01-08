@@ -44,7 +44,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   const [selectedDay, setSelectedDay] = useState(1);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ScheduleItem | null>(null);
-  
+
   // View mode and search
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchQuery, setSearchQuery] = useState('');
@@ -104,17 +104,23 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   const currentDayData = days.find(d => d.id === selectedDay);
   const currentDaySchedule = schedule
     .filter(item => item.date === currentDayData?.fullDate)
-    .filter(item => 
-      searchQuery === '' || 
+    .filter(item =>
+      searchQuery === '' ||
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.location?.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => a.time.localeCompare(b.time));
 
   const handleToggle = (id: number) => {
-    setSchedule(schedule.map(item => 
+    setSchedule(schedule.map(item =>
       item.id === id ? { ...item, completed: !item.completed } : item
     ));
+  };
+
+  // Delete activity
+  const handleDelete = (id: number) => {
+    setSchedule(schedule.filter(item => item.id !== id));
+    setSelectedItem(null);
   };
 
   const handleAddActivity = () => {
@@ -156,9 +162,9 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
   };
 
   const handleApplyTemplate = (items: Omit<ScheduleItem, 'id'>[]) => {
-    const newItems = items.map((item, i) => ({ 
-      ...item, 
-      id: Date.now() + i 
+    const newItems = items.map((item, i) => ({
+      ...item,
+      id: Date.now() + i
     }));
     setSchedule([...schedule, ...newItems]);
   };
@@ -213,11 +219,10 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                 key={day.id}
                 onClick={() => setSelectedDay(day.id)}
                 whileTap={{ scale: 0.95 }}
-                className={`flex items-center gap-2 px-3 py-2 rounded-pill whitespace-nowrap transition-all duration-200 ${
-                  selectedDay === day.id
-                    ? 'bg-charcoal text-white shadow-mag'
-                    : 'bg-white/80 text-charcoal border border-black/5'
-                }`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-pill whitespace-nowrap transition-all duration-200 ${selectedDay === day.id
+                  ? 'bg-charcoal text-white shadow-mag'
+                  : 'bg-white/80 text-charcoal border border-black/5'
+                  }`}
               >
                 <span className="font-mono text-[11px]">{day.date}</span>
                 <span className={`text-[10px] ${selectedDay === day.id ? 'text-white/70' : 'text-stone'}`}>
@@ -260,15 +265,15 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
       {/* Daily Summary, Map and Conflict Detector */}
       <div className="px-4 pt-4 space-y-4">
         {/* Daily Summary */}
-        <DailySummary 
-          schedule={schedule} 
+        <DailySummary
+          schedule={schedule}
           selectedDate={currentDayData?.fullDate || ''}
           weather={{ temp: '32°C', condition: '晴朗' }}
         />
 
         {/* Business Hours Warning */}
-        <BusinessHoursWarning 
-          schedule={schedule} 
+        <BusinessHoursWarning
+          schedule={schedule}
           selectedDate={currentDayData?.fullDate || ''}
         />
 
@@ -276,15 +281,15 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
         <TransportLinks destination={currentDaySchedule[0]?.title} />
 
         {/* Conflict Detection */}
-        <ConflictDetector 
-          schedule={schedule} 
+        <ConflictDetector
+          schedule={schedule}
           onResolve={(item) => setSelectedItem(item)}
         />
-        
+
         {/* Route Map */}
-        <ItineraryMap 
-          schedule={schedule} 
-          selectedDate={currentDayData?.fullDate || ''} 
+        <ItineraryMap
+          schedule={schedule}
+          selectedDate={currentDayData?.fullDate || ''}
           onLocationClick={(item) => setSelectedItem(item)}
         />
       </div>
@@ -386,11 +391,10 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                         <button
                           key={type.id}
                           onClick={() => setNewType(type.id)}
-                          className={`flex items-center gap-1.5 px-4 py-2 rounded-pill text-mag-badge transition-all ${
-                            newType === type.id
-                              ? 'bg-charcoal text-white'
-                              : 'bg-white text-charcoal border border-black/5'
-                          }`}
+                          className={`flex items-center gap-1.5 px-4 py-2 rounded-pill text-mag-badge transition-all ${newType === type.id
+                            ? 'bg-charcoal text-white'
+                            : 'bg-white text-charcoal border border-black/5'
+                            }`}
                         >
                           <span className="material-symbols-outlined text-[16px]">{type.icon}</span>
                           {type.label}
@@ -410,7 +414,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                         className="w-full text-mag-body text-charcoal bg-transparent outline-none font-mono"
                       />
                     </div>
-                    
+
                     <div className="bg-white rounded-mag p-4 shadow-mag">
                       <label className="text-mag-caption text-stone block mb-2">標題</label>
                       <input
@@ -438,9 +442,9 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                       <label className="text-mag-caption text-stone block mb-3">照片（選填）</label>
                       {newImage ? (
                         <div className="relative">
-                          <img 
-                            src={newImage} 
-                            alt="Preview" 
+                          <img
+                            src={newImage}
+                            alt="Preview"
                             className="w-full h-40 object-cover rounded-mag"
                           />
                           <button
@@ -554,7 +558,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                     <span className="material-symbols-outlined text-stone">close</span>
                   </motion.button>
                 </div>
-                
+
                 {selectedItem.location && (
                   <div className="flex items-center gap-2 text-mag-body text-stone mb-4">
                     <span className="material-symbols-outlined text-[18px]">location_on</span>
@@ -565,7 +569,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                 {selectedItem.location && (
                   <DriverCard title={selectedItem.title} location={selectedItem.location} />
                 )}
-                
+
                 {selectedItem.desc && (
                   <p className="text-mag-body text-charcoal leading-relaxed mb-6 bg-white p-4 rounded-mag shadow-mag">
                     {selectedItem.desc}
@@ -583,6 +587,16 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
                     )}
                   </div>
                 )}
+
+                {/* Delete Button */}
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleDelete(selectedItem.id)}
+                  className="w-full mt-6 py-3 rounded-mag bg-red-500 text-white flex items-center justify-center gap-2 shadow-mag"
+                >
+                  <span className="material-symbols-outlined text-[18px]">delete</span>
+                  <span className="text-mag-body font-semibold">刪除此行程</span>
+                </motion.button>
               </div>
             </motion.div>
           </>
