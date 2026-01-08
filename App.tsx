@@ -59,47 +59,40 @@ const initialExpenses: Expense[] = [
 ];
 
 const initialSchedule: ScheduleItem[] = [
-  // Day 1: 1/27 (Mon) - The Beginning
-  { id: 101, date: '2025-01-27', time: '14:30', title: '抵達曼谷 BKK', type: 'flight', desc: '📍 Suvarnabhumi Airport • 領行李後叫 Grab 前往飯店', location: 'BKK', completed: true },
-  { id: 102, date: '2025-01-27', time: '16:00', title: '入住 Avani+ Riverside', type: 'hotel', desc: '🏨 接待大廳 • Booking: KV-8829 • 絕美河景房 Check-in ✨', location: 'Avani+ Riverside', completed: true, travelTime: '🚗 45m', travelTip: '建議叫 Grab XL' },
-  { id: 103, date: '2025-01-27', time: '18:00', title: 'The Rim 河畔晚餐', type: 'restaurant', desc: '🍽️ 河畔氛圍 • 建議點打拋豬與冬蔭功 🌶️', location: 'The Rim', completed: false, travelTime: '🚶 5m', travelTip: '飯店樓下步行可達' },
-  { id: 104, date: '2025-01-27', time: '20:00', title: 'Asiatique 河濱夜市', type: 'attraction', desc: '🎡 摩天輪拍照 • 伴手禮小店巡禮 🛍️', location: 'Asiatique', completed: false, travelTime: '⛴️ 15m', travelTip: '飯店免費接駁船' },
+  // Day 1: 01/27 (週二) - 出發日
+  { id: 101, date: '2025-01-27', time: '08:00', title: '觀景名廬出發', type: 'transport', desc: '🏠 從家出發前往機場', location: '觀景名廬', completed: false },
+  { id: 102, date: '2025-01-27', time: '13:50', title: '臺灣桃園國際機場', type: 'flight', desc: '✈️ 辦理登機手續 • 13:50 離開', location: 'TPE', completed: false, travelTime: '自訂交通' },
+  { id: 103, date: '2025-01-27', time: '16:45', title: '抵達素萬那普機場', type: 'flight', desc: '📍 Suvarnabhumi Airport • 領行李叫 Grab', location: 'BKK', completed: false },
+  { id: 104, date: '2025-01-27', time: '16:45', title: 'Bangkok Patio Serviced Apartment', type: 'accommodation', desc: '🏨 入住公寓 • 停留 1 時整理行李', location: 'Bangkok Patio', completed: false },
+  { id: 105, date: '2025-01-27', time: '17:45', title: '喬德夜市新址 Jodd Fairs Ratchada', type: 'dining', desc: '🌋 火山排骨 • 水果西施 • 停留 1 時', location: 'Jodd Fairs Ratchada', completed: false },
 
-  // Day 2: 1/28 (Tue) - Culture & Michelin (Restored)
-  { id: 201, date: '2025-01-28', time: '09:00', title: '鄭王廟 (Wat Arun)', type: 'camera', desc: '📸 J-Tip: 預約 "Sense of Thai" 租泰服 • 避開中午人潮 ☀️', location: 'Wat Arun', completed: false, travelTime: '⛴️ 30m', travelTip: '搭船至 N8 碼頭' },
-  { id: 202, date: '2025-01-28', time: '12:30', title: 'Supanniga Eating Room', type: 'restaurant', desc: '🦀 米其林推薦 • 必點蟹肉烘蛋 & 甘蔗煙燻魚 🤤', location: 'Supanniga Tha Tien', completed: false, travelTime: '⛴️ 10m', travelTip: '或是 Grab 叫車' },
-  { id: 203, date: '2025-01-28', time: '15:00', title: '臥佛寺按摩學校', type: 'spa', desc: '💆‍♀️ 正宗古法按摩 • 釋放走路的疲勞 ✨', location: 'Wat Pho Massage', completed: false, travelTime: '🚶 10m', travelTip: '吃飽散步過去' },
-  { id: 204, date: '2025-01-28', time: '17:30', title: 'IconSiam & % Arabica', type: 'shopping_bag', desc: '☕️ 絕美景觀咖啡 • 逛室內水上市場吹冷氣 ❄️', location: 'ICONSIAM', completed: false, travelTime: '⛴️ 15m', travelTip: 'ICONSIAM 接駁船' },
+  // Day 2: 01/28 (週三) - 寺廟文化日
+  { id: 201, date: '2025-01-28', time: '08:00', title: 'Bangkok Patio 早餐', type: 'accommodation', desc: '🏨 公寓內用早餐', location: 'Bangkok Patio', completed: false },
+  { id: 202, date: '2025-01-28', time: '09:00', title: '鄭王廟 (穿泰服)', type: 'activity', desc: '👗 預約泰服體驗 • 停留 4 時 • 拍照打卡', location: 'Wat Arun', completed: false, travelTime: '🚶 10分' },
+  { id: 203, date: '2025-01-28', time: '13:10', title: '臥佛寺 Wat Pho', type: 'activity', desc: '🛕 Temple of the Reclining Buddha • 停留 1 時', location: 'Wat Pho', completed: false, travelTime: '🚶 10分' },
+  { id: 204, date: '2025-01-28', time: '14:20', title: '玉佛寺 Wat Phra Kaeo', type: 'activity', desc: '⛩️ 大皇宮內 • 停留 1 時', location: 'Grand Palace', completed: false },
+  { id: 205, date: '2025-01-28', time: '15:20', title: 'Bangkok Patio 休息', type: 'accommodation', desc: '🏨 回公寓休息', location: 'Bangkok Patio', completed: false, travelTime: '自訂交通' },
 
-  // Day 3: 1/29 (Wed) - City Chic & Mango Tango (Restored)
-  { id: 301, date: '2025-01-29', time: '11:00', title: 'Central Embassy', type: 'checkroom', desc: '📚 Open House 最美書店 • 貴婦百貨逛街 💃', location: 'Central Embassy', completed: false, travelTime: '🚆 25m', travelTip: 'BTS Phloen Chit' },
-  { id: 302, date: '2025-01-29', time: '13:00', title: 'Kub Kao Kub Pla', type: 'restaurant', desc: '🐟 吃飯吃魚 • 精緻泰式料理 Chain 🍴', location: 'Central World', completed: false, travelTime: '🚶 10m', travelTip: 'Skywalk 步行' },
-  { id: 303, date: '2025-01-29', time: '15:30', title: 'Mango Tango 甜點', type: 'icecream', desc: '🥭 芒果糯米飯始祖 • J-Tip: 下午茶時段人少 🤫', location: 'Siam Square', completed: false, travelTime: '🚆 10m', travelTip: 'BTS Siam' },
-  { id: 304, date: '2025-01-29', time: '17:30', title: 'Red Sky Bar', type: 'wine_bar', desc: '🥂 55F 高空日落 • Happy Hour 買一送一 🌅', location: 'Centara Grand', completed: false, travelTime: '🚶 10m', travelTip: 'Centara 飯店頂樓' },
-  { id: 305, date: '2025-01-29', time: '20:00', title: 'Pratunam / Big C', type: 'shopping_cart', desc: '🍪 掃貨行程 • Pocky, 海苔, 芒果乾一次買齊 🛒', location: 'Big C Rajdamri', completed: false, travelTime: '🚶 5m', travelTip: '就在對面' },
+  // Day 3: 01/29 (週四) - 動物園＆遊船日
+  { id: 301, date: '2025-01-29', time: '08:00', title: 'Bangkok Patio 早餐', type: 'accommodation', desc: '🏨 公寓內用早餐', location: 'Bangkok Patio', completed: false },
+  { id: 302, date: '2025-01-29', time: '09:00', title: '曼谷 Safari World 野生動物園', type: 'activity', desc: '🦁 野生動物園 • 停留 1 時', location: 'Safari World', completed: false, travelTime: '自訂交通' },
+  { id: 303, date: '2025-01-29', time: '10:00', title: 'Sabaikay Head Massage + Sleep Salon', type: 'shopping', desc: '💆 按摩休息 • 停留 1 時', location: 'Sabaikay', completed: false, travelTime: '🚶 12分' },
+  { id: 304, date: '2025-01-29', time: '19:45', title: '白蘭花河號 ICONSIAM Pier 4', type: 'transport', desc: '🛥️ Chao Phraya Tourist Boat • 21:45 離開', location: 'ICONSIAM', completed: false, travelTime: '🚌 46分' },
+  { id: 305, date: '2025-01-29', time: '22:31', title: 'Bangkok Patio 回程', type: 'accommodation', desc: '🏨 回公寓休息', location: 'Bangkok Patio', completed: false },
 
-  // Day 4: 1/30 (Thu) - Trendy Vibes
-  { id: 401, date: '2025-01-30', time: '11:00', title: 'The Commons Thonglor', type: 'brunch', desc: '🧱 工業風清水模 • 網美早午餐 Roast 🥯', location: 'Thong Lor Soi 17', completed: false, travelTime: '🚗 20m', travelTip: 'Grab 較方便' },
-  { id: 402, date: '2025-01-30', time: '14:00', title: 'Ekkamai 選物店', type: 'checkroom', desc: '🧥 Treasure Factory 挖寶 • 文青必逛 Vintage ✨', location: 'Ekkamai', completed: false, travelTime: '🚗 10m', travelTip: '車程短' },
-  { id: 403, date: '2025-01-30', time: '18:00', title: 'Jodd Fairs 夜市', type: 'fastfood', desc: '🌋 火山排骨 & 水果西施 • 觀光客必去打卡點 📸', location: 'Rama 9', completed: false, travelTime: '🚆 25m', travelTip: 'MRT Rama 9' },
-  { id: 404, date: '2025-01-30', time: '20:30', title: 'Tichuca Rooftop', type: 'celebration', desc: '🪼 巨型水母酒吧 • Threads爆紅熱點 (需護照) 🥃', location: 'T-One Building', completed: false, travelTime: '🚗 15m', travelTip: 'Grab 回 Thong Lor' },
+  // Day 4: 01/30 (週五) - 水上市場＆鐵道市集＆換飯店
+  { id: 401, date: '2025-01-30', time: '08:00', title: 'Bangkok Patio 退房', type: 'accommodation', desc: '🏨 公寓最後一早', location: 'Bangkok Patio', completed: false },
+  { id: 402, date: '2025-01-30', time: '09:00', title: 'Savoey @Terminal 21 Asok', type: 'dining', desc: '🦀 建興酒家 • 咖哩蟹早午餐 • 停留 1 時', location: 'Terminal 21', completed: false, travelTime: '自訂交通' },
+  { id: 403, date: '2025-01-30', time: '10:00', title: '丹嫩莎朵水上市場', type: 'activity', desc: '🛶 經典水上市場 • 坐船遊覽 • 停留 1 時', location: 'Damnoen Saduak', completed: false, travelTime: '自訂交通' },
+  { id: 404, date: '2025-01-30', time: '11:00', title: '美功鐵道市集', type: 'activity', desc: '🚂 火車穿越市場 • 停留 1 時', location: 'Maeklong Railway', completed: false, travelTime: '自訂交通' },
+  { id: 405, date: '2025-01-30', time: '12:00', title: 'Bangkok Patio 取行李', type: 'accommodation', desc: '🧳 取行李前往新飯店', location: 'Bangkok Patio', completed: false, travelTime: '自訂交通' },
+  { id: 406, date: '2025-01-30', time: '13:00', title: '曼谷水門文斯飯店 菁英大廈', type: 'accommodation', desc: '🏨 VIE Hotel • 入住新飯店 • 停留 1 時', location: 'VIE Hotel Bangkok', completed: false, travelTime: '自訂交通' },
 
-  // Day 5: 1/31 (Fri) - Artsy & Local
-  { id: 501, date: '2025-01-31', time: '10:30', title: "Gump's Ari", type: 'camera', desc: '🍭 色彩繽紛創意社區 • 隨手拍都好看📷', location: 'Ari', completed: false, travelTime: '🚆 30m', travelTip: 'BTS Ari' },
-  { id: 502, date: '2025-01-31', time: '12:30', title: 'Lay Lao (Ari)', type: 'restaurant', desc: '🥘 米其林必比登 • 道地東北菜 Som Tum 🌶️', location: 'Ari Soi 2', completed: false, travelTime: '🚶 5m', travelTip: '步行可達' },
-  { id: 503, date: '2025-01-31', time: '15:00', title: "Let's Relax Onsen", type: 'spa', desc: '♨️ 日式溫泉+按摩 • J-Tip: Klook 已購票 🎫', location: 'Grande Centre Point', completed: false, travelTime: '🚗 20m', travelTip: 'Grab 前往' },
-  { id: 504, date: '2025-01-31', time: '19:00', title: 'China Town', type: 'restaurant', desc: '🏮 T&K 海鮮 • 必吃爆漿炭烤吐司 🍞', location: 'Yaowarat', completed: false, travelTime: '🚆 25m', travelTip: 'MRT Wat Mangkon' },
-
-  // Day 6: 2/1 (Sat) - Weekend Madness
-  { id: 601, date: '2025-02-01', time: '10:00', title: 'Chatuchak 週末市集', type: 'storefront', desc: '🛍️ 全球最大市集 • 記得穿布鞋好走路 👟', location: 'Mo Chit', completed: false, travelTime: '🚆 35m', travelTip: 'BTS Mo Chit' },
-  { id: 602, date: '2025-02-01', time: '14:00', title: 'MixT Mall 休息', type: 'coffee', desc: '❄️ 冷氣續命 • 腳底按摩 30min 🦶', location: 'Chatuchak', completed: false, travelTime: '🚶 1m', travelTip: '就在市集旁' },
-  { id: 603, date: '2025-02-01', time: '17:00', title: 'Siam Square', type: 'music_note', desc: '🎸 步行街 Live Band • 年輕人聚集地 🔥', location: 'Siam', completed: false, travelTime: '🚆 20m', travelTip: 'BTS Siam' },
-  { id: 604, date: '2025-02-01', time: '19:30', title: 'Somboon Seafood', type: 'restaurant', desc: '🦀 建興酒家 • 咖哩蟹收尾 (需訂位) 📝', location: 'Siam Square One', completed: false, travelTime: '🚶 5m', travelTip: 'Siam Square One 4F' },
-
-  // Day 7: 2/2 (Sun) - Goodbye
-  { id: 701, date: '2025-02-02', time: '11:00', title: 'Siam Paragon', type: 'shopping_bag', desc: '👑 Gourmet Market 最後採買 • 寄放行李 🧳', location: 'Siam', completed: false, travelTime: '🚆 15m', travelTip: 'BTS Siam' },
-  { id: 702, date: '2025-02-02', time: '13:00', title: 'After You 甜點', type: 'icecream', desc: '🍯 招牌蜜糖吐司 • 完美的 Ending 🍰', location: 'Paragon GF', completed: false, travelTime: '🚶 0m', travelTip: '就在百貨內' },
-  { id: 703, date: '2025-02-02', time: '15:00', title: '前往機場 (BKK)', type: 'flight_takeoff', desc: '✈️ 預留 3 小時辦理登機 • 回家囉 🏠', location: 'Suvarnabhumi', completed: false, travelTime: '🚗 45m', travelTip: 'Grab or Airport Rail' },
+  // Day 5: 01/31 (週六) - 暹羅古城＆購物＆回程
+  { id: 501, date: '2025-01-31', time: '08:00', title: '曼谷水門文斯飯店 (有早餐)', type: 'dining', desc: '🍳 飯店自助早餐 • 停留 1 時', location: 'VIE Hotel Bangkok', completed: false },
+  { id: 502, date: '2025-01-31', time: '09:00', title: '暹羅古城 Ancient City', type: 'activity', desc: '🏛️ 泰國縮影 • 停留 1 時', location: 'Ancient City', completed: false, travelTime: '自訂交通' },
+  { id: 503, date: '2025-01-31', time: '10:00', title: '中央世界購物商場 CentralWorld', type: 'shopping', desc: '🛍️ 購物最後衝刺 • 停留 1 時', location: 'CentralWorld', completed: false, travelTime: '自訂交通' },
+  { id: 504, date: '2025-01-31', time: '11:00', title: '曼谷水門文斯飯店 退房', type: 'accommodation', desc: '🧳 收拾行李準備回程', location: 'VIE Hotel Bangkok', completed: false, travelTime: '自訂交通' },
 ];
 
 function App() {
