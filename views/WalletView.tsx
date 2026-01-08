@@ -95,6 +95,46 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
     const [editingPersonal, setEditingPersonal] = useState<string | null>(null);
     const [personalInput, setPersonalInput] = useState(0);
 
+    // Calculate optimal settlements (minimize number of transfers)
+    const calculateSettlements = () => {
+        const balances = familyMembers.map(member => {
+            const paid = expenses.filter(e => e.payer === member.name || e.payer === member.role).reduce((acc, curr) => acc + curr.amount, 0);
+            return { ...member, paid, balance: paid - perPersonShare };
+        });
+
+        // Separate creditors (positive balance) and debtors (negative balance)
+        const creditors = balances.filter(b => b.balance > 1).sort((a, b) => b.balance - a.balance);
+        const debtors = balances.filter(b => b.balance < -1).sort((a, b) => a.balance - b.balance);
+
+        // Generate optimal transfer instructions
+        const transfers: Array<{ from: string; to: string; amount: number }> = [];
+        let i = 0, j = 0;
+        
+        while (i < debtors.length && j < creditors.length) {
+            const debtAmount = Math.abs(debtors[i].balance);
+            const creditAmount = creditors[j].balance;
+            const transferAmount = Math.min(debtAmount, creditAmount);
+
+            if (transferAmount > 1) {
+                transfers.push({
+                    from: debtors[i].name,
+                    to: creditors[j].name,
+                    amount: Math.round(transferAmount)
+                });
+            }
+
+            debtors[i].balance += transferAmount;
+            creditors[j].balance -= transferAmount;
+
+            if (Math.abs(debtors[i].balance) < 1) i++;
+            if (creditors[j].balance < 1) j++;
+        }
+
+        return { balances, transfers };
+    };
+
+    const { balances: settlements, transfers } = calculateSettlements();
+
     // Calculations
     const groupExpenses = expenses.filter(e => e.payer === '團體' || !familyMembers.some(m => m.name === e.payer));
     const totalGroupSpent = expenses.filter(e => e.payer !== '個人').reduce((acc, curr) => acc + curr.amount, 0);
@@ -109,11 +149,7 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
         return expenses.filter(e => e.payer === member.name).reduce((acc, curr) => acc + curr.amount, 0);
     };
 
-    // Settlement calculation
-    const settlements = familyMembers.map(member => {
-        const paid = expenses.filter(e => e.payer === member.name).reduce((acc, curr) => acc + curr.amount, 0);
-        return { ...member, paid, balance: paid - perPersonShare };
-    });
+
 
     const handleAddExpense = () => {
         if (!newTitle || !newAmount) {
@@ -126,7 +162,7 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
             amount: parseFloat(newAmount) || 0,
             cat: newCategory,
             time: '剛剛',
-            payer: isGroupExpense ? '團體' : newPayer.name
+            payer: newPayer.name  // Always record actual payer (墊付人)
         };
         setExpenses(prev => [newExp, ...prev]);
         setShowAddModal(false);
@@ -411,22 +447,19 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                 </div>
                             </div>
 
-                            {/* Settlement Actions */}
+                            {/* Settlement Transfers - Optimized */}
                             <div className="bg-pastel-mint rounded-mag p-4">
-                                <p className="text-mag-body font-medium text-green-800 mb-3">💡 結算建議</p>
+                                <p className="text-mag-body font-medium text-green-800 mb-3">💸 轉帳清單</p>
                                 <div className="space-y-2">
-                                    {settlements.filter(s => s.balance < 0).length === 0 ? (
-                                        <p className="text-mag-caption text-green-600">✨ 目前沒有需要結算的項目</p>
+                                    {transfers.length === 0 ? (
+                                        <p className="text-mag-caption text-green-600">✨ 目前已結算完成，無需轉帳</p>
                                     ) : (
-                                        settlements.filter(s => s.balance < 0).map(debtor => {
-                                            const creditor = settlements.find(s => s.balance > 0);
-                                            if (!creditor) return null;
-                                            const amount = Math.abs(Math.round(debtor.balance));
-                                            const transferText = `${debtor.name} 轉帳 ฿${amount.toLocaleString()} 給 ${creditor.name}`;
+                                        transfers.map((transfer, idx) => {
+                                            const transferText = `${transfer.from} 轉帳 ฿${transfer.amount.toLocaleString()} 給 ${transfer.to}`;
                                             
                                             return (
                                                 <motion.button
-                                                    key={debtor.id}
+                                                    key={idx}
                                                     whileTap={{ scale: 0.97 }}
                                                     onClick={() => {
                                                         navigator.clipboard.writeText(transferText);
@@ -434,10 +467,15 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                                     }}
                                                     className="w-full flex items-center justify-between p-3 bg-white/60 rounded-lg hover:bg-white/80 transition-colors text-left"
                                                 >
-                                                    <span className="text-mag-caption text-green-700">
-                                                        {debtor.name} → {creditor.name}：<span className="font-semibold">฿{amount.toLocaleString()}</span>
-                                                    </span>
-                                                    <span className="material-symbols-outlined text-green-600 text-[18px]">content_copy</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-mag-body text-green-700 font-medium">{transfer.from}</span>
+                                                        <span className="material-symbols-outlined text-green-600 text-[16px]">arrow_forward</span>
+                                                        <span className="text-mag-body text-green-700 font-medium">{transfer.to}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-mag-body font-bold text-green-800">฿{transfer.amount.toLocaleString()}</span>
+                                                        <span className="material-symbols-outlined text-green-600 text-[14px]">content_copy</span>
+                                                    </div>
                                                 </motion.button>
                                             );
                                         })
@@ -493,30 +531,30 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                                     </button>
                                 </div>
 
-                                {/* Payer (only for personal) */}
-                                {!isGroupExpense && (
-                                    <div className="mb-5">
-                                        <label className="text-mag-caption text-stone block mb-3">付款人</label>
-                                        <div className="flex gap-3">
-                                            {familyMembers.map(m => (
-                                                <motion.button key={m.id} whileTap={{ scale: 0.95 }} onClick={() => setNewPayer(m)} className="flex flex-col items-center gap-2 flex-shrink-0">
-                                                    {m.image.startsWith('gradient:') ? (
-                                                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${m.image.split(':')[1]} flex items-center justify-center text-white text-[16px] font-bold shadow-mag transition-all ${newPayer.id === m.id ? 'ring-2 ring-red-xhs' : 'opacity-50'}`}>
-                                                            {m.image.split(':')[2]}
-                                                        </div>
-                                                    ) : m.image.startsWith('data:') ? (
-                                                        <img src={m.image} className={`w-12 h-12 rounded-full object-cover shadow-mag transition-all ${newPayer.id === m.id ? 'ring-2 ring-red-xhs' : 'opacity-50'}`} alt={m.name} />
-                                                    ) : (
-                                                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-stone/20 to-stone/10 flex items-center justify-center text-[16px] font-bold text-stone shadow-mag transition-all ${newPayer.id === m.id ? 'ring-2 ring-red-xhs' : 'opacity-50'}`}>
-                                                            {m.name.charAt(0).toUpperCase()}
-                                                        </div>
-                                                    )}
-                                                    <span className={`text-mag-badge ${newPayer.id === m.id ? 'text-charcoal' : 'text-stone'}`}>{m.name}</span>
-                                                </motion.button>
-                                            ))}
-                                        </div>
+                                {/* Payer - Always show (墊付人選擇) */}
+                                <div className="mb-5">
+                                    <label className="text-mag-caption text-stone block mb-3">
+                                        {isGroupExpense ? '墊付人（誰先付款）' : '付款人'}
+                                    </label>
+                                    <div className="flex gap-3 overflow-x-auto pb-2">
+                                        {familyMembers.map(m => (
+                                            <motion.button key={m.id} whileTap={{ scale: 0.95 }} onClick={() => setNewPayer(m)} className="flex flex-col items-center gap-2 flex-shrink-0">
+                                                {m.image.startsWith('gradient:') ? (
+                                                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${m.image.split(':')[1]} flex items-center justify-center text-white text-[16px] font-bold shadow-mag transition-all ${newPayer.id === m.id ? 'ring-2 ring-red-xhs' : 'opacity-50'}`}>
+                                                        {m.image.split(':')[2]}
+                                                    </div>
+                                                ) : m.image.startsWith('data:') ? (
+                                                    <img src={m.image} className={`w-12 h-12 rounded-full object-cover shadow-mag transition-all ${newPayer.id === m.id ? 'ring-2 ring-red-xhs' : 'opacity-50'}`} alt={m.name} />
+                                                ) : (
+                                                    <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-stone/20 to-stone/10 flex items-center justify-center text-[16px] font-bold text-stone shadow-mag transition-all ${newPayer.id === m.id ? 'ring-2 ring-red-xhs' : 'opacity-50'}`}>
+                                                        {m.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <span className={`text-mag-badge ${newPayer.id === m.id ? 'text-charcoal' : 'text-stone'}`}>{m.name}</span>
+                                            </motion.button>
+                                        ))}
                                     </div>
-                                )}
+                                </div>
 
                                 {/* Amount */}
                                 <div className="bg-white rounded-mag p-4 shadow-mag mb-4">
