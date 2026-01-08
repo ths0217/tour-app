@@ -9,6 +9,7 @@ import AvatarPicker from '../components/AvatarPicker';
 import TipCalculator from '../components/TipCalculator';
 import LocalInfo from '../components/LocalInfo';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import NotificationSettings from '../components/NotificationSettings';
 // ExpertReview component removed per user request
 
 const familyMembersData = [
@@ -24,7 +25,7 @@ const quickActions = [
   { id: 'translate', icon: 'translate', label: '翻譯', gradient: 'from-orange-400 to-amber-500' },
   { id: 'sos', icon: 'sos', label: '緊急', gradient: 'from-red-400 to-rose-500' },
   { id: 'tip', icon: 'payments', label: '小費', gradient: 'from-purple-400 to-violet-500' },
-  { id: 'info', icon: 'info', label: '攻略', gradient: 'from-cyan-400 to-teal-500' },
+  { id: 'notify', icon: 'notifications', label: '提醒', gradient: 'from-indigo-400 to-blue-500' },
 ];
 
 const destinations = [
@@ -141,6 +142,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [showTipCalc, setShowTipCalc] = useState(false);
   const [showLocalInfo, setShowLocalInfo] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const safeBudget = budget || { total: 50000, remaining: 38500, spent: 11500 };
   const spentPercent = (safeBudget.spent / safeBudget.total) * 100;
@@ -298,7 +300,7 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
                 else if (action.id === 'translate') window.open('https://translate.google.com/?sl=auto&tl=th', '_blank');
                 else if (action.id === 'sos') setShowEmergency(true);
                 else if (action.id === 'tip') setShowTipCalc(true);
-                else if (action.id === 'info') setShowLocalInfo(true);
+                else if (action.id === 'notify') setShowNotifications(true);
               }}
               className="flex flex-col items-center gap-2"
             >
@@ -435,8 +437,8 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
                   onClick={() => addTrendingToSchedule(item)}
                   disabled={addedTrending.has(item.id)}
                   className={`flex-1 py-1.5 rounded-mag text-[10px] font-medium transition-all ${addedTrending.has(item.id)
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-xhs text-white'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-xhs text-white'
                     }`}
                 >
                   {addedTrending.has(item.id) ? '✓ 已加' : '+ 加入'}
@@ -542,6 +544,12 @@ export default function HomeView({ user, budget, schedule, onLogout, familyMembe
       <LocalInfo
         isOpen={showLocalInfo}
         onClose={() => setShowLocalInfo(false)}
+      />
+
+      {/* Notification Settings Modal */}
+      <NotificationSettings
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
       />
     </div>
   );
