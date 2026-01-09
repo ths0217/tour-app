@@ -262,17 +262,14 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                     className="relative h-full cursor-pointer"
                     onClick={() => setIsMapExpanded(!isMapExpanded)}
                 >
-                    {/* Map Image */}
-                    <img
-                        src={focusedMapUrl}
-                        alt="Route map"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                            const img = e.target as HTMLImageElement;
-                            if (!img.src.includes('openstreetmap')) {
-                                img.src = fallbackMapUrl;
-                            }
-                        }}
+                    {/* Embedded Google Map */}
+                    <iframe
+                        src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(currentLocation?.coords?.nameEn || currentLocation?.location || 'Bangkok')}&center=${currentLocation?.coords?.lat || 13.7563},${currentLocation?.coords?.lng || 100.5018}&zoom=14`}
+                        className="w-full h-full border-0"
+                        allowFullScreen
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        title="Location Map"
                     />
 
                     {/* Gradient Overlay */}
