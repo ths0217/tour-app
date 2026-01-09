@@ -1,6 +1,8 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleMap, LoadScript, Marker, Polyline, InfoWindow } from '@react-google-maps/api';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { ScheduleItem } from '../types';
 import notificationService from '../services/NotificationService';
 
@@ -8,9 +10,6 @@ interface MapTimelineViewProps {
     schedule: ScheduleItem[];
     selectedDay?: number;
 }
-
-// Google Maps API Key (for demo - should use env variable in production)
-const GOOGLE_MAPS_API_KEY = 'AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8';
 
 // Real coordinates for Bangkok locations
 const locationCoordinates: Record<string, { lat: number; lng: number; nameEn: string }> = {
@@ -45,50 +44,63 @@ const getLocationInfo = (location?: string): { lat: number; lng: number; nameEn:
     return null;
 };
 
-// Parse travel time
 const parseTravelMinutes = (travelTime?: string): number => {
     if (!travelTime) return 0;
     const match = travelTime.match(/(\d+)/);
     return match ? parseInt(match[1]) : 0;
 };
 
-// Map container style
-const mapContainerStyle = {
-    width: '100%',
-    height: '100%',
+// Create numbered marker icon
+const createNumberedIcon = (num: number, isActive: boolean) => {
+    return L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="
+            width: ${isActive ? '36px' : '28px'};
+            height: ${isActive ? '36px' : '28px'};
+            background: ${isActive ? '#F43F5E' : '#6366F1'};
+            border: 3px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: ${isActive ? '16px' : '12px'};
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            transform: translate(-50%, -50%);
+        ">${num}</div>`,
+        iconSize: [isActive ? 36 : 28, isActive ? 36 : 28],
+        iconAnchor: [isActive ? 18 : 14, isActive ? 18 : 14],
+    });
 };
 
-// Dark map style
-const darkMapStyle = [
-    { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
-    { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
-    { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
-    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
-    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
-    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
-];
+// Map controller component to handle pan/zoom
+function MapController({ center, zoom }: { center: [number, number]; zoom: number }) {
+    const map = useMap();
+    useEffect(() => {
+        map.flyTo(center, zoom, { duration: 0.5 });
+    }, [map, center, zoom]);
+    return null;
+}
 
 export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimelineViewProps) {
     const [focusedIndex, setFocusedIndex] = useState<number>(0);
     const [currentDay, setCurrentDay] = useState(selectedDay);
-    const [selectedMarker, setSelectedMarker] = useState<number | null>(null);
-    const [map, setMap] = useState<google.maps.Map | null>(null);
+    const [mapCenter, setMapCenter] = useState<[number, number]>([13.7563, 100.5018]);
+    const [mapZoom, setMapZoom] = useState(13);
 
-    // Get unique dates
     const dayDates = useMemo(() => {
         return [...new Set(schedule.map(s => s.date))].sort();
     }, [schedule]);
 
     const currentDate = dayDates[currentDay - 1];
 
-    // Get today's activities
     const todaySchedule = useMemo(() => {
         return schedule
             .filter(item => item.date === currentDate)
             .sort((a, b) => a.time.localeCompare(b.time));
     }, [schedule, currentDate]);
 
-    // Get locations with coordinates
     const locationsWithCoords = useMemo(() => {
         return todaySchedule
             .map((item, index) => ({
@@ -99,41 +111,20 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
             .filter(item => item.coords !== null);
     }, [todaySchedule]);
 
-    // Calculate map center
-    const mapCenter = useMemo(() => {
-        if (locationsWithCoords.length === 0) {
-            return { lat: 13.7563, lng: 100.5018 }; // Bangkok default
-        }
-        const avgLat = locationsWithCoords.reduce((sum, loc) => sum + loc.coords!.lat, 0) / locationsWithCoords.length;
-        const avgLng = locationsWithCoords.reduce((sum, loc) => sum + loc.coords!.lng, 0) / locationsWithCoords.length;
-        return { lat: avgLat, lng: avgLng };
-    }, [locationsWithCoords]);
-
     // Polyline path
     const polylinePath = useMemo(() => {
-        return locationsWithCoords.map(loc => ({
-            lat: loc.coords!.lat,
-            lng: loc.coords!.lng,
-        }));
+        return locationsWithCoords.map(loc => [loc.coords!.lat, loc.coords!.lng] as [number, number]);
     }, [locationsWithCoords]);
 
-    // Fit bounds when locations change
+    // Update map center when day changes
     useEffect(() => {
-        if (map && locationsWithCoords.length > 0) {
-            const bounds = new google.maps.LatLngBounds();
-            locationsWithCoords.forEach(loc => {
-                bounds.extend({ lat: loc.coords!.lat, lng: loc.coords!.lng });
-            });
-            map.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 50 });
+        if (locationsWithCoords.length > 0) {
+            const avgLat = locationsWithCoords.reduce((sum, loc) => sum + loc.coords!.lat, 0) / locationsWithCoords.length;
+            const avgLng = locationsWithCoords.reduce((sum, loc) => sum + loc.coords!.lng, 0) / locationsWithCoords.length;
+            setMapCenter([avgLat, avgLng]);
+            setMapZoom(locationsWithCoords.length > 2 ? 12 : 13);
         }
-    }, [map, locationsWithCoords]);
-
-    // Handle marker click
-    const handleMarkerClick = (index: number) => {
-        setFocusedIndex(index);
-        setSelectedMarker(index);
-        if (navigator.vibrate) navigator.vibrate(10);
-    };
+    }, [locationsWithCoords]);
 
     // Open Google Maps navigation
     const openGoogleMaps = (item: ScheduleItem) => {
@@ -181,11 +172,16 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
         });
     }, [todaySchedule]);
 
-    const onLoad = useCallback((mapInstance: google.maps.Map) => {
-        setMap(mapInstance);
-    }, []);
+    const handleTimelineClick = (index: number, item: ScheduleItem) => {
+        setFocusedIndex(index);
+        const coords = getLocationInfo(item.location);
+        if (coords) {
+            setMapCenter([coords.lat, coords.lng]);
+            setMapZoom(15);
+        }
+        if (navigator.vibrate) navigator.vibrate(10);
+    };
 
-    // Progress
     const currentProgress = useMemo(() => {
         if (todaySchedule.length <= 1) return 0;
         return (focusedIndex / (todaySchedule.length - 1)) * 100;
@@ -222,82 +218,70 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                 </div>
             </div>
 
-            {/* Google Map */}
-            <div className="mx-4 rounded-2xl overflow-hidden shadow-xl h-[220px] shrink-0">
-                <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
-                    <GoogleMap
-                        mapContainerStyle={mapContainerStyle}
-                        center={mapCenter}
-                        zoom={13}
-                        onLoad={onLoad}
-                        options={{
-                            styles: darkMapStyle,
-                            disableDefaultUI: true,
-                            zoomControl: true,
-                            gestureHandling: 'greedy',
-                        }}
-                    >
-                        {/* Route Polyline */}
-                        {polylinePath.length > 1 && (
-                            <Polyline
-                                path={polylinePath}
-                                options={{
-                                    strokeColor: '#F43F5E',
-                                    strokeOpacity: 0.8,
-                                    strokeWeight: 4,
-                                }}
-                            />
-                        )}
+            {/* Leaflet Map */}
+            <div className="mx-4 rounded-2xl overflow-hidden shadow-xl h-[220px] shrink-0 relative">
+                <MapContainer
+                    center={mapCenter}
+                    zoom={mapZoom}
+                    style={{ height: '100%', width: '100%' }}
+                    zoomControl={false}
+                >
+                    <MapController center={mapCenter} zoom={mapZoom} />
 
-                        {/* Markers */}
-                        {locationsWithCoords.map((loc, i) => (
-                            <Marker
-                                key={loc.id}
-                                position={{ lat: loc.coords!.lat, lng: loc.coords!.lng }}
-                                label={{
-                                    text: String(i + 1),
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                }}
-                                icon={{
-                                    path: google.maps.SymbolPath.CIRCLE,
-                                    scale: i === focusedIndex ? 16 : 12,
-                                    fillColor: i === focusedIndex ? '#F43F5E' : '#6366F1',
-                                    fillOpacity: 1,
-                                    strokeColor: 'white',
-                                    strokeWeight: 2,
-                                }}
-                                onClick={() => handleMarkerClick(i)}
-                            />
-                        ))}
+                    {/* OpenStreetMap Dark Tiles (CartoDB Dark Matter - FREE) */}
+                    <TileLayer
+                        attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+                        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                    />
 
-                        {/* InfoWindow */}
-                        {selectedMarker !== null && locationsWithCoords[selectedMarker] && (
-                            <InfoWindow
-                                position={{
-                                    lat: locationsWithCoords[selectedMarker].coords!.lat,
-                                    lng: locationsWithCoords[selectedMarker].coords!.lng,
-                                }}
-                                onCloseClick={() => setSelectedMarker(null)}
-                            >
-                                <div className="p-2">
-                                    <p className="font-bold text-sm">{locationsWithCoords[selectedMarker].title}</p>
-                                    <p className="text-xs text-gray-600">{locationsWithCoords[selectedMarker].time}</p>
+                    {/* Route Polyline */}
+                    {polylinePath.length > 1 && (
+                        <Polyline
+                            positions={polylinePath}
+                            pathOptions={{
+                                color: '#F43F5E',
+                                weight: 4,
+                                opacity: 0.8,
+                            }}
+                        />
+                    )}
+
+                    {/* Markers */}
+                    {locationsWithCoords.map((loc, i) => (
+                        <Marker
+                            key={loc.id}
+                            position={[loc.coords!.lat, loc.coords!.lng]}
+                            icon={createNumberedIcon(i + 1, i === focusedIndex)}
+                            eventHandlers={{
+                                click: () => {
+                                    setFocusedIndex(i);
+                                    if (navigator.vibrate) navigator.vibrate(10);
+                                },
+                            }}
+                        >
+                            <Popup>
+                                <div className="p-1">
+                                    <p className="font-bold text-sm text-gray-800">{loc.title}</p>
+                                    <p className="text-xs text-gray-600">{loc.time}</p>
                                 </div>
-                            </InfoWindow>
-                        )}
-                    </GoogleMap>
-                </LoadScript>
+                            </Popup>
+                        </Marker>
+                    ))}
+                </MapContainer>
 
-                {/* Open Route Button Overlay */}
+                {/* Open Route Button */}
                 <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={openFullRoute}
-                    className="absolute bottom-16 left-8 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-lg z-10"
+                    className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5 shadow-lg z-[1000]"
                 >
                     <span className="material-symbols-outlined text-[16px] text-charcoal">directions</span>
-                    <span className="text-[11px] font-medium text-charcoal">完整路線</span>
+                    <span className="text-[11px] font-medium text-charcoal">Google 導航</span>
                 </motion.button>
+
+                <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-sm rounded-lg px-2 py-1 z-[1000]">
+                    <span className="text-[10px] text-white/70">OpenStreetMap</span>
+                </div>
             </div>
 
             {/* Timeline Section */}
@@ -316,13 +300,7 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.03 }}
-                            onClick={() => {
-                                setFocusedIndex(index);
-                                if (coords && map) {
-                                    map.panTo({ lat: coords.lat, lng: coords.lng });
-                                    map.setZoom(15);
-                                }
-                            }}
+                            onClick={() => handleTimelineClick(index, item)}
                             className={`flex gap-4 py-4 cursor-pointer rounded-xl transition-all ${isActive ? 'bg-white/5 -mx-2 px-4' : ''}`}
                         >
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 shadow-lg ${isActive ? 'bg-[#F43F5E] text-white scale-110' : 'bg-[#2C2C2E] text-stone border border-white/20'
