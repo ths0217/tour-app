@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ScheduleItem } from '../types';
 import notificationService from '../services/NotificationService';
 
@@ -95,22 +95,23 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
         if (!currentLocation?.coords) return '';
 
         const current = currentLocation.coords;
-        let pins = `pin-l-${focusedIndex + 1}+F43F5E(${current.lng},${current.lat})`;
-        let pathCoords = `${current.lng},${current.lat}`;
         let centerLat = current.lat;
         let centerLng = current.lng;
         let zoom = 14;
 
+        // Build simple pins (without path line to avoid API issues)
+        let pins = `pin-l-${focusedIndex + 1}+F43F5E(${current.lng},${current.lat})`;
+
         if (nextLocation?.coords) {
             const next = nextLocation.coords;
             pins += `,pin-l-${focusedIndex + 2}+6366F1(${next.lng},${next.lat})`;
-            pathCoords += `;${next.lng},${next.lat}`;
             centerLat = (current.lat + next.lat) / 2;
             centerLng = (current.lng + next.lng) / 2;
             zoom = 12;
         }
 
-        return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${pins},path-4+F43F5E-0.6(${encodeURIComponent(pathCoords)})/${centerLng},${centerLat},${zoom},0/640x300@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
+        // Use Mapbox Static Images API with simple marker syntax
+        return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${pins}/${centerLng},${centerLat},${zoom},0/640x300@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
     }, [currentLocation, nextLocation, focusedIndex]);
 
     // Calculate current progress (0-100)
@@ -354,8 +355,8 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                                 >
                                     {/* Timeline Node */}
                                     <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 transition-all shadow-lg ${isPast ? 'bg-green-500 text-white' :
-                                            isActive ? 'bg-[#F43F5E] text-white scale-110 ring-4 ring-[#F43F5E]/30' :
-                                                'bg-[#2C2C2E] text-stone border-2 border-white/20'
+                                        isActive ? 'bg-[#F43F5E] text-white scale-110 ring-4 ring-[#F43F5E]/30' :
+                                            'bg-[#2C2C2E] text-stone border-2 border-white/20'
                                         }`}>
                                         {isPast ? '✓' : index + 1}
                                     </div>
@@ -423,8 +424,8 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => { setCurrentDay(dayNum); setFocusedIndex(0); }}
                                 className={`flex-1 min-w-[55px] py-2 px-2 rounded-xl text-center transition-all ${isSelected
-                                        ? 'bg-[#F43F5E] text-white shadow-lg'
-                                        : 'text-stone hover:bg-white/5'
+                                    ? 'bg-[#F43F5E] text-white shadow-lg'
+                                    : 'text-stone hover:bg-white/5'
                                     }`}
                             >
                                 <p className="text-[9px] opacity-70">DAY</p>
