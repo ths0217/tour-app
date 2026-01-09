@@ -90,7 +90,7 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
     const currentLocation = locationsWithCoords[focusedIndex] || locationsWithCoords[0];
     const nextLocation = locationsWithCoords[focusedIndex + 1];
 
-    // Generate focused map URL (current → next only for better visual hierarchy)
+    // Generate focused map URL using OpenStreetMap static tiles (more reliable)
     const focusedMapUrl = useMemo(() => {
         if (!currentLocation?.coords) return '';
 
@@ -99,20 +99,31 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
         let centerLng = current.lng;
         let zoom = 14;
 
-        // Build simple pins (without path line to avoid API issues)
-        let pins = `pin-l-${focusedIndex + 1}+F43F5E(${current.lng},${current.lat})`;
-
         if (nextLocation?.coords) {
             const next = nextLocation.coords;
-            pins += `,pin-l-${focusedIndex + 2}+6366F1(${next.lng},${next.lat})`;
             centerLat = (current.lat + next.lat) / 2;
             centerLng = (current.lng + next.lng) / 2;
             zoom = 12;
         }
 
-        // Use Mapbox Static Images API with simple marker syntax
-        return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/${pins}/${centerLng},${centerLat},${zoom},0/640x300@2x?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw`;
-    }, [currentLocation, nextLocation, focusedIndex]);
+        // Use geoapify static maps (free, reliable, with markers)
+        const markers = locationsWithCoords
+            .filter((_, i) => i >= focusedIndex && i <= focusedIndex + 1)
+            .map((loc, i) => {
+                const color = i === 0 ? 'red' : 'blue';
+                return `lonlat:${loc.coords!.lng},${loc.coords!.lat};color:%23${i === 0 ? 'F43F5E' : '6366F1'};size:large;text:${focusedIndex + i + 1}`;
+            })
+            .join('|');
+
+        return `https://maps.geoapify.com/v1/staticmap?style=osm-bright&width=640&height=300&center=lonlat:${centerLng},${centerLat}&zoom=${zoom}&marker=${markers}&apiKey=6dc7fb95a3b246cfa0f3bcef5ce9ed9a`;
+    }, [currentLocation, nextLocation, focusedIndex, locationsWithCoords]);
+
+    // Fallback map URL using OpenStreetMap
+    const fallbackMapUrl = useMemo(() => {
+        if (!currentLocation?.coords) return '';
+        const { lat, lng } = currentLocation.coords;
+        return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=12&size=640x300&maptype=mapnik`;
+    }, [currentLocation]);
 
     // Calculate current progress (0-100)
     const currentProgress = useMemo(() => {
@@ -256,6 +267,12 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                         src={focusedMapUrl}
                         alt="Route map"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                            const img = e.target as HTMLImageElement;
+                            if (!img.src.includes('openstreetmap')) {
+                                img.src = fallbackMapUrl;
+                            }
+                        }}
                     />
 
                     {/* Gradient Overlay */}
