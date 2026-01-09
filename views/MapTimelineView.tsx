@@ -68,6 +68,24 @@ const darkMapStyle = [
     { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
 ];
 
+const createMarkerIcon = (label: number, isActive: boolean): google.maps.Icon | undefined => {
+    if (typeof window === 'undefined' || !window.google?.maps) return undefined;
+    const size = isActive ? 36 : 30;
+    const fontSize = isActive ? 14 : 12;
+    const fillColor = isActive ? '#F43F5E' : '#6366F1';
+    const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+            <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="${fillColor}" stroke="white" stroke-width="2" />
+            <text x="50%" y="50%" text-anchor="middle" dy=".35em" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="700" fill="white">${label}</text>
+        </svg>
+    `;
+    return {
+        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+        scaledSize: new google.maps.Size(size, size),
+        anchor: new google.maps.Point(size / 2, size / 2),
+    };
+};
+
 export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimelineViewProps) {
     const [focusedIndex, setFocusedIndex] = useState<number>(0);
     const [currentDay, setCurrentDay] = useState(selectedDay);
@@ -250,23 +268,11 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                         )}
 
                         {/* Markers */}
-                        {locationsWithCoords.map((loc, i) => (
+                        {map && locationsWithCoords.map((loc, i) => (
                             <Marker
                                 key={loc.id}
                                 position={{ lat: loc.coords!.lat, lng: loc.coords!.lng }}
-                                label={{
-                                    text: String(i + 1),
-                                    color: 'white',
-                                    fontWeight: 'bold',
-                                }}
-                                icon={{
-                                    path: google.maps.SymbolPath.CIRCLE,
-                                    scale: i === focusedIndex ? 16 : 12,
-                                    fillColor: i === focusedIndex ? '#F43F5E' : '#6366F1',
-                                    fillOpacity: 1,
-                                    strokeColor: 'white',
-                                    strokeWeight: 2,
-                                }}
+                                icon={createMarkerIcon(i + 1, i === focusedIndex)}
                                 onClick={() => handleMarkerClick(i)}
                             />
                         ))}
