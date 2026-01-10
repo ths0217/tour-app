@@ -34,6 +34,21 @@ const locationCoordinates: Record<string, { lat: number; lng: number; nameEn: st
     'Safari World': { lat: 13.9337, lng: 100.7015, nameEn: 'Safari World' },
     '臺灣桃園國際機場': { lat: 25.0797, lng: 121.2324, nameEn: 'TPE Airport' },
     '素萬那普機場': { lat: 13.6900, lng: 100.7501, nameEn: 'BKK Airport' },
+    // New locations from user's itinerary
+    '水門寺': { lat: 13.7467, lng: 100.5187, nameEn: 'Wat Saket' },
+    '暹羅中心': { lat: 13.7454, lng: 100.5311, nameEn: 'Siam Center' },
+    '曼谷四面佛': { lat: 13.7439, lng: 100.5403, nameEn: 'Thao Maha Brahma' },
+    '四面佛': { lat: 13.7439, lng: 100.5403, nameEn: 'Erawan Shrine' },
+    'Pratunam': { lat: 13.7509, lng: 100.5396, nameEn: 'Pratunam Market' },
+    'Sabaikay': { lat: 13.7512, lng: 100.5401, nameEn: 'Sabaikay Head Massage' },
+    '洗頭': { lat: 13.7512, lng: 100.5401, nameEn: 'Sabaikay Head Massage' },
+    '恰圖恰': { lat: 13.7999, lng: 100.5504, nameEn: 'Chatuchak Weekend Market' },
+    '恰圖恰市集': { lat: 13.7999, lng: 100.5504, nameEn: 'Chatuchak Weekend Market' },
+    'Sicha': { lat: 13.8012, lng: 100.5513, nameEn: 'Sicha Premium Thai Tea' },
+    'JACK COFFEE': { lat: 13.8005, lng: 100.5499, nameEn: 'Jack Coffee JJ Market' },
+    'JJ MARKET': { lat: 13.8005, lng: 100.5499, nameEn: 'JJ Market' },
+    '曼谷水門文斯飯店': { lat: 13.7505, lng: 100.5390, nameEn: 'VIE Hotel Bangkok' },
+    '菁英大廈': { lat: 13.7505, lng: 100.5390, nameEn: 'VIE Hotel Bangkok' },
 };
 
 const getLocationInfo = (location?: string): { lat: number; lng: number; nameEn: string } | null => {

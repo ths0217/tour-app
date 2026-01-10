@@ -97,16 +97,22 @@ const initialSchedule: ScheduleItem[] = [
   { id: 504, date: '2025-01-31', time: '11:00', title: '曼谷水門文斯飯店 菁英大廈', type: 'accommodation', desc: '🏨 回飯店休息 • 停留 1 時', location: 'VIE Hotel Bangkok', completed: false, travelTime: '🚶 8分', travelTip: '步行可達' },
 
   // Day 6: 02/01 (週日) - 市區觀光與週末市集
-  { id: 601, date: '2025-02-01', time: '08:00', title: '曼谷水門文斯飯店 (有早餐)', type: 'dining', desc: '🍳 飯店自助早餐 • 停留 1 時', location: 'VIE Hotel Bangkok', completed: false },
-  { id: 602, date: '2025-02-01', time: '09:00', title: '曼谷四面佛 Thao Maha Brahma', type: 'activity', desc: '🙏 許願求平安 • 停留 1 時', location: 'Erawan Shrine', completed: false, travelTime: '🚶 5分', travelTip: '飯店步行可達' },
-  { id: 603, date: '2025-02-01', time: '10:00', title: '水門市場 Pratunam Market', type: 'shopping', desc: '👕 批發購物天堂 • 停留 1 時', location: 'Pratunam', completed: false, travelTime: '🚶 8分', travelTip: '步行可達' },
-  { id: 604, date: '2025-02-01', time: '11:08', title: '洗頭) Sabaikay Head Massage-Sleep Salon', type: 'shopping', desc: '💆 舒壓洗頭按摩 • 停留 1 時', location: 'Sabaikay', completed: false, travelTime: '🚗 15分', travelTip: 'Grab 約 ฿80' },
-  { id: 605, date: '2025-02-01', time: '12:08', title: '恰圖恰市集 Chatuchak Weekend Market', type: 'shopping', desc: '🛒 週末市集掃貨 • 停留 1 時', location: 'Chatuchak', completed: false, travelTime: '🚆 25分', travelTip: 'BTS Mo Chit 站' },
-  { id: 606, date: '2025-02-01', time: '13:08', title: '曼谷水門文斯飯店 菁英大廈', type: 'accommodation', desc: '🏨 回飯店休息 • 停留 1 時', location: 'VIE Hotel Bangkok', completed: false, travelTime: '🚆 25分', travelTip: 'BTS 回 Chit Lom' },
+  { id: 601, date: '2025-02-01', time: '08:00', title: '曼谷水門文斯飯店 菁英大廈 (有早餐)', type: 'dining', desc: '🍳 飯店自助早餐 • 停留 1 時', location: '曼谷水門文斯飯店', completed: false },
+  { id: 602, date: '2025-02-01', time: '09:00', title: '曼谷四面佛 (Thao Maha Brahma)', type: 'activity', desc: '🙏 許願求平安 • 停留 1 時', location: '曼谷四面佛', completed: false, travelTime: '🚶 5分', travelTip: '飯店步行可達' },
+  { id: 603, date: '2025-02-01', time: '10:00', title: '水門市場 (Pratunam Market)', type: 'shopping', desc: '👕 批發購物天堂 • 停留 1 時', location: '水門市場', completed: false, travelTime: '🚶 8分', travelTip: '步行可達' },
+  { id: 604, date: '2025-02-01', time: '11:08', title: '洗頭）Sabaikay Head Massage-Sleep Salon', type: 'shopping', desc: '💆 舒壓洗頭按摩 • 停留 1 時', location: 'Sabaikay', completed: false, travelTime: '🚗 15分', travelTip: 'Grab 約 ฿80' },
+  { id: 605, date: '2025-02-01', time: '12:08', title: '恰圖恰市集 Chatuchak Weekend Market', type: 'shopping', desc: '🛒 週末市集掃貨 • 停留 1 時', location: '恰圖恰市集', completed: false, travelTime: '🚶 5分', travelTip: 'BTS Mo Chit 站' },
+  { id: 606, date: '2025-02-01', time: '13:13', title: 'Sicha Premium Thai Tea @Chatuchak', type: 'dining', desc: '🍵 經典泰式奶茶 • 休息一下', location: 'Sicha', completed: false, travelTime: '🚶 2分', travelTip: '市集內步行' },
+  { id: 607, date: '2025-02-01', time: '14:20', title: 'JACK COFFEE JJ MARKET', type: 'dining', desc: '☕ 精品咖啡 • 停留 1 時', location: 'JACK COFFEE', completed: false, travelTime: '🚶 5分', travelTip: '市集內步行' },
+  { id: 608, date: '2025-02-01', time: '15:20', title: '曼谷水門文斯飯店 菁英大廈', type: 'accommodation', desc: '🏨 回飯店休息', location: '曼谷水門文斯飯店', completed: false, travelTime: '🚆 25分', travelTip: 'BTS 回 Chit Lom' },
 
   // Day 7: 02/02 (週一) - 最後一天 & 回程
-  { id: 701, date: '2025-02-02', time: '08:00', title: '水門寺 Wat Paknam', type: 'activity', desc: '🛕 著名翡翠佛塔 • 停留 1 時', location: 'Wat Paknam', completed: false, travelTime: '🚗 25分', travelTip: 'Grab 約 ฿150' },
-  { id: 702, date: '2025-02-02', time: '09:00', title: '曼谷水門文斯飯店 (有早餐)', type: 'dining', desc: '🍳 最後一天早餐 • 準備退房回程', location: 'VIE Hotel Bangkok', completed: false, travelTime: '🚗 25分', travelTip: 'Grab 約 ฿150' },
+  { id: 701, date: '2025-02-02', time: '08:00', title: '水門寺', type: 'activity', desc: '🛕 著名翡翠佛塔 • 停留 1 時', location: '水門寺', completed: false },
+  { id: 702, date: '2025-02-02', time: '09:00', title: '暹羅中心', type: 'shopping', desc: '🛍️ Siam Center 購物 • 停留 1 時', location: '暹羅中心', completed: false, travelTime: '🚗 20分', travelTip: 'Grab 約 ฿100' },
+  { id: 703, date: '2025-02-02', time: '10:00', title: '曼谷水門文斯飯店 菁英大廈 (有早餐)', type: 'dining', desc: '🍳 最後一天早餐 • 準備退房', location: '曼谷水門文斯飯店', completed: false, travelTime: '🚶 8分', travelTip: '步行可達' },
+  { id: 704, date: '2025-02-02', time: '14:20', title: 'JACK COFFEE JJ MARKET', type: 'dining', desc: '☕ 最後一杯咖啡 • 停留 1 時', location: 'JACK COFFEE', completed: false, travelTime: '🚆 25分', travelTip: 'BTS Mo Chit 站' },
+  { id: 705, date: '2025-02-02', time: '15:20', title: '曼谷水門文斯飯店 菁英大廈', type: 'accommodation', desc: '🏨 取行李準備機場 • 停留 1 時', location: '曼谷水門文斯飯店', completed: false, travelTime: '🚆 25分', travelTip: 'BTS 回 Chit Lom' },
+  { id: 706, date: '2025-02-02', time: '17:00', title: '素萬那普機場 Suvarnabhumi Airport', type: 'flight', desc: '✈️ 辦理登機手續 • 回程航班', location: '素萬那普機場', completed: false, travelTime: '🚗 45分', travelTip: 'Grab 約 ฿400-500' },
 ];
 
 function App() {
