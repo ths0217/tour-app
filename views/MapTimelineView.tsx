@@ -50,6 +50,39 @@ const parseTravelMinutes = (travelTime?: string): number => {
     return match ? parseInt(match[1]) : 0;
 };
 
+// Haversine formula to calculate distance between two coordinates (in km)
+const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+};
+
+// Estimate travel time based on distance (assuming average Bangkok traffic)
+const estimateTravelTime = (distanceKm: number, transportType?: string): { minutes: number; mode: string } => {
+    if (distanceKm < 0.5) {
+        return { minutes: Math.ceil(distanceKm * 15), mode: '步行' }; // ~4 km/h walking
+    } else if (distanceKm < 2) {
+        return { minutes: Math.ceil(distanceKm * 5) + 5, mode: '步行/BTS' }; // short distance
+    } else if (transportType?.includes('BTS') || transportType?.includes('MRT')) {
+        return { minutes: Math.ceil(distanceKm * 3) + 10, mode: 'BTS/MRT' }; // ~20 km/h + waiting
+    } else if (transportType?.includes('Grab') || transportType?.includes('🚗')) {
+        return { minutes: Math.ceil(distanceKm * 4) + 5, mode: 'Grab' }; // ~15 km/h in traffic
+    } else {
+        return { minutes: Math.ceil(distanceKm * 4) + 10, mode: '交通' }; // default
+    }
+};
+
+// Format time for display
+const formatDepartureTime = (date: Date): string => {
+    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+};
+
 // Create numbered marker icon
 const createNumberedIcon = (num: number, isActive: boolean) => {
     return L.divIcon({
@@ -148,26 +181,73 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
         window.open(url, '_blank');
     };
 
-    // Smart notifications
+    // Smart notifications based on distance calculation
     useEffect(() => {
         if (notificationService.getPermissionStatus() !== 'granted') return;
+
+        // Calculate distances and schedule notifications for each activity
         todaySchedule.forEach((item, index) => {
-            if (index === 0 || !item.travelTime) return;
-            const travelMinutes = parseTravelMinutes(item.travelTime);
-            if (travelMinutes > 0) {
-                const [hours, minutes] = item.time.split(':').map(Number);
-                const activityTime = new Date();
-                activityTime.setHours(hours, minutes, 0, 0);
-                const notifyTime = new Date(activityTime.getTime() - (travelMinutes + 5) * 60 * 1000);
-                if (notifyTime > new Date()) {
-                    notificationService.scheduleNotification(
-                        `smart-commute-${item.id}`,
-                        `🚶 該離開了！`,
-                        `前往 ${item.title}`,
-                        notifyTime,
-                        { tag: 'smart-commute' }
-                    );
+            if (index === 0) return; // Skip first activity
+
+            const prevItem = todaySchedule[index - 1];
+            const prevCoords = getLocationInfo(prevItem.location);
+            const currentCoords = getLocationInfo(item.location);
+
+            if (!prevCoords || !currentCoords) return;
+
+            // Calculate distance between previous and current location
+            const distanceKm = calculateDistance(
+                prevCoords.lat, prevCoords.lng,
+                currentCoords.lat, currentCoords.lng
+            );
+
+            // Use schedule travelTime if available, otherwise estimate
+            let travelMinutes = parseTravelMinutes(item.travelTime);
+            let travelMode = '交通';
+
+            if (travelMinutes === 0) {
+                // Estimate based on distance
+                const estimate = estimateTravelTime(distanceKm, item.travelTime);
+                travelMinutes = estimate.minutes;
+                travelMode = estimate.mode;
+            } else {
+                // Parse transport mode from travelTime string
+                if (item.travelTime?.includes('BTS') || item.travelTime?.includes('MRT')) {
+                    travelMode = 'BTS/MRT';
+                } else if (item.travelTime?.includes('Grab') || item.travelTime?.includes('🚗')) {
+                    travelMode = 'Grab';
+                } else if (item.travelTime?.includes('步行') || item.travelTime?.includes('🚶')) {
+                    travelMode = '步行';
+                } else if (item.travelTime?.includes('⛴️')) {
+                    travelMode = '渡船';
                 }
+            }
+
+            // Calculate notification time (activity time - travel time - 5 min buffer)
+            const [hours, minutes] = item.time.split(':').map(Number);
+            const activityTime = new Date();
+            activityTime.setHours(hours, minutes, 0, 0);
+
+            const bufferMinutes = 5;
+            const notifyTime = new Date(activityTime.getTime() - (travelMinutes + bufferMinutes) * 60 * 1000);
+
+            // Only schedule if in the future
+            if (notifyTime > new Date()) {
+                const departureTimeStr = formatDepartureTime(notifyTime);
+                const distanceStr = distanceKm >= 1
+                    ? `${distanceKm.toFixed(1)} 公里`
+                    : `${Math.round(distanceKm * 1000)} 公尺`;
+
+                notificationService.scheduleNotification(
+                    `smart-commute-${item.id}`,
+                    `🚗 ${departureTimeStr} 該出發了！`,
+                    `📍 前往：${item.title}\n` +
+                    `📏 距離：${distanceStr}\n` +
+                    `⏱️ 預估 ${travelMinutes} 分鐘 (${travelMode})\n` +
+                    `🎯 ${item.time} 抵達`,
+                    notifyTime,
+                    { tag: 'smart-commute' }
+                );
             }
         });
     }, [todaySchedule]);
@@ -294,6 +374,22 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                     const isActive = index === focusedIndex;
                     const coords = getLocationInfo(item.location);
 
+                    // Calculate distance from previous location
+                    let distanceInfo = null;
+                    if (index > 0) {
+                        const prevItem = todaySchedule[index - 1];
+                        const prevCoords = getLocationInfo(prevItem.location);
+                        if (prevCoords && coords) {
+                            const distKm = calculateDistance(prevCoords.lat, prevCoords.lng, coords.lat, coords.lng);
+                            const estimate = estimateTravelTime(distKm, item.travelTime);
+                            distanceInfo = {
+                                distance: distKm >= 1 ? `${distKm.toFixed(1)}km` : `${Math.round(distKm * 1000)}m`,
+                                time: estimate.minutes,
+                                mode: estimate.mode
+                            };
+                        }
+                    }
+
                     return (
                         <motion.div
                             key={item.id}
@@ -309,11 +405,15 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
                                     <span className={`text-[13px] font-mono px-2 py-0.5 rounded-md ${isActive ? 'bg-[#F43F5E] text-white' : 'bg-white/10 text-stone'}`}>
                                         {item.time}
                                     </span>
-                                    {item.travelTime && <span className="text-[11px] text-stone/70">{item.travelTime}</span>}
+                                    {distanceInfo && (
+                                        <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                            📍 {distanceInfo.distance} • {distanceInfo.time}分 ({distanceInfo.mode})
+                                        </span>
+                                    )}
                                 </div>
                                 <h3 className="text-[16px] font-semibold text-white mb-1">{item.title}</h3>
                                 {item.location && (
