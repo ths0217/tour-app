@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, Popup, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ScheduleItem } from '../types';
@@ -164,13 +164,39 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
         return locationsWithCoords.map(loc => [loc.coords!.lat, loc.coords!.lng] as [number, number]);
     }, [locationsWithCoords]);
 
-    // Update map center when day changes
+    // Update map center when day changes - smart zoom for cross-country routes
     useEffect(() => {
         if (locationsWithCoords.length > 0) {
-            const avgLat = locationsWithCoords.reduce((sum, loc) => sum + loc.coords!.lat, 0) / locationsWithCoords.length;
-            const avgLng = locationsWithCoords.reduce((sum, loc) => sum + loc.coords!.lng, 0) / locationsWithCoords.length;
-            setMapCenter([avgLat, avgLng]);
-            setMapZoom(locationsWithCoords.length > 2 ? 12 : 13);
+            // Calculate max distance to detect cross-country routes
+            let maxDistance = 0;
+            for (let i = 0; i < locationsWithCoords.length - 1; i++) {
+                const loc1 = locationsWithCoords[i].coords!;
+                const loc2 = locationsWithCoords[i + 1].coords!;
+                const dist = calculateDistance(loc1.lat, loc1.lng, loc2.lat, loc2.lng);
+                maxDistance = Math.max(maxDistance, dist);
+            }
+
+            // If cross-country (>100km between stops), focus on destination
+            if (maxDistance > 100) {
+                // Focus on the last location (destination city)
+                const lastLoc = locationsWithCoords[locationsWithCoords.length - 1].coords!;
+                setMapCenter([lastLoc.lat, lastLoc.lng]);
+                setMapZoom(12);
+            } else {
+                // Normal city routes - center on average
+                const avgLat = locationsWithCoords.reduce((sum, loc) => sum + loc.coords!.lat, 0) / locationsWithCoords.length;
+                const avgLng = locationsWithCoords.reduce((sum, loc) => sum + loc.coords!.lng, 0) / locationsWithCoords.length;
+                setMapCenter([avgLat, avgLng]);
+
+                // Adjust zoom based on spread
+                if (locationsWithCoords.length <= 2) {
+                    setMapZoom(14);
+                } else if (maxDistance < 5) {
+                    setMapZoom(13);
+                } else {
+                    setMapZoom(12);
+                }
+            }
         }
     }, [locationsWithCoords]);
 
@@ -329,14 +355,16 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                     />
 
-                    {/* Route Polyline */}
+                    {/* Route Polyline - Blue like Google Maps */}
                     {polylinePath.length > 1 && (
                         <Polyline
                             positions={polylinePath}
                             pathOptions={{
-                                color: '#F43F5E',
-                                weight: 4,
-                                opacity: 0.8,
+                                color: '#4285F4',
+                                weight: 5,
+                                opacity: 1,
+                                lineCap: 'round',
+                                lineJoin: 'round',
                             }}
                         />
                     )}
@@ -354,10 +382,27 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                                 },
                             }}
                         >
+                            {/* Permanent Text Label like Google Maps */}
+                            <Tooltip
+                                permanent
+                                direction="right"
+                                offset={[15, 0]}
+                                className="leaflet-tooltip-custom"
+                            >
+                                <span style={{
+                                    fontWeight: 600,
+                                    fontSize: '11px',
+                                    color: '#1a1a1a',
+                                    textShadow: '0 0 3px white, 0 0 3px white, 0 0 3px white',
+                                    whiteSpace: 'nowrap'
+                                }}>
+                                    {loc.title.length > 20 ? loc.title.slice(0, 20) + '...' : loc.title}
+                                </span>
+                            </Tooltip>
                             <Popup>
-                                <div className="p-1">
+                                <div className="p-2">
                                     <p className="font-bold text-sm text-gray-800">{loc.title}</p>
-                                    <p className="text-xs text-gray-600">{loc.time}</p>
+                                    <p className="text-xs text-gray-600">{loc.time} • {loc.location}</p>
                                 </div>
                             </Popup>
                         </Marker>
