@@ -65,6 +65,7 @@ const initialSchedule: ScheduleItem[] = [
   // Day 1: 01/27 (週二) - 出發日
   { id: 101, date: '2025-01-27', time: '08:00', title: '觀景名廬出發', type: 'transport', desc: '🏠 從家出發前往機場', location: '觀景名廬', completed: false },
   { id: 102, date: '2025-01-27', time: '13:50', title: '臺灣桃園國際機場', type: 'flight', desc: '✈️ 辦理登機手續 • 13:50 離開 • 飛行約 3.5 小時', location: 'TPE', completed: false, travelTime: '🚗 45分' },
+  { id: 103, date: '2025-01-27', time: '16:45', title: '素萬那普機場', type: 'flight', desc: '✈️ 抵達曼谷 • 16:45 離開 • 入境通關', location: '素萬那普機場', completed: false, travelTime: '✈️ 3.5時' },
   { id: 104, date: '2025-01-27', time: '16:45', title: 'Bangkok Patio Serviced Apartment', type: 'accommodation', desc: '🏨 入住公寓 • 停留 1 時整理行李', location: 'Bangkok Patio', completed: false, travelTime: '🚗 45分', travelTip: 'Grab 從機場約 ฿350-500' },
   { id: 105, date: '2025-01-27', time: '17:45', title: '喬德夜市新址 Jodd Fairs Ratchada', type: 'dining', desc: '🌋 火山排骨 • 水果西施 • 停留 1 時', location: 'Jodd Fairs Ratchada', completed: false, travelTime: '🚗 15分', travelTip: 'Grab 約 ฿80-120' },
 
