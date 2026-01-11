@@ -80,6 +80,11 @@ const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: numbe
 
 // Estimate travel time based on distance (assuming average Bangkok traffic)
 const estimateTravelTime = (distanceKm: number, transportType?: string): { minutes: number; mode: string } => {
+    // Flight for very long distances (cross-country)
+    if (distanceKm > 100) {
+        // Assume 3.5 hour flight + 2 hour airport procedures
+        return { minutes: Math.ceil(210 + (distanceKm / 800) * 60), mode: '✈️ 飛行' };
+    }
     if (distanceKm < 0.5) {
         return { minutes: Math.ceil(distanceKm * 15), mode: '步行' }; // ~4 km/h walking
     } else if (distanceKm < 2) {
@@ -88,6 +93,8 @@ const estimateTravelTime = (distanceKm: number, transportType?: string): { minut
         return { minutes: Math.ceil(distanceKm * 3) + 10, mode: 'BTS/MRT' }; // ~20 km/h + waiting
     } else if (transportType?.includes('Grab') || transportType?.includes('🚗')) {
         return { minutes: Math.ceil(distanceKm * 4) + 5, mode: 'Grab' }; // ~15 km/h in traffic
+    } else if (distanceKm > 30) {
+        return { minutes: Math.ceil(distanceKm * 2) + 15, mode: 'Grab 長途' }; // longer taxi trips
     } else {
         return { minutes: Math.ceil(distanceKm * 4) + 10, mode: '交通' }; // default
     }
