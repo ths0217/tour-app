@@ -322,6 +322,7 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
         {/* Conflict Detection */}
         <ConflictDetector
           schedule={schedule}
+          currentDate={currentDayData?.fullDate}
           onResolve={(item) => setSelectedItem(item)}
         />
 

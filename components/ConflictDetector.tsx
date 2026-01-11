@@ -4,6 +4,7 @@ import { ScheduleItem } from '../types';
 
 interface ConflictDetectorProps {
   schedule: ScheduleItem[];
+  currentDate?: string;  // Optional: filter conflicts to show only this date
   onResolve?: (item: ScheduleItem) => void;
 }
 
@@ -35,10 +36,10 @@ const getEstimatedDuration = (type: string): number => {
   return durations[type] || durations.default;
 };
 
-export default function ConflictDetector({ schedule, onResolve }: ConflictDetectorProps) {
+export default function ConflictDetector({ schedule, currentDate, onResolve }: ConflictDetectorProps) {
   const conflicts = useMemo(() => {
     const result: Conflict[] = [];
-    
+
     // Group by date
     const byDate: Record<string, ScheduleItem[]> = {};
     schedule.forEach(item => {
@@ -49,11 +50,11 @@ export default function ConflictDetector({ schedule, onResolve }: ConflictDetect
     // Check each day for conflicts
     Object.values(byDate).forEach(dayItems => {
       const sorted = dayItems.sort((a, b) => a.time.localeCompare(b.time));
-      
+
       for (let i = 0; i < sorted.length - 1; i++) {
         const item1 = sorted[i];
         const item2 = sorted[i + 1];
-        
+
         const start1 = timeToMinutes(item1.time);
         const end1 = start1 + getEstimatedDuration(item1.type);
         const start2 = timeToMinutes(item2.time);
@@ -68,8 +69,9 @@ export default function ConflictDetector({ schedule, onResolve }: ConflictDetect
       }
     });
 
-    return result;
-  }, [schedule]);
+    // Filter by currentDate if provided
+    return currentDate ? result.filter(c => c.item1.date === currentDate) : result;
+  }, [schedule, currentDate]);
 
   if (conflicts.length === 0) {
     return null;
@@ -108,12 +110,12 @@ export default function ConflictDetector({ schedule, onResolve }: ConflictDetect
                   重疊 {conflict.overlapMinutes} 分鐘
                 </span>
               </div>
-              
+
               <div className="flex items-center gap-2 text-[12px]">
                 <span className="text-charcoal dark:text-white font-medium">{conflict.item1.time}</span>
                 <span className="text-stone line-clamp-1 flex-1">{conflict.item1.title}</span>
               </div>
-              
+
               <div className="flex items-center gap-2 text-[12px] mt-1">
                 <span className="text-charcoal dark:text-white font-medium">{conflict.item2.time}</span>
                 <span className="text-stone line-clamp-1 flex-1">{conflict.item2.title}</span>
