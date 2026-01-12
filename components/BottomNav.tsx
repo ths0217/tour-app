@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Tab } from '../types';
+import { haptics } from '../utils/haptics';
 
 interface BottomNavProps {
   activeTab: Tab;
@@ -17,10 +18,7 @@ const navItems: { id: Tab; icon: string; label: string; aria: string }[] = [
 
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   const handleTabClick = (tab: Tab) => {
-    // Trigger haptic feedback if available
-    if (navigator.vibrate) {
-      navigator.vibrate(10); // Light haptic
-    }
+    haptics.selection(); // iOS-like selection feedback
     onTabChange(tab);
   };
 

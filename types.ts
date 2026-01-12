@@ -7,6 +7,13 @@ export interface User {
   image: string;
 }
 
+export interface FamilyMember {
+  id: string;
+  name: string;
+  role: string;
+  image: string;
+}
+
 export interface Traveler {
   name: string;
   role: string;
@@ -24,13 +31,17 @@ export interface Expense {
   payer: string;
 }
 
+export type ChecklistCategory = 'Documents' | 'Wardrobe' | 'Tech' | 'Medical' | 'Gadgets' | 'Toiletries' | 'Other';
+
 export interface ChecklistItem {
   id: string;
   text: string;
   subtext?: string;
+  sub?: string; // Alternative subtext field
   checked: boolean;
-  category: 'Documents' | 'Wardrobe' | 'Tech';
+  category: ChecklistCategory;
   assigneeImage?: string;
+  assigneeId?: string; // Family member ID
 }
 
 export interface ItineraryItem {
