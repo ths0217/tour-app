@@ -14,6 +14,8 @@ import TripTemplates from '../components/TripTemplates';
 import BusinessHoursWarning from '../components/BusinessHoursWarning';
 import TransportLinks from '../components/TransportLinks';
 import DriverCard from '../components/DriverCard';
+import CalendarExport from '../components/CalendarExport';
+import ShareImageGenerator from '../components/ShareImageGenerator';
 import { openMap } from '../utils/device';
 
 const days = [
@@ -227,6 +229,8 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
               >
                 <span className="material-symbols-outlined text-white text-[16px]">share</span>
               </motion.button>
+              <CalendarExport schedule={schedule} tripName="曼谷探險" />
+              <ShareImageGenerator schedule={schedule} tripName="曼谷探險" dateRange="2025/1/27 - 2/2" />
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setShowTemplates(true)}
@@ -307,7 +311,6 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
         <DailySummary
           schedule={schedule}
           selectedDate={currentDayData?.fullDate || ''}
-          weather={{ temp: '32°C', condition: '晴朗' }}
         />
 
         {/* Business Hours Warning */}

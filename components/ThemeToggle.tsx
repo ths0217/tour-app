@@ -1,31 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '../context/ThemeContext';
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') === 'dark' || 
-        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    const html = document.documentElement;
-    if (isDark) {
-      html.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      html.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
+  const { resolvedTheme, toggleTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <motion.button
       whileTap={{ scale: 0.9 }}
-      onClick={() => setIsDark(!isDark)}
+      onClick={toggleTheme}
       className="w-10 h-10 rounded-full bg-white dark:bg-charcoal/80 flex items-center justify-center shadow-mag border border-black/5 dark:border-white/10"
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       <motion.span
         key={isDark ? 'dark' : 'light'}
@@ -38,3 +24,4 @@ export default function ThemeToggle() {
     </motion.button>
   );
 }
+

