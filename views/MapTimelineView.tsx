@@ -49,6 +49,12 @@ const locationCoordinates: Record<string, { lat: number; lng: number; nameEn: st
     'JJ MARKET': { lat: 13.8005, lng: 100.5499, nameEn: 'JJ Market' },
     '曼谷水門文斯飯店': { lat: 13.7505, lng: 100.5390, nameEn: 'VIE Hotel Bangkok' },
     '菁英大廈': { lat: 13.7505, lng: 100.5390, nameEn: 'VIE Hotel Bangkok' },
+    'VIE Hotel Bangkok': { lat: 13.7505, lng: 100.5390, nameEn: 'VIE Hotel Bangkok' },
+    'Damnoen Saduak': { lat: 13.5197, lng: 99.9598, nameEn: 'Damnoen Saduak Floating Market' },
+    'Maeklong Railway': { lat: 13.4075, lng: 99.9989, nameEn: 'Maeklong Railway Market' },
+    'Ancient City': { lat: 13.5398, lng: 100.6231, nameEn: 'Ancient City' },
+    'CentralWorld': { lat: 13.7466, lng: 100.5393, nameEn: 'CentralWorld' },
+    'ICONSIAM': { lat: 13.7261, lng: 100.5099, nameEn: 'ICONSIAM' },
 };
 
 const getLocationInfo = (location?: string): { lat: number; lng: number; nameEn: string } | null => {
