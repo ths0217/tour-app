@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo, AnimatePresence } from 'framer-motion';
 import useMeasure from 'react-use-measure';
 import { ChecklistItem as ItemType, FamilyMember } from '../types';
-import { categories } from '../views/WalletView'; // Reuse categories or define new ones
+import { categories } from '../views/WalletView';
 
 interface ChecklistItemProps {
     item: ItemType;
@@ -17,10 +17,10 @@ const ChecklistItem = React.memo(({ item, toggleItem, deleteItem, familyMembers,
     const x = useMotionValue(0);
     const background = useTransform(x, [-100, 0, 100], ["#ef4444", "#ffffff", "#10b981"]);
     const [isDragging, setIsDragging] = useState(false);
-    
+
     // Find category info
     const cat = categories.find(c => c.id === item.category);
-    
+
     // Determine assignee avatar
     const assignee = item.assigneeId ? familyMembers.find(m => m.id === item.assigneeId) : null;
 
@@ -45,7 +45,7 @@ const ChecklistItem = React.memo(({ item, toggleItem, deleteItem, familyMembers,
             className="relative overflow-hidden group"
         >
             {/* Background Actions */}
-            <motion.div 
+            <motion.div
                 style={{ background }}
                 className="absolute inset-0 flex items-center justify-between px-6"
             >
@@ -79,11 +79,10 @@ const ChecklistItem = React.memo(({ item, toggleItem, deleteItem, familyMembers,
                             toggleItem(item.id);
                         }
                     }}
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
-                        item.checked 
-                            ? 'bg-green-500 border-green-500' 
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors cursor-pointer ${item.checked
+                            ? 'bg-green-500 border-green-500'
                             : 'border-stone/30 hover:border-green-400'
-                    }`}
+                        }`}
                 >
                     {item.checked && (
                         <span className="material-symbols-outlined text-white text-[14px] font-bold">check</span>
@@ -92,9 +91,8 @@ const ChecklistItem = React.memo(({ item, toggleItem, deleteItem, familyMembers,
 
                 {/* Text Content */}
                 <div className="flex-1 min-w-0 select-none">
-                    <p className={`text-[15px] font-medium transition-all leading-snug ${
-                        item.checked ? 'line-through text-stone' : 'text-charcoal'
-                    }`}>
+                    <p className={`text-[15px] font-medium transition-all leading-snug ${item.checked ? 'line-through text-stone' : 'text-charcoal'
+                        }`}>
                         {item.text}
                     </p>
                     {item.sub && (
@@ -104,10 +102,10 @@ const ChecklistItem = React.memo(({ item, toggleItem, deleteItem, familyMembers,
 
                 {/* Info / Assignee */}
                 <div className="flex items-center gap-3 shrink-0">
-                     {/* Category Dot */}
-                     {cat && (
+                    {/* Category Dot */}
+                    {cat && (
                         <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${cat.color}`} title={cat.label} />
-                     )}
+                    )}
 
                     {/* Assignee Avatar */}
                     {assignee && (
@@ -117,8 +115,8 @@ const ChecklistItem = React.memo(({ item, toggleItem, deleteItem, familyMembers,
                                     {assignee.image.split(':')[2]}
                                 </div>
                             ) : (
-                                <img 
-                                    src={assignee.image} 
+                                <img
+                                    src={assignee.image}
                                     alt={assignee.name}
                                     className="w-full h-full rounded-full object-cover shadow-sm ring-1 ring-white/50"
                                 />

@@ -42,7 +42,7 @@ export default function ItineraryMap({ schedule, selectedDate, onLocationClick }
     [schedule, selectedDate]
   );
 
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+  const mapboxToken = (import.meta as any).env.VITE_MAPBOX_TOKEN;
 
   if (daySchedule.length === 0) {
     return (
@@ -114,14 +114,14 @@ export default function ItineraryMap({ schedule, selectedDate, onLocationClick }
               <stop offset="100%" stopColor="#ec4899" />
             </linearGradient>
             <filter id="glow">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+              <feGaussianBlur stdDeviation="2" result="coloredBlur" />
               <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
-          
+
           {/* Route Path with glow effect */}
           <path
             d={`M ${daySchedule.map((_, i) => {
@@ -175,9 +175,8 @@ export default function ItineraryMap({ schedule, selectedDate, onLocationClick }
             whileTap={{ scale: 0.98 }}
             className="w-full flex items-center gap-2 p-2 hover:bg-stone/5 dark:hover:bg-white/5 rounded-mag transition-colors"
           >
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${
-              item.completed ? 'bg-green-500' : 'bg-red-xhs'
-            }`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white ${item.completed ? 'bg-green-500' : 'bg-red-xhs'
+              }`}>
               {i + 1}
             </div>
             <div className="flex-1 text-left">

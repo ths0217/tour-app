@@ -134,7 +134,7 @@ interface HomeViewProps {
   onUpdateFamilyMember: (id: string, newImage: string) => void;
 }
 
-export default function HomeView({ user, budget, schedule, onLogout, familyMembers, onUpdateFamilyMember }: HomeViewProps) {
+export default function HomeView({ user, budget, schedule, setSchedule, onLogout, familyMembers, onUpdateFamilyMember }: HomeViewProps) {
   const [weather, setWeather] = useState({ temp: '--', label: '載入中', icon: 'cloud' });
   const [likedDestinations, setLikedDestinations] = useState<Set<number>>(new Set());
   const [showCurrency, setShowCurrency] = useState(false);

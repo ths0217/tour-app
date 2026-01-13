@@ -9,40 +9,40 @@ interface TransportLinksProps {
 }
 
 const transportOptions = [
-  { 
-    id: 'grab', 
-    name: 'Grab', 
-    icon: '🚗', 
+  {
+    id: 'grab',
+    name: 'Grab',
+    icon: '🚗',
     color: 'from-green-500 to-green-600',
-    getUrl: (lat?: number, lng?: number) => 
-      lat && lng 
+    getUrl: (lat?: number, lng?: number) =>
+      lat && lng
         ? `grab://open?screenType=BOOKING&pickUpLat=${lat}&pickUpLng=${lng}`
         : 'https://www.grab.com/th/',
     fallback: 'https://www.grab.com/th/',
     desc: '叫車'
   },
-  { 
-    id: 'bolt', 
-    name: 'Bolt', 
-    icon: '⚡', 
+  {
+    id: 'bolt',
+    name: 'Bolt',
+    icon: '⚡',
     color: 'from-emerald-400 to-teal-500',
     getUrl: () => 'https://bolt.eu/th/',
     fallback: 'https://bolt.eu/th/',
     desc: '便宜替代'
   },
-  { 
-    id: 'bts', 
-    name: 'BTS', 
-    icon: '🚇', 
+  {
+    id: 'bts',
+    name: 'BTS',
+    icon: '🚇',
     color: 'from-green-600 to-lime-500',
     getUrl: () => 'https://www.bts.co.th/eng/routemap.html',
     fallback: 'https://www.bts.co.th/eng/routemap.html',
     desc: '空鐵路線圖'
   },
-  { 
-    id: 'mrt', 
-    name: 'MRT', 
-    icon: '🚈', 
+  {
+    id: 'mrt',
+    name: 'MRT',
+    icon: '🚈',
     color: 'from-blue-500 to-indigo-600',
     getUrl: () => 'https://www.mrta.co.th/en/',
     fallback: 'https://www.mrta.co.th/en/',
@@ -67,16 +67,16 @@ export default function TransportLinks({ destination, lat, lng }: TransportLinks
 
   const handleClick = (option: typeof transportOptions[0]) => {
     const url = option.getUrl(lat, lng);
-    
+
     // Try to open app, fallback to web
     if (option.id === 'grab') {
       // Try Grab app first
       const timeout = setTimeout(() => {
         window.open(option.fallback, '_blank');
       }, 500);
-      
-      window.location.href = url;
-      
+
+      window.location.href = url as string;
+
       window.addEventListener('blur', () => {
         clearTimeout(timeout);
       }, { once: true });
@@ -103,9 +103,8 @@ export default function TransportLinks({ destination, lat, lng }: TransportLinks
             <span className="text-[11px] text-stone">→ {destination}</span>
           )}
         </div>
-        <span className={`material-symbols-outlined text-stone text-[18px] transition-transform ${
-          expanded ? 'rotate-180' : ''
-        }`}>
+        <span className={`material-symbols-outlined text-stone text-[18px] transition-transform ${expanded ? 'rotate-180' : ''
+          }`}>
           expand_more
         </span>
       </button>

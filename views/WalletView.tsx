@@ -4,7 +4,7 @@ import { Expense, User } from '../types';
 import { useToast } from '../components/Toast';
 import CurrencyConverter from '../components/CurrencyConverter';
 
-const categories = [
+export const categories = [
     { id: 'Dining', label: '餐飲', icon: 'restaurant', color: 'from-orange-400 to-amber-500' },
     { id: 'Transport', label: '交通', icon: 'directions_car', color: 'from-blue-400 to-indigo-500' },
     { id: 'Accommodation', label: '住宿', icon: 'hotel', color: 'from-purple-400 to-violet-500' },
