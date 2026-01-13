@@ -13,7 +13,7 @@ interface MapTimelineViewProps {
 
 // Real coordinates for Bangkok locations
 const locationCoordinates: Record<string, { lat: number; lng: number; nameEn: string }> = {
-    '觀景名廬': { lat: 25.0330, lng: 121.5654, nameEn: 'Home' },
+    '觀景名廈': { lat: 25.1154, lng: 121.4523, nameEn: 'Wugu Home' },
     'TPE': { lat: 25.0797, lng: 121.2324, nameEn: 'Taoyuan Airport' },
     'BKK': { lat: 13.6900, lng: 100.7501, nameEn: 'Suvarnabhumi Airport' },
     'Bangkok Patio': { lat: 13.7428, lng: 100.5553, nameEn: 'Bangkok Patio' },
