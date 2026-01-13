@@ -11,7 +11,7 @@ interface ItineraryCardProps {
 
 // iOS Spring Physics
 const springTransition = {
-  type: "spring",
+  type: "spring" as const,
   stiffness: 400,
   damping: 25,
 };
@@ -73,9 +73,8 @@ export default function ItineraryCard({ item, onToggle, onPress, layoutId }: Iti
       onClick={handlePress}
       whileTap={{ scale: 0.96 }}
       transition={springTransition}
-      className={`relative bg-white rounded-ios-lg shadow-ios-card overflow-hidden cursor-pointer ios-press ${
-        item.completed ? 'opacity-60' : ''
-      }`}
+      className={`relative bg-white rounded-ios-lg shadow-ios-card overflow-hidden cursor-pointer ios-press ${item.completed ? 'opacity-60' : ''
+        }`}
     >
       {/* Main Content */}
       <div className="flex items-start gap-4 p-4">
@@ -89,17 +88,16 @@ export default function ItineraryCard({ item, onToggle, onPress, layoutId }: Iti
 
         {/* Timeline Dot */}
         <div className="flex flex-col items-center shrink-0 pt-1">
-          <motion.div 
+          <motion.div
             whileTap={{ scale: 0.85 }}
             onClick={handleToggle}
-            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-              item.completed 
-                ? 'bg-ios-green border-ios-green' 
+            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${item.completed
+                ? 'bg-ios-green border-ios-green'
                 : 'border-ios-gray3 bg-white'
-            }`}
+              }`}
           >
             {item.completed && (
-              <motion.span 
+              <motion.span
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={springTransition}
@@ -116,9 +114,8 @@ export default function ItineraryCard({ item, onToggle, onPress, layoutId }: Iti
         <div className="flex-1 min-w-0 pb-2">
           {/* Title Row */}
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h3 className={`text-ios-headline font-semibold ${
-              item.completed ? 'line-through text-ios-tertiaryLabel' : 'text-ios-label'
-            }`}>
+            <h3 className={`text-ios-headline font-semibold ${item.completed ? 'line-through text-ios-tertiaryLabel' : 'text-ios-label'
+              }`}>
               {item.title}
             </h3>
             <div className={`shrink-0 w-8 h-8 rounded-ios-sm flex items-center justify-center ${colors.bg}`}>

@@ -31,7 +31,7 @@ export interface Expense {
   payer: string;
 }
 
-export type ChecklistCategory = 'Documents' | 'Wardrobe' | 'Tech' | 'Medical' | 'Gadgets' | 'Toiletries' | 'Other';
+export type ChecklistCategory = 'Documents' | 'Wardrobe' | 'Tech' | 'Medical' | 'Gadgets' | 'Toiletries' | 'Clothing' | 'Other';
 
 export interface ChecklistItem {
   id: string;
@@ -42,6 +42,7 @@ export interface ChecklistItem {
   category: ChecklistCategory;
   assigneeImage?: string;
   assigneeId?: string; // Family member ID
+  confirmedById?: string; // ID of person who confirmed
 }
 
 export interface ItineraryItem {

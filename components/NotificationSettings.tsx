@@ -33,8 +33,7 @@ export default function NotificationSettings({ isOpen, onClose }: NotificationSe
             // Show test notification
             notificationService.showNotification(
                 '🔔 通知已啟用',
-                '您現在會在行程開始前收到提醒',
-                { vibrate: [100, 50, 100] }
+                '您現在會在行程開始前收到提醒'
             );
         }
     };
@@ -47,8 +46,7 @@ export default function NotificationSettings({ isOpen, onClose }: NotificationSe
     const handleTestNotification = () => {
         notificationService.showNotification(
             '⏰ 測試通知',
-            '這是一個測試提醒，確認通知正常運作！',
-            { vibrate: [100, 50, 100] }
+            '這是一個測試提醒，確認通知正常運作！'
         );
     };
 
@@ -94,10 +92,10 @@ export default function NotificationSettings({ isOpen, onClose }: NotificationSe
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-[15px] font-medium text-charcoal">通知權限</span>
                                             <span className={`px-2 py-1 rounded-full text-[12px] font-medium ${permissionStatus === 'granted'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : permissionStatus === 'denied'
-                                                        ? 'bg-red-100 text-red-700'
-                                                        : 'bg-yellow-100 text-yellow-700'
+                                                ? 'bg-green-100 text-green-700'
+                                                : permissionStatus === 'denied'
+                                                    ? 'bg-red-100 text-red-700'
+                                                    : 'bg-yellow-100 text-yellow-700'
                                                 }`}>
                                                 {permissionStatus === 'granted' ? '已授權'
                                                     : permissionStatus === 'denied' ? '已拒絕'
@@ -135,8 +133,8 @@ export default function NotificationSettings({ isOpen, onClose }: NotificationSe
                                                             whileTap={{ scale: 0.95 }}
                                                             onClick={() => handleReminderChange(option.value)}
                                                             className={`px-4 py-2 rounded-full text-[13px] font-medium transition-colors ${reminderMinutes === option.value
-                                                                    ? 'bg-charcoal text-white'
-                                                                    : 'bg-white text-charcoal border border-black/10'
+                                                                ? 'bg-charcoal text-white'
+                                                                : 'bg-white text-charcoal border border-black/10'
                                                                 }`}
                                                         >
                                                             {option.label}

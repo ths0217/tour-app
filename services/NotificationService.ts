@@ -113,9 +113,7 @@ class NotificationService {
             {
                 icon: '/tour-app/pwa-192x192.png',
                 badge: '/tour-app/pwa-192x192.png',
-                vibrate: [200, 100, 200],
-                tag: 'activity-reminder',
-                renotify: true
+                tag: 'activity-reminder'
             }
         );
     }
