@@ -398,7 +398,7 @@ export default function HomeView({ user, budget, schedule, setSchedule, onLogout
               className="flex-none w-40"
             >
               <div className="relative aspect-[3/4] rounded-mag overflow-hidden shadow-mag mb-2">
-                <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                <img src={item.image} alt={item.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 img-overlay" />
 
                 {/* Source Badge */}
@@ -477,7 +477,7 @@ export default function HomeView({ user, budget, schedule, setSchedule, onLogout
               className="masonry-item"
             >
               <div className={`relative rounded-mag overflow-hidden shadow-mag ${i % 2 === 0 ? 'aspect-[3/4]' : 'aspect-[4/5]'}`}>
-                <img src={dest.image} alt={dest.name} className="w-full h-full object-cover" />
+                <img src={dest.image} alt={dest.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 <div className="absolute inset-0 img-overlay" />
 
                 {/* Badge */}

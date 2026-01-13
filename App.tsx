@@ -8,6 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import AddToHomeScreenPrompt from './components/AddToHomeScreenPrompt';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
+import OfflineBanner from './components/OfflineBanner';
 
 // Lazy load views for code splitting
 const HomeView = lazy(() => import('./views/HomeView'));
@@ -315,13 +316,14 @@ function App() {
 export default function AppWithProviders() {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <LanguageProvider>
+      <LanguageProvider>
+        <ThemeProvider>
+          <OfflineBanner />
           <ToastProvider>
             <App />
           </ToastProvider>
-        </LanguageProvider>
-      </ThemeProvider>
+        </ThemeProvider>
+      </LanguageProvider>
     </ErrorBoundary>
   );
 }
