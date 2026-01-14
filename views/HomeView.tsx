@@ -135,79 +135,76 @@ interface HomeViewProps {
   onUpdateFamilyMember: (id: string, newImage: string) => void;
 }
 
+import { useFamilyMode } from '../contexts/FamilyModeContext';
+
+// ... imports ...
+
 export default function HomeView({ user, budget, schedule, setSchedule, onLogout, familyMembers, onUpdateFamilyMember }: HomeViewProps) {
-  const [weather, setWeather] = useState({ temp: '--', label: '載入中', icon: 'cloud' });
-  const [likedDestinations, setLikedDestinations] = useState<Set<number>>(new Set());
-  const [showCurrency, setShowCurrency] = useState(false);
-  const [showEmergency, setShowEmergency] = useState(false);
-  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-  const [showTipCalc, setShowTipCalc] = useState(false);
-  const [showLocalInfo, setShowLocalInfo] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
+  const { isElderlyMode, toggleElderlyMode } = useFamilyMode();
+  // ... state ...
 
-  const safeBudget = budget || { total: 50000, remaining: 38500, spent: 11500 };
-  const spentPercent = (safeBudget.spent / safeBudget.total) * 100;
+  // Elder Mode UI
+  if (isElderlyMode) {
+    return (
+      <div className="min-h-full pb-safe bg-white flex flex-col">
+        <div className="px-5 pt-8 pb-4 bg-ios-gray6 border-b border-black/10 flex justify-between items-center safe-top">
+          <h1 className="text-[32px] font-bold text-black">長輩模式</h1>
+          <button
+            onClick={toggleElderlyMode}
+            className="px-6 py-3 bg-blue-600 text-white text-[18px] font-bold rounded-xl"
+          >
+            退出
+          </button>
+        </div>
 
-  // Fetch Bangkok weather
-  useEffect(() => {
-    fetch('https://api.open-meteo.com/v1/forecast?latitude=13.7563&longitude=100.5018&current_weather=true&timezone=Asia%2FBangkok')
-      .then(r => r.json())
-      .then(data => {
-        const { temperature } = data?.current_weather || {};
-        setWeather({ temp: `${Math.round(temperature)}°`, label: '曼谷', icon: 'sunny' });
-      })
-      .catch(() => setWeather({ temp: '33°', label: '曼谷', icon: 'sunny' }));
-  }, []);
+        <div className="flex-1 p-6 flex flex-col gap-6 overflow-y-auto">
+          {/* Current Status */}
+          <div className="p-6 bg-green-50 rounded-3xl border-4 border-green-500">
+            <div className="flex items-center gap-4 mb-2">
+              <span className="material-symbols-outlined text-[48px] text-green-700">partly_cloudy_day</span>
+              <span className="text-[40px] font-bold text-black">{weather.temp}</span>
+            </div>
+            <p className="text-[24px] text-gray-700 font-medium">今天天氣不錯，適合出遊</p>
+          </div>
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return '早安';
-    if (hour < 18) return '午安';
-    return '晚安';
-  };
+          {/* Next Activity (Big Card) */}
+          {nextEvent ? (
+            <div className="p-6 bg-blue-50 rounded-3xl border-4 border-blue-500 shadow-xl">
+              <p className="text-[24px] font-bold text-blue-800 mb-2"> 👇 下一站去這裡</p>
+              <h2 className="text-[42px] font-black text-black leading-tight mb-4">{nextEvent.title}</h2>
+              <div className="flex items-center gap-4 mb-4">
+                <span className="px-4 py-2 bg-red-600 text-white text-[28px] font-bold rounded-lg">{nextEvent.time}</span>
+                <span className="text-[24px] text-gray-600">集合</span>
+              </div>
+              <button
+                onClick={() => openMap({ lat: 13.7563, lng: 100.5018, travelMode: 'w' })} // Simpy map
+                className="w-full py-6 bg-blue-600 text-white text-[32px] font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3"
+              >
+                <span className="material-symbols-outlined text-[40px]">navigation</span>
+                帶我過去
+              </button>
+            </div>
+          ) : (
+            <div className="p-8 bg-gray-100 rounded-3xl text-center">
+              <p className="text-[32px] text-gray-500">今天的行程結束了</p>
+            </div>
+          )}
 
-  const toggleLike = (id: number) => {
-    setLikedDestinations(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const companions = familyMembersData.filter(m => m.id !== user?.id);
-
-  // Next event
-  const sortedSchedule = [...schedule].sort((a, b) => {
-    if (a.date !== b.date) return a.date.localeCompare(b.date);
-    return a.time.localeCompare(b.time);
-  });
-  const nextEvent = sortedSchedule.find(e => !e.completed);
-
-  // Add trending item to schedule
-  const [addedTrending, setAddedTrending] = useState<Set<string>>(new Set());
-  const [showAddedToast, setShowAddedToast] = useState<string | null>(null);
-
-  const addTrendingToSchedule = (item: typeof trendingItineraries[0]) => {
-    if (addedTrending.has(item.id)) return;
-
-    const newItem: ScheduleItem = {
-      id: Date.now(),
-      title: item.title,
-      time: item.time,
-      date: '2025-01-28', // Add to Day 2 by default
-      type: item.type,
-      location: item.location,
-      desc: item.desc,
-      completed: false,
-      image: item.image,
-    };
-
-    setSchedule(prev => [...prev, newItem]);
-    setAddedTrending(prev => new Set([...prev, item.id]));
-    setShowAddedToast(item.title);
-    setTimeout(() => setShowAddedToast(null), 2000);
-  };
+          {/* Quick Needs */}
+          <div className="grid grid-cols-2 gap-4">
+            <button className="p-6 bg-orange-100 rounded-3xl border-2 border-orange-300 flex flex-col items-center gap-2" onClick={() => alert('已幫您尋找最近的廁所')}>
+              <span className="material-symbols-outlined text-[60px] text-orange-600">wc</span>
+              <span className="text-[28px] font-bold text-black">找廁所</span>
+            </button>
+            <button className="p-6 bg-red-100 rounded-3xl border-2 border-red-300 flex flex-col items-center gap-2" onClick={() => setShowEmergency(true)}>
+              <span className="material-symbols-outlined text-[60px] text-red-600">sos</span>
+              <span className="text-[28px] font-bold text-black">緊急求救</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full pb-safe">
@@ -234,6 +231,15 @@ export default function HomeView({ user, budget, schedule, setSchedule, onLogout
           <div className="flex items-start gap-2">
             <LanguageSwitcher />
             <ThemeToggle />
+            {/* Family Mode Toggle */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={toggleElderlyMode}
+              className="w-10 h-10 rounded-full bg-white shadow-mag flex items-center justify-center"
+              title="長輩模式"
+            >
+              <span className="material-symbols-outlined text-green-600 text-[24px]">assist_walker</span>
+            </motion.button>
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={onLogout}

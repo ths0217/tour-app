@@ -9,6 +9,7 @@ import AddToHomeScreenPrompt from './components/AddToHomeScreenPrompt';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import OfflineBanner from './components/OfflineBanner';
+import { FamilyModeProvider } from './contexts/FamilyModeContext';
 
 // Lazy load views for code splitting
 const HomeView = lazy(() => import('./views/HomeView'));
@@ -254,7 +255,7 @@ function App() {
       />;
       case 'checklist': return <ChecklistView currentUser={currentUser} familyMembers={familyMembers} />;
       case 'explore': return <ExploreView hotelInfo={hotelInfo} />;
-      case 'map': return <MapTimelineView schedule={schedule} />;
+      case 'map': return <MapTimelineView schedule={schedule} familyMembers={familyMembers} />;
       default: return <HomeView
         user={currentUser}
         budget={{
@@ -318,10 +319,12 @@ export default function AppWithProviders() {
     <ErrorBoundary>
       <LanguageProvider>
         <ThemeProvider>
-          <OfflineBanner />
-          <ToastProvider>
-            <App />
-          </ToastProvider>
+          <FamilyModeProvider>
+            <OfflineBanner />
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </FamilyModeProvider>
         </ThemeProvider>
       </LanguageProvider>
     </ErrorBoundary>

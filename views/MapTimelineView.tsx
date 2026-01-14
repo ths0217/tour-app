@@ -9,6 +9,7 @@ import notificationService from '../services/NotificationService';
 interface MapTimelineViewProps {
     schedule: ScheduleItem[];
     selectedDay?: number;
+    familyMembers?: any[];
 }
 
 // Real coordinates for Bangkok locations
@@ -144,11 +145,34 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
     return null;
 }
 
-export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimelineViewProps) {
+export default function MapTimelineView({ schedule, selectedDay = 1, familyMembers = [] }: MapTimelineViewProps & { familyMembers?: any[] }) {
     const [focusedIndex, setFocusedIndex] = useState<number>(0);
     const [currentDay, setCurrentDay] = useState(selectedDay);
     const [mapCenter, setMapCenter] = useState<[number, number]>([13.7563, 100.5018]);
     const [mapZoom, setMapZoom] = useState(13);
+
+    // Family Guardian Features
+    const [showFamily, setShowFamily] = useState(true);
+    const [showFacilities, setShowFacilities] = useState(false);
+
+    // Mock live family locations based on map center
+    const familyLocations = useMemo(() => {
+        if (!mapCenter) return [];
+        return familyMembers.map((member, i) => ({
+            ...member,
+            lat: mapCenter[0] + (Math.random() - 0.5) * 0.01,
+            lng: mapCenter[1] + (Math.random() - 0.5) * 0.01,
+        }));
+    }, [mapCenter, familyMembers, showFamily]);
+
+    // Mock facilities
+    const facilities = useMemo(() => {
+        if (!mapCenter) return [];
+        return [
+            { id: 'wc1', type: 'wc', lat: mapCenter[0] + 0.002, lng: mapCenter[1] + 0.002 },
+            { id: 'sos1', type: 'sos', lat: mapCenter[0] - 0.002, lng: mapCenter[1] - 0.001 },
+        ];
+    }, [mapCenter]);
 
     const dayDates = useMemo(() => {
         return [...new Set(schedule.map(s => s.date))].sort();
@@ -382,6 +406,38 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
                         />
                     )}
 
+                    {/* Family Locator Markers */}
+                    {showFamily && familyLocations.map((member) => (
+                        <Marker
+                            key={member.id}
+                            position={[member.lat, member.lng]}
+                            icon={L.divIcon({
+                                className: 'family-marker',
+                                html: `<div style="width: 40px; height: 40px; border-radius: 50%; border: 3px solid #22c55e; overflow: hidden; background: white;">
+                                    <img src="${member.image.startsWith('gradient') ? '' : member.image}" style="width: 100%; height: 100%; object-fit: cover;" />
+                                </div>`,
+                                iconSize: [40, 40],
+                            })}
+                        >
+                            <Popup>{member.name} (上次更新: 剛剛)</Popup>
+                        </Marker>
+                    ))}
+
+                    {/* Facility Markers */}
+                    {showFacilities && facilities.map((fac) => (
+                        <Marker
+                            key={fac.id}
+                            position={[fac.lat, fac.lng]}
+                            icon={L.divIcon({
+                                className: 'facility-marker',
+                                html: `<div style="width: 32px; height: 32px; border-radius: 50%; background: ${fac.type === 'wc' ? '#f97316' : '#ef4444'}; display: flex; align-items: center; justify-content: center; color: white; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">${fac.type === 'wc' ? 'wc' : 'local_hospital'}</span>
+                                </div>`,
+                                iconSize: [32, 32],
+                            })}
+                        />
+                    ))}
+
                     {/* Markers */}
                     {locationsWithCoords.map((loc, i) => (
                         <Marker
@@ -434,6 +490,24 @@ export default function MapTimelineView({ schedule, selectedDay = 1 }: MapTimeli
 
                 <div className="absolute bottom-3 right-3 bg-black/50 backdrop-blur-sm rounded-lg px-2 py-1 z-[1000]">
                     <span className="text-[10px] text-white/70">OpenStreetMap</span>
+                </div>
+
+                {/* Family Guardian Toggles */}
+                <div className="absolute top-3 right-3 flex flex-col gap-2 z-[1000]">
+                    <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setShowFamily(!showFamily)}
+                        className={`w-10 h-10 rounded-full shadow-lg flex items-center justify-center border-2 border-white ${showFamily ? 'bg-green-500 text-white' : 'bg-white text-stone'}`}
+                    >
+                        <span className="material-symbols-outlined">group</span>
+                    </motion.button>
+                    <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setShowFacilities(!showFacilities)}
+                        className={`w-10 h-10 rounded-full shadow-lg flex items-center justify-center border-2 border-white ${showFacilities ? 'bg-orange-500 text-white' : 'bg-white text-stone'}`}
+                    >
+                        <span className="material-symbols-outlined">wc</span>
+                    </motion.button>
                 </div>
             </div>
 
