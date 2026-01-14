@@ -11,48 +11,50 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock initial user for 0-1 phase
-const MOCK_USER: User = {
-    id: 'mock-user-1',
-    name: 'Vickly',
-    role: 'Admin',
-    image: './avatars/me.jpg',
-};
+import { auth, GoogleAuthProvider } from '../services/firebase';
+import { signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate auth check delay
-        const initAuth = async () => {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            // In real app, check Firebase Auth state here
-            const stored = localStorage.getItem('tourapp_auth_user');
-            if (stored) {
-                setUser(JSON.parse(stored));
+        // Listen to Firebase Auth state
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            console.log('Auth State Changed:', firebaseUser ? 'Logged In' : 'Logged Out');
+            if (firebaseUser) {
+                setUser({
+                    id: firebaseUser.uid,
+                    name: firebaseUser.displayName || 'Traveler',
+                    role: 'Member', // Default role
+                    image: firebaseUser.photoURL || './avatars/me.jpg',
+                });
             } else {
-                // Auto-login for MVP demo comfort
-                setUser(MOCK_USER);
+                setUser(null);
             }
             setLoading(false);
-        };
-        initAuth();
+        });
+        return unsubscribe;
     }, []);
 
     const signIn = async () => {
         setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setUser(MOCK_USER);
-        localStorage.setItem('tourapp_auth_user', JSON.stringify(MOCK_USER));
+        try {
+            const provider = new GoogleAuthProvider();
+            await signInWithPopup(auth, provider);
+        } catch (error) {
+            console.error('Login failed', error);
+        }
         setLoading(false);
     };
 
     const signOut = async () => {
         setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        setUser(null);
-        localStorage.removeItem('tourapp_auth_user');
+        try {
+            await firebaseSignOut(auth);
+        } catch (error) {
+            console.error('Logout failed', error);
+        }
         setLoading(false);
     };
 
@@ -60,7 +62,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!user) return;
         const updated = { ...user, ...data };
         setUser(updated);
-        localStorage.setItem('tourapp_auth_user', JSON.stringify(updated));
     };
 
     return (

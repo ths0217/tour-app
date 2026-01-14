@@ -17,105 +17,119 @@ interface TripContextType {
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
 
-// Initial mock data
-const INITIAL_TRIP: Trip = {
-    id: 'trip-bkk-2025',
-    name: 'Bangkok Family Trip',
-    startDate: '2025-01-27',
-    endDate: '2025-01-31',
-    members: ['mock-user-1'],
-    budget: { total: 50000, currency: 'THB' },
-};
+import { db } from '../services/firebase';
+import { collection, doc, onSnapshot, setDoc, updateDoc, addDoc, query, where, Timestamp } from 'firebase/firestore';
 
 export function TripProvider({ children }: { children: ReactNode }) {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth(); // Depend on auth loading
     const [currentTrip, setCurrentTrip] = useState<Trip | null>(null);
     const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [memberLocations, setMemberLocations] = useState<Record<string, { lat: number; lng: number; lastSeen: number }>>({});
     const [loading, setLoading] = useState(true);
 
-    // Load initial data
-    useEffect(() => {
-        if (!user) return;
+    // Hardcoded Trip ID for MVP (Single Trip Mode)
+    const TRIP_ID = 'trip-bkk-2025';
 
-        // Simulate Firestore listener
+    useEffect(() => {
+        if (authLoading) return; // Wait for auth
+        if (!user) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
 
-        // Check LocalStorage first (migration path)
-        const storedSchedule = localStorage.getItem('tourapp_schedule');
-        const storedExpenses = localStorage.getItem('tourapp_expenses');
+        // 1. Listen to Trip Metadata
+        const tripRef = doc(db, 'trips', TRIP_ID);
+        const unsubTrip = onSnapshot(tripRef, (doc) => {
+            if (doc.exists()) {
+                setCurrentTrip({ id: doc.id, ...doc.data() } as Trip);
+            } else {
+                // Create initial trip if not exists (One-time setup)
+                setDoc(tripRef, {
+                    name: 'Bangkok Family Trip',
+                    startDate: '2025-01-27',
+                    endDate: '2025-01-31',
+                    members: [user.id],
+                    budget: { total: 50000, currency: 'THB' }
+                }, { merge: true });
+            }
+        });
 
-        setCurrentTrip(INITIAL_TRIP);
-        if (storedSchedule) setSchedule(JSON.parse(storedSchedule));
-        if (storedExpenses) setExpenses(JSON.parse(storedExpenses));
+        // 2. Listen to Schedule (Real-time!)
+        const scheduleRef = collection(db, 'trips', TRIP_ID, 'schedule');
+        const unsubSchedule = onSnapshot(scheduleRef, (snapshot) => {
+            const items = snapshot.docs.map(doc => ({ id: Number(doc.id), ...doc.data() } as ScheduleItem));
+            setSchedule(items.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)));
+        });
+
+        // 3. Listen to Expenses
+        const expenseRef = collection(db, 'trips', TRIP_ID, 'expenses');
+        const unsubExpense = onSnapshot(expenseRef, (snapshot) => {
+            const items = snapshot.docs.map(doc => ({ id: Number(doc.id), ...doc.data() } as Expense));
+            setExpenses(items);
+        });
+
+        // 4. Listen to Family Locations (Users collection)
+        // In a real app, query by tripId. For now, just listen to known family IDs if possible or all users
+        const usersRef = collection(db, 'users');
+        const unsubUsers = onSnapshot(usersRef, (snapshot) => {
+            const locations: Record<string, any> = {};
+            snapshot.docs.forEach(doc => {
+                const data = doc.data();
+                if (data.location) {
+                    locations[doc.id] = data.location;
+                }
+            });
+            setMemberLocations(locations);
+        });
 
         setLoading(false);
+
+        return () => {
+            unsubTrip();
+            unsubSchedule();
+            unsubExpense();
+            unsubUsers();
+        };
     }, [user]);
 
-    // Sync to Cloud (Mock)
-    const syncToCloud = async () => {
-        // In real app: firestore.collection('trips').doc(id).update(...)
-        console.log('Syncing to cloud...');
-        localStorage.setItem('tourapp_schedule', JSON.stringify(schedule));
-        localStorage.setItem('tourapp_expenses', JSON.stringify(expenses));
-    };
-
-    useEffect(() => {
-        if (!loading) syncToCloud();
-    }, [schedule, expenses]);
-
     const addScheduleItem = async (item: ScheduleItem) => {
-        setSchedule(prev => [...prev, item]);
+        // ID is used as doc ID for simplicity in this migration
+        const ref = doc(db, 'trips', TRIP_ID, 'schedule', String(item.id));
+        await setDoc(ref, item);
     };
 
-    const updateScheduleItem = async (updatedItem: ScheduleItem) => {
-        setSchedule(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
+    const updateScheduleItem = async (item: ScheduleItem) => {
+        const ref = doc(db, 'trips', TRIP_ID, 'schedule', String(item.id));
+        await updateDoc(ref, { ...item });
     };
 
     const removeScheduleItem = async (id: number) => {
-        setSchedule(prev => prev.filter(item => item.id !== id));
+        // await deleteDoc(...) - not implemented in interface yet
     };
 
     const addExpense = async (expense: Expense) => {
-        setExpenses(prev => [...prev, expense]);
+        const ref = doc(db, 'trips', TRIP_ID, 'expenses', String(expense.id));
+        await setDoc(ref, expense);
     };
 
     const updateMyLocation = async (lat: number, lng: number) => {
         if (!user) return;
-        // In real app: firestore.collection('users').doc(user.id).update({ location: ... })
-        setMemberLocations(prev => ({
-            ...prev,
-            [user.id]: { lat, lng, lastSeen: Date.now() }
-        }));
-
-        // Simulate other members moving randomly near me (for demo continuity)
-        if (Math.random() > 0.9) {
-            ['sherry', 'mom'].forEach(id => {
-                setMemberLocations(prev => ({
-                    ...prev,
-                    [id]: {
-                        lat: lat + (Math.random() - 0.5) * 0.005,
-                        lng: lng + (Math.random() - 0.5) * 0.005,
-                        lastSeen: Date.now()
-                    }
-                }));
-            });
-        }
+        const userRef = doc(db, 'users', user.id);
+        await setDoc(userRef, {
+            location: { lat, lng, lastSeen: Date.now() },
+            displayName: user.name,
+            photoURL: user.image
+        }, { merge: true });
     };
 
     return (
         <TripContext.Provider value={{
-            currentTrip,
-            schedule,
-            expenses,
-            loading,
-            addScheduleItem,
-            updateScheduleItem,
-            removeScheduleItem,
-            addExpense,
-            memberLocations,
-            updateMyLocation
+            currentTrip, schedule, expenses, loading,
+            addScheduleItem, updateScheduleItem, removeScheduleItem, addExpense,
+            memberLocations, updateMyLocation
         }}>
             {children}
         </TripContext.Provider>
