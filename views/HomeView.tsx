@@ -11,6 +11,7 @@ import LocalInfo from '../components/LocalInfo';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import NotificationSettings from '../components/NotificationSettings';
 // ExpertReview component removed per user request
+import SmartSuggestions from '../components/SmartSuggestions';
 
 const familyMembersData = [
   { id: 'vickly', name: 'Vickly', role: '我', image: './avatars/me.jpg' },
@@ -336,6 +337,12 @@ export default function HomeView({ user, budget, schedule, setSchedule, onLogout
           )}
         </motion.div>
       )}
+
+      {/* Smart Suggestions (AI) */}
+      <SmartSuggestions onAdd={(item) => {
+        setShowAddedToast('已將 AI 建議加入行程');
+        setTimeout(() => setShowAddedToast(null), 2000);
+      }} />
 
       {/* Travel Companions */}
       <div className="px-4 mb-6">

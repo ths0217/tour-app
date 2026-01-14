@@ -92,8 +92,8 @@ export default function ItineraryCard({ item, onToggle, onPress, layoutId }: Iti
             whileTap={{ scale: 0.85 }}
             onClick={handleToggle}
             className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${item.completed
-                ? 'bg-ios-green border-ios-green'
-                : 'border-ios-gray3 bg-white'
+              ? 'bg-ios-green border-ios-green'
+              : 'border-ios-gray3 bg-white'
               }`}
           >
             {item.completed && (
@@ -157,6 +157,31 @@ export default function ItineraryCard({ item, onToggle, onPress, layoutId }: Iti
           )}
         </div>
       </div>
+
+      {/* Partner Actions (Commercial Optimization) */}
+      {!item.completed && (item.type === 'flight' || item.type === 'accommodation' || item.type === 'activity') && (
+        <div className="bg-ios-gray6 px-4 py-2 flex items-center justify-between border-t border-ios-separator">
+          <span className="text-[10px] text-ios-secondaryLabel uppercase font-bold tracking-wider">Sponsored</span>
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const urls: Record<string, string> = {
+                flight: 'https://www.skyscanner.com.tw',
+                accommodation: 'https://www.agoda.com',
+                activity: 'https://www.klook.com'
+              };
+              window.open(urls[item.type!] || 'https://www.google.com', '_blank');
+            }}
+            className="flex items-center gap-1 bg-white border border-ios-gray3 px-3 py-1 rounded-full text-[11px] font-medium text-ios-blue shadow-sm"
+          >
+            {item.type === 'flight' && <span className="material-symbols-outlined text-[14px]">flight</span>}
+            {item.type === 'accommodation' && <span className="material-symbols-outlined text-[14px]">bed</span>}
+            {item.type === 'activity' && <span className="material-symbols-outlined text-[14px]">local_activity</span>}
+            {item.type === 'flight' ? '查機票' : item.type === 'accommodation' ? '查房價' : '預訂門票'}
+          </motion.button>
+        </div>
+      )}
     </motion.div>
   );
 }

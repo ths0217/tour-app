@@ -784,6 +784,31 @@ export default function WalletView({ user, expenses, setExpenses, budgetGoal, se
                 )}
             </AnimatePresence>
 
+            {/* Ops Optimization: Feedback Module */}
+            <div className="mx-4 mb-24">
+                <h3 className="text-mag-title text-charcoal mb-4 px-2">支援與反饋</h3>
+                <div className="bg-white rounded-mag shadow-mag overflow-hidden">
+                    <motion.button
+                        whileTap={{ backgroundColor: '#F2F2F7' }}
+                        onClick={() => {
+                            const issue = window.prompt('請描述您遇到的問題或建議：');
+                            if (issue) {
+                                alert('收到！感謝您的反饋，營運團隊會盡快處理。');
+                            }
+                        }}
+                        className="w-full flex items-center justify-between p-4 bg-white"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                                <span className="material-symbols-outlined">feedback</span>
+                            </div>
+                            <span className="text-mag-body text-charcoal font-medium">回報問題 / 建議</span>
+                        </div>
+                        <span className="material-symbols-outlined text-stone text-[20px]">chevron_right</span>
+                    </motion.button>
+                </div>
+            </div>
+
             {/* Currency Converter FAB */}
             <motion.button
                 whileTap={{ scale: 0.9 }}
