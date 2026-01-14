@@ -145,7 +145,20 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
     return null;
 }
 
+import { useTrip } from '../contexts/TripContext';
+import { useGeolocation } from '../hooks/useGeolocation';
+
 export default function MapTimelineView({ schedule, selectedDay = 1, familyMembers = [] }: MapTimelineViewProps & { familyMembers?: any[] }) {
+    const { memberLocations, updateMyLocation } = useTrip();
+    const { coords } = useGeolocation();
+
+    // Sync my location to Context
+    useEffect(() => {
+        if (coords) {
+            updateMyLocation(coords.lat, coords.lng);
+        }
+    }, [coords]);
+
     const [focusedIndex, setFocusedIndex] = useState<number>(0);
     const [currentDay, setCurrentDay] = useState(selectedDay);
     const [mapCenter, setMapCenter] = useState<[number, number]>([13.7563, 100.5018]);
@@ -155,15 +168,22 @@ export default function MapTimelineView({ schedule, selectedDay = 1, familyMembe
     const [showFamily, setShowFamily] = useState(true);
     const [showFacilities, setShowFacilities] = useState(false);
 
-    // Mock live family locations based on map center
+    // Merge static family data with live locations from Context
     const familyLocations = useMemo(() => {
-        if (!mapCenter) return [];
-        return familyMembers.map((member, i) => ({
-            ...member,
-            lat: mapCenter[0] + (Math.random() - 0.5) * 0.01,
-            lng: mapCenter[1] + (Math.random() - 0.5) * 0.01,
-        }));
-    }, [mapCenter, familyMembers, showFamily]);
+        return familyMembers.map((member) => {
+            const loc = memberLocations[member.id];
+            // Fallback to random near center if no location (for demo continuity before GPS kick in)
+            const fallbackLat = mapCenter[0] + (Math.random() - 0.5) * 0.01;
+            const fallbackLng = mapCenter[1] + (Math.random() - 0.5) * 0.01;
+
+            return {
+                ...member,
+                lat: loc?.lat ?? fallbackLat,
+                lng: loc?.lng ?? fallbackLng,
+                lastSeen: loc?.lastSeen
+            };
+        });
+    }, [familyMembers, memberLocations, mapCenter]);
 
     // Mock facilities
     const facilities = useMemo(() => {

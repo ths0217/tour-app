@@ -77,3 +77,16 @@ export interface ScheduleItem {
   closedDays?: string; // e.g. "週一休"
   estimatedCost?: number; // Estimated cost in THB
 }
+
+export interface Trip {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  members: string[]; // User IDs
+  joinCode?: string;
+  budget: {
+    total: number;
+    currency: string;
+  };
+}
