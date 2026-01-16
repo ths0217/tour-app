@@ -9,6 +9,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  errorInfo?: React.ErrorInfo;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -46,22 +47,30 @@ export class ErrorBoundary extends Component<Props, State> {
           >
             <span className="text-[40px]">😵</span>
           </motion.div>
-          
+
           <h2 className="text-[18px] font-bold text-charcoal mb-2">
             哎呀！出錯了
           </h2>
-          <p className="text-[13px] text-stone mb-6 max-w-[280px]">
-            發生了一些問題，請點擊下方按鈕重試
-          </p>
-          
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={this.handleRetry}
-            className="px-6 py-3 bg-red-xhs text-white rounded-mag font-semibold text-[14px] shadow-mag"
+          <p className="text-stone mb-6">發生了一些問題，請點擊下方按鈕重試</p>
+
+          {/* Debug Info for User */}
+          <div className="w-full max-w-xs bg-red-50 p-3 rounded-lg border border-red-100 mb-6 text-left overflow-hidden">
+            <p className="text-[10px] text-red-500 font-mono break-all font-bold mb-1">
+              Error: {this.state.error?.message || 'Unknown Error'}
+            </p>
+            <details className="text-[10px] text-red-400 font-mono whitespace-pre-wrap">
+              <summary>Stack Trace</summary>
+              {this.state.errorInfo?.componentStack || 'No stack trace'}
+            </details>
+          </div>
+
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-[#F43F5E] text-white rounded-full font-bold shadow-lg shadow-red-500/30 active:scale-95 transition-transform"
           >
             重新載入
-          </motion.button>
-          
+          </button>
+
           {process.env.NODE_ENV === 'development' && this.state.error && (
             <details className="mt-6 text-left w-full max-w-sm">
               <summary className="text-[12px] text-stone cursor-pointer">技術詳情</summary>

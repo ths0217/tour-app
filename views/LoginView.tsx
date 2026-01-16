@@ -18,14 +18,14 @@ export default function LoginView({ onLogin, familyMembers }: LoginViewProps) {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
             {/* Background Image with Overlay */}
-            <div 
+            <div
                 className="absolute inset-0 bg-cover bg-center"
-                style={{ 
+                style={{
                     backgroundImage: 'url(https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&q=80)',
                 }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
-            
+
             <div className="relative z-10 w-full max-w-sm">
                 {/* Logo & Title */}
                 <motion.div
@@ -34,7 +34,7 @@ export default function LoginView({ onLogin, familyMembers }: LoginViewProps) {
                     transition={{ duration: 0.6 }}
                     className="text-center mb-10"
                 >
-                    <motion.div 
+                    <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -48,48 +48,33 @@ export default function LoginView({ onLogin, familyMembers }: LoginViewProps) {
                     <p className="text-white/80 text-mag-body">7天6夜・家庭之旅</p>
                 </motion.div>
 
-                {/* User Selection */}
+                {/* Login Button */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.5 }}
-                    className="glass-strong rounded-mag-xl p-6 shadow-mag"
+                    className="flex flex-col items-center"
                 >
-                    <p className="text-center text-mag-caption text-stone mb-5">選擇你的身份開始旅程</p>
-                    
-                    <div className="grid grid-cols-2 gap-3">
-                        {familyMembers.map((user, index) => (
-                            <motion.button
-                                key={user.id}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.4 + index * 0.1 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => onLogin(user)}
-                                className="flex flex-col items-center p-4 rounded-mag bg-cream hover:bg-white transition-colors duration-200 group"
-                            >
-                                <div className="relative mb-3">
-                                    {user.image.startsWith('gradient:') ? (
-                                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${user.image.split(':')[1]} flex items-center justify-center text-white text-[24px] font-bold shadow-mag ring-2 ring-white group-hover:ring-red-xhs transition-all duration-200`}>
-                                            {user.image.split(':')[2]}
-                                        </div>
-                                    ) : (
-                                        <img 
-                                            src={user.image} 
-                                            alt={user.name} 
-                                            className="w-16 h-16 rounded-full object-cover shadow-mag ring-2 ring-white group-hover:ring-red-xhs transition-all duration-200" 
-                                        />
-                                    )}
-                                </div>
-                                <span className="text-mag-body font-semibold text-charcoal">{user.name}</span>
-                                <span className="text-mag-badge text-stone">{user.role}</span>
-                            </motion.button>
-                        ))}
-                    </div>
+                    <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => onLogin({} as any)} // Pass dummy, handled by Google Auth
+                        className="bg-white text-charcoal font-bold py-3.5 px-8 rounded-full shadow-lg flex items-center gap-3 w-full max-w-[280px] justify-center border border-stone/10"
+                    >
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                        <span>使用 Google 帳號登入</span>
+                    </motion.button>
+
+                    <p className="text-white/60 text-[12px] mt-6 text-center max-w-[260px]">
+                        登入即代表您同意加入
+                        <br />
+                        <span className="text-white/90 font-semibold">曼谷家庭旅遊 2025</span>
+                        的即時協作群組
+                    </p>
                 </motion.div>
 
                 {/* Footer */}
-                <motion.p 
+                <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8 }}

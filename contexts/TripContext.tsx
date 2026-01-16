@@ -53,8 +53,11 @@ export function TripProvider({ children }: { children: ReactNode }) {
                     endDate: '2025-01-31',
                     members: [user.id],
                     budget: { total: 50000, currency: 'THB' }
-                }, { merge: true });
+                }, { merge: true }).catch(err => console.error("Create Trip Error:", err));
             }
+        }, (error) => {
+            console.error("Trip Snapshot Error:", error);
+            // Don't crash, just log
         });
 
         // 2. Listen to Schedule (Real-time!)
@@ -62,14 +65,14 @@ export function TripProvider({ children }: { children: ReactNode }) {
         const unsubSchedule = onSnapshot(scheduleRef, (snapshot) => {
             const items = snapshot.docs.map(doc => ({ id: Number(doc.id), ...doc.data() } as ScheduleItem));
             setSchedule(items.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)));
-        });
+        }, (error) => console.error("Schedule Snapshot Error:", error));
 
         // 3. Listen to Expenses
         const expenseRef = collection(db, 'trips', TRIP_ID, 'expenses');
         const unsubExpense = onSnapshot(expenseRef, (snapshot) => {
             const items = snapshot.docs.map(doc => ({ id: Number(doc.id), ...doc.data() } as Expense));
             setExpenses(items);
-        });
+        }, (error) => console.error("Expense Snapshot Error:", error));
 
         // 4. Listen to Family Locations (Users collection)
         // In a real app, query by tripId. For now, just listen to known family IDs if possible or all users
@@ -83,7 +86,7 @@ export function TripProvider({ children }: { children: ReactNode }) {
                 }
             });
             setMemberLocations(locations);
-        });
+        }, (error) => console.error("Users Snapshot Error:", error));
 
         setLoading(false);
 
