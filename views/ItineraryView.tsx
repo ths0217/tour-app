@@ -16,6 +16,7 @@ import TransportLinks from '../components/TransportLinks';
 import DriverCard from '../components/DriverCard';
 import CalendarExport from '../components/CalendarExport';
 import ShareImageGenerator from '../components/ShareImageGenerator';
+import LocationSearch from '../components/LocationSearch';
 import { openMap } from '../utils/device';
 
 const days = [
@@ -471,12 +472,10 @@ export default function ItineraryView({ schedule, setSchedule }: ItineraryViewPr
 
                     <div className="bg-white rounded-mag p-4 shadow-mag">
                       <label className="text-mag-caption text-stone block mb-2">地點</label>
-                      <input
-                        type="text"
+                      <LocationSearch
                         value={newLocation}
-                        onChange={(e) => setNewLocation(e.target.value)}
-                        placeholder="例如：Wat Arun"
-                        className="w-full text-mag-body text-charcoal bg-transparent outline-none placeholder:text-stone/50"
+                        onChange={setNewLocation}
+                        placeholder="例如：Wat Arun (搜尋地點...)"
                       />
                     </div>
 
