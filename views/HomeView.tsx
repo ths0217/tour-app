@@ -136,13 +136,83 @@ interface HomeViewProps {
 }
 
 import { useFamilyMode } from '../contexts/FamilyModeContext';
+import { weatherService } from '../services/WeatherService';
 
 // ... imports ...
 
 export default function HomeView({ user, budget, schedule, setSchedule, onLogout, familyMembers, onUpdateFamilyMember }: HomeViewProps) {
   const { isElderlyMode, toggleElderlyMode } = useFamilyMode();
-  // ... state ...
 
+  // === ALL STATE DECLARATIONS ===
+  const [weather, setWeather] = useState({ temp: '--', label: '載入中...', icon: 'sunny' });
+  const [likedDestinations, setLikedDestinations] = useState<Set<number>>(new Set());
+  const [showCurrency, setShowCurrency] = useState(false);
+  const [showEmergency, setShowEmergency] = useState(false);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [showTipCalc, setShowTipCalc] = useState(false);
+  const [showLocalInfo, setShowLocalInfo] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [addedTrending, setAddedTrending] = useState<Set<string>>(new Set());
+  const [showAddedToast, setShowAddedToast] = useState<string | null>(null);
+
+  // Safe budget with fallback
+  const safeBudget = budget || { total: 50000, remaining: 38500, spent: 11500 };
+  const spentPercent = (safeBudget.spent / safeBudget.total) * 100;
+
+  // Fetch Bangkok weather on mount
+  useEffect(() => {
+    weatherService.getCurrentWeather().then(data => {
+      if (data) {
+        setWeather({ temp: `${data.temperature}°C`, label: data.condition, icon: data.icon });
+      }
+    }).catch(() => {
+      setWeather({ temp: '32°C', label: '晴朗', icon: 'sunny' });
+    });
+  }, []);
+
+  // Greeting based on time of day
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return '早安';
+    if (hour < 18) return '午安';
+    return '晚安';
+  };
+
+  // Toggle destination like
+  const toggleLike = (id: number) => {
+    setLikedDestinations(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Next upcoming event
+  const sortedSchedule = [...schedule].sort((a, b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
+    return a.time.localeCompare(b.time);
+  });
+  const nextEvent = sortedSchedule.find(e => !e.completed);
+
+  // Add trending item to schedule
+  const addTrendingToSchedule = (item: typeof trendingItineraries[0]) => {
+    if (addedTrending.has(item.id)) return;
+    const newItem: ScheduleItem = {
+      id: Date.now(),
+      title: item.title,
+      time: item.time,
+      date: '2025-01-28',
+      type: item.type,
+      location: item.location,
+      desc: item.desc,
+      completed: false,
+    };
+    setSchedule(prev => [...prev, newItem]);
+    setAddedTrending(prev => new Set(prev).add(item.id));
+    setShowAddedToast(item.title);
+    setTimeout(() => setShowAddedToast(null), 2000);
+  };
   // Elder Mode UI
   if (isElderlyMode) {
     return (
