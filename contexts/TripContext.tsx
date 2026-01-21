@@ -63,26 +63,27 @@ export function TripProvider({ children }: { children: ReactNode }) {
         // 2. Listen to Schedule (Real-time!)
         const scheduleRef = collection(db, 'trips', TRIP_ID, 'schedule');
         const unsubSchedule = onSnapshot(scheduleRef, async (snapshot) => {
+            // Data Migration: Only run if cloud is empty AND local data exists
             if (snapshot.empty) {
-                // >>> MIGRATION STRATEGY: Auto-seed from LocalStorage if Cloud is empty <<<
                 const localSchedule = localStorage.getItem('tourapp_schedule');
                 if (localSchedule) {
                     try {
-                        console.log("🚀 Migrating Local Schedule to Cloud...");
-                        const items = JSON.parse(localSchedule);
-                        for (const item of items) {
-                            const ref = doc(db, 'trips', TRIP_ID, 'schedule', String(item.id));
-                            await setDoc(ref, item);
+                        const items = JSON.parse(localSchedule) as ScheduleItem[];
+                        if (Array.isArray(items)) {
+                            console.log("Storage Migration: Uploading legacy schedule...");
+                            for (const item of items) {
+                                const ref = doc(db, 'trips', TRIP_ID, 'schedule', String(item.id));
+                                await setDoc(ref, item);
+                            }
                         }
-                        console.log("✅ Schedule Migration Complete");
                     } catch (e) {
-                        console.error("Migration Failed", e);
+                        console.error("Migration Error", e);
                     }
                 }
             }
             const items = snapshot.docs.map(doc => ({ id: Number(doc.id), ...doc.data() } as ScheduleItem));
             setSchedule(items.sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time)));
-        }, (error) => console.error("Schedule Snapshot Error:", error));
+        }, (error) => console.error("Schedule Sync Error:", error));
 
         // 3. Listen to Expenses
         const expenseRef = collection(db, 'trips', TRIP_ID, 'expenses');

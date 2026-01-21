@@ -12,13 +12,24 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 import { auth, GoogleAuthProvider } from '../services/firebase';
-import { signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
+import { signInWithRedirect, signOut as firebaseSignOut, onAuthStateChanged, getRedirectResult } from 'firebase/auth';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Handle redirect result (for mobile login flow)
+        getRedirectResult(auth)
+            .then((result) => {
+                if (result?.user) {
+                    console.log('Redirect login successful');
+                }
+            })
+            .catch((error) => {
+                console.error('Redirect result error:', error);
+            });
+
         // Listen to Firebase Auth state
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
             console.log('Auth State Changed:', firebaseUser ? 'Logged In' : 'Logged Out');
@@ -41,11 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(true);
         try {
             const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
+            // Use redirect instead of popup for mobile compatibility
+            await signInWithRedirect(auth, provider);
         } catch (error) {
             console.error('Login failed', error);
+            setLoading(false);
         }
-        setLoading(false);
+        // Note: setLoading(false) not needed here as page will redirect
     };
 
     const signOut = async () => {
